@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.navo.android.application)
     alias(libs.plugins.navo.android.compose)
+    alias(libs.plugins.navo.hilt)
 }
 
 android {
@@ -24,11 +25,14 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.common)
     implementation(projects.core.designsystem)
+    implementation(projects.core.ui)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.kotlinx.coroutines.core)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
