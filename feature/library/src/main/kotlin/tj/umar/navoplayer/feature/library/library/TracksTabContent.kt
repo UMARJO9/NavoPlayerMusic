@@ -181,7 +181,7 @@ private fun CenteredBox(modifier: Modifier, content: @Composable () -> Unit) {
     }
 }
 
-private val previewTracks = listOf(
+internal val previewTracks = listOf(
     Track(1, "Alpha", "Navo Band", "First", 10, 100, 185_000, 1, "content://media/1"),
     Track(2, "", null, null, null, null, 42_000, null, "content://media/2"),
     Track(3, "Long Mix", "DJ Navo", "Mixes", 11, 101, 3_725_000, 2, "content://media/3"),

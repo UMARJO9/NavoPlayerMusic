@@ -25,6 +25,4 @@ class FakeTrackRepository : TrackRepository {
     suspend fun emit(value: List<Track>) {
         tracks.emit(value)
     }
-
-    fun tryEmit(value: List<Track>): Boolean = tracks.tryEmit(value)
 }

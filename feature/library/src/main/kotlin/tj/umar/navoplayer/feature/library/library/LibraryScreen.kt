@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
-import tj.umar.navoplayer.core.domain.model.Track
 import tj.umar.navoplayer.feature.library.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,10 +73,7 @@ private fun LibraryScreenPreview() {
         LibraryScreen(
             state = LibraryState(
                 audioPermission = AudioPermissionStatus.Granted,
-                tracks = listOf(
-                    Track(1, "Alpha", "Navo Band", "First", 10, 100, 185_000, 1, "content://media/1"),
-                    Track(2, "beta", null, null, null, null, 42_000, null, "content://media/2"),
-                ),
+                tracks = previewTracks,
             ),
             onIntent = {},
         )
