@@ -5,7 +5,7 @@ import tj.umar.navoplayer.core.ui.mvi.MviViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class LibraryViewModel @Inject constructor() :
+internal class LibraryViewModel @Inject constructor() :
     MviViewModel<LibraryState, LibraryIntent, LibraryEffect>(LibraryState()) {
 
     override fun onIntent(intent: LibraryIntent) {

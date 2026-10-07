@@ -4,7 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import tj.umar.navoplayer.feature.library.R
 
-enum class LibraryTab(@param:StringRes val titleRes: Int) {
+internal enum class LibraryTab(@param:StringRes val titleRes: Int) {
     Tracks(R.string.library_tab_tracks),
     Albums(R.string.library_tab_albums),
     Artists(R.string.library_tab_artists),
@@ -12,12 +12,12 @@ enum class LibraryTab(@param:StringRes val titleRes: Int) {
 }
 
 @Immutable
-data class LibraryState(
+internal data class LibraryState(
     val selectedTab: LibraryTab = LibraryTab.Tracks,
 )
 
-sealed interface LibraryIntent {
+internal sealed interface LibraryIntent {
     data class TabSelected(val tab: LibraryTab) : LibraryIntent
 }
 
-sealed interface LibraryEffect
+internal sealed interface LibraryEffect
