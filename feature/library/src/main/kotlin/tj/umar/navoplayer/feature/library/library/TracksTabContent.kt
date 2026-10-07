@@ -1,0 +1,217 @@
+package tj.umar.navoplayer.feature.library.library
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.unit.dp
+import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
+import tj.umar.navoplayer.core.domain.model.Track
+import tj.umar.navoplayer.core.ui.format.formatDuration
+import tj.umar.navoplayer.feature.library.R
+
+@Composable
+internal fun TracksTabContent(
+    state: LibraryState,
+    onIntent: (LibraryIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    when (state.audioPermission) {
+        AudioPermissionStatus.Unknown -> Box(modifier)
+        AudioPermissionStatus.Denied -> PermissionRequestContent(
+            permanentlyDenied = false,
+            onGrantClick = { onIntent(LibraryIntent.GrantPermissionClicked) },
+            modifier = modifier,
+        )
+        AudioPermissionStatus.PermanentlyDenied -> PermissionRequestContent(
+            permanentlyDenied = true,
+            onGrantClick = { onIntent(LibraryIntent.GrantPermissionClicked) },
+            modifier = modifier,
+        )
+        AudioPermissionStatus.Granted -> GrantedTracksContent(state, modifier)
+    }
+}
+
+@Composable
+private fun GrantedTracksContent(state: LibraryState, modifier: Modifier) {
+    when {
+        state.isLoadingTracks && state.tracks.isEmpty() -> CenteredBox(modifier) {
+            CircularProgressIndicator()
+        }
+        state.tracksLoadFailed -> CenteredMessage(stringResource(R.string.library_tracks_error), modifier)
+        state.tracks.isEmpty() -> CenteredMessage(stringResource(R.string.library_tracks_empty), modifier)
+        else -> TrackList(state.tracks, modifier)
+    }
+}
+
+@Composable
+private fun TrackList(tracks: List<Track>, modifier: Modifier) {
+    LazyColumn(modifier = modifier) {
+        items(tracks, key = { it.id }) { track ->
+            TrackRow(
+                title = track.title,
+                artist = track.artist,
+                durationMs = track.durationMs,
+            )
+        }
+    }
+}
+
+@Composable
+private fun TrackRow(
+    title: String,
+    artist: String?,
+    durationMs: Long,
+    modifier: Modifier = Modifier,
+) {
+    ListItem(
+        modifier = modifier,
+        headlineContent = {
+            Text(
+                text = title.ifBlank { stringResource(R.string.library_unknown_title) },
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        },
+        supportingContent = {
+            Text(
+                text = artist ?: stringResource(R.string.library_unknown_artist),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        },
+        trailingContent = {
+            Text(
+                text = formatDuration(durationMs),
+                style = MaterialTheme.typography.labelMedium,
+            )
+        },
+    )
+}
+
+@Composable
+private fun PermissionRequestContent(
+    permanentlyDenied: Boolean,
+    onGrantClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(horizontal = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = stringResource(R.string.library_permission_rationale),
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+        )
+        Button(onClick = onGrantClick) {
+            val label = if (permanentlyDenied) {
+                R.string.library_permission_open_settings
+            } else {
+                R.string.library_permission_grant
+            }
+            Text(stringResource(label))
+        }
+    }
+}
+
+@Composable
+private fun CenteredMessage(text: String, modifier: Modifier) {
+    CenteredBox(modifier) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 32.dp),
+        )
+    }
+}
+
+@Composable
+private fun CenteredBox(modifier: Modifier, content: @Composable () -> Unit) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        content()
+    }
+}
+
+private val previewTracks = listOf(
+    Track(1, "Alpha", "Navo Band", "First", 10, 100, 185_000, 1, "content://media/1"),
+    Track(2, "", null, null, null, null, 42_000, null, "content://media/2"),
+    Track(3, "Long Mix", "DJ Navo", "Mixes", 11, 101, 3_725_000, 2, "content://media/3"),
+)
+
+@PreviewLightDark
+@Composable
+private fun TracksListPreview() {
+    NavoTheme {
+        TracksTabContent(
+            state = LibraryState(audioPermission = AudioPermissionStatus.Granted, tracks = previewTracks),
+            onIntent = {},
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun TracksLoadingPreview() {
+    NavoTheme {
+        TracksTabContent(
+            state = LibraryState(audioPermission = AudioPermissionStatus.Granted, isLoadingTracks = true),
+            onIntent = {},
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun TracksEmptyPreview() {
+    NavoTheme {
+        TracksTabContent(
+            state = LibraryState(audioPermission = AudioPermissionStatus.Granted),
+            onIntent = {},
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun TracksPermissionDeniedPreview() {
+    NavoTheme {
+        TracksTabContent(
+            state = LibraryState(audioPermission = AudioPermissionStatus.Denied),
+            onIntent = {},
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun TracksPermissionPermanentlyDeniedPreview() {
+    NavoTheme {
+        TracksTabContent(
+            state = LibraryState(audioPermission = AudioPermissionStatus.PermanentlyDenied),
+            onIntent = {},
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
+}

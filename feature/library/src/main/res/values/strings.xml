@@ -5,4 +5,11 @@
     <string name="library_tab_artists">Artists</string>
     <string name="library_tab_folders">Folders</string>
     <string name="library_placeholder_empty">Nothing here yet</string>
+    <string name="library_unknown_artist">Unknown artist</string>
+    <string name="library_unknown_title">Unknown title</string>
+    <string name="library_tracks_empty">No music found on this device</string>
+    <string name="library_tracks_error">Couldn\'t load your music</string>
+    <string name="library_permission_rationale">Navo needs access to audio files on this device to show your music.</string>
+    <string name="library_permission_grant">Allow access</string>
+    <string name="library_permission_open_settings">Open settings</string>
 </resources>
