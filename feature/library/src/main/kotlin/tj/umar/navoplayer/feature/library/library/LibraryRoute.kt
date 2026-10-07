@@ -1,6 +1,7 @@
 package tj.umar.navoplayer.feature.library.library
 
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -69,9 +70,13 @@ private fun Activity?.shouldShowAudioRationale(): Boolean =
     this?.shouldShowRequestPermissionRationale(audioReadPermission) ?: false
 
 private fun Context.openAppSettings() {
-    val intent = Intent(
+    val appDetails = Intent(
         Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
         Uri.fromParts("package", packageName, null),
-    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    startActivity(intent)
+    )
+    try {
+        startActivity(appDetails)
+    } catch (e: ActivityNotFoundException) {
+        runCatching { startActivity(Intent(Settings.ACTION_SETTINGS)) }
+    }
 }
