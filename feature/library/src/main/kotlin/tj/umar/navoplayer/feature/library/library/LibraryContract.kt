@@ -33,6 +33,7 @@ internal sealed interface LibraryIntent {
     ) : LibraryIntent
     data object GrantPermissionClicked : LibraryIntent
     data object RetryLoadTracks : LibraryIntent
+    data object ScreenStopped : LibraryIntent
 }
 
 internal sealed interface LibraryEffect {

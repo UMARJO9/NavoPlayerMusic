@@ -34,6 +34,7 @@ internal class LibraryViewModel @Inject constructor(
             is LibraryIntent.PermissionResult -> onPermissionResult(intent)
             LibraryIntent.GrantPermissionClicked -> onGrantPermissionClicked()
             LibraryIntent.RetryLoadTracks -> startObservingTracks()
+            LibraryIntent.ScreenStopped -> stopObservingTracks()
         }
     }
 
@@ -99,6 +100,11 @@ internal class LibraryViewModel @Inject constructor(
             .onEach { tracks -> setState { copy(tracks = tracks, isLoadingTracks = false) } }
             .catch { setState { copy(isLoadingTracks = false, tracksLoadFailed = true) } }
             .launchIn(viewModelScope)
+    }
+
+    private fun stopObservingTracks() {
+        tracksJob?.cancel()
+        tracksJob = null
     }
 
     private fun updatePermission(status: AudioPermissionStatus) {

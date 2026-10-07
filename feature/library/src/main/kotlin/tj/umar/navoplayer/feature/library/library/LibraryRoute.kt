@@ -15,7 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import tj.umar.navoplayer.core.ui.mvi.CollectEffects
 import tj.umar.navoplayer.core.ui.permission.audioReadPermission
@@ -43,9 +43,9 @@ internal fun LibraryRoute(
         )
     }
 
-    LifecycleResumeEffect(Unit) {
+    LifecycleStartEffect(Unit) {
         viewModel.onIntent(LibraryIntent.PermissionChecked(context.hasAudioReadPermission()))
-        onPauseOrDispose { }
+        onStopOrDispose { viewModel.onIntent(LibraryIntent.ScreenStopped) }
     }
 
     viewModel.effects.CollectEffects { effect ->

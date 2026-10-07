@@ -255,6 +255,20 @@ class LibraryViewModelTest {
         assertEquals(1, repository.observeCalls)
     }
 
+    @Test
+    fun `screen stop ends observation and start resumes it`() = runTest {
+        viewModel.onIntent(LibraryIntent.PermissionChecked(granted = true))
+        repository.emit(TestTracks.tracks)
+
+        viewModel.onIntent(LibraryIntent.ScreenStopped)
+        repository.emit(listOf(TestTracks.alpha))
+        assertEquals(TestTracks.tracks, viewModel.state.value.tracks)
+
+        viewModel.onIntent(LibraryIntent.PermissionChecked(granted = true))
+        assertEquals(2, repository.observeCalls)
+        assertEquals(listOf(TestTracks.alpha), viewModel.state.value.tracks)
+    }
+
     private val dismissedResult =
         LibraryIntent.PermissionResult(granted = false, rationaleBefore = false, rationaleAfter = false)
 }
