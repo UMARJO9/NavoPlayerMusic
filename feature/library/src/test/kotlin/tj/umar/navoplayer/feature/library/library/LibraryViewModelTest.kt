@@ -1,5 +1,6 @@
 package tj.umar.navoplayer.feature.library.library
 
+import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -18,7 +19,8 @@ class LibraryViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val repository = FakeTrackRepository()
-    private val viewModel = LibraryViewModel(ObserveTracksUseCase(repository))
+    private val savedStateHandle = SavedStateHandle()
+    private val viewModel = LibraryViewModel(ObserveTracksUseCase(repository), savedStateHandle)
 
     @Test
     fun `initial state selects tracks and does not load`() {
@@ -194,6 +196,40 @@ class LibraryViewModelTest {
         viewModel.onIntent(dismissedResult)
 
         assertEquals(AudioPermissionStatus.Denied, viewModel.state.value.audioPermission)
+    }
+
+    @Test
+    fun `restored denied status does not request permission again`() = runTest {
+        viewModel.onIntent(LibraryIntent.PermissionChecked(granted = false))
+        val restored = LibraryViewModel(ObserveTracksUseCase(repository), savedStateHandle)
+
+        restored.effects.test {
+            restored.onIntent(LibraryIntent.PermissionChecked(granted = false))
+            expectNoEvents()
+        }
+        assertEquals(AudioPermissionStatus.Denied, restored.state.value.audioPermission)
+    }
+
+    @Test
+    fun `restored permanently denied status opens settings`() = runTest {
+        viewModel.onIntent(LibraryIntent.PermissionResult(granted = false, rationaleBefore = true, rationaleAfter = false))
+        val restored = LibraryViewModel(ObserveTracksUseCase(repository), savedStateHandle)
+        restored.onIntent(LibraryIntent.PermissionChecked(granted = false))
+
+        assertEquals(AudioPermissionStatus.PermanentlyDenied, restored.state.value.audioPermission)
+        restored.effects.test {
+            restored.onIntent(LibraryIntent.GrantPermissionClicked)
+            assertEquals(LibraryEffect.OpenAppSettings, awaitItem())
+        }
+    }
+
+    @Test
+    fun `silent denial survives restore`() {
+        viewModel.onIntent(dismissedResult)
+        val restored = LibraryViewModel(ObserveTracksUseCase(repository), savedStateHandle)
+        restored.onIntent(dismissedResult)
+
+        assertEquals(AudioPermissionStatus.PermanentlyDenied, restored.state.value.audioPermission)
     }
 
     private val dismissedResult =

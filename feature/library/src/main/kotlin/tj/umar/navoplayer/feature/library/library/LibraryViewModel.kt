@@ -1,5 +1,6 @@
 package tj.umar.navoplayer.feature.library.library
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -13,11 +14,18 @@ import javax.inject.Inject
 @HiltViewModel
 internal class LibraryViewModel @Inject constructor(
     private val observeTracks: ObserveTracksUseCase,
-) : MviViewModel<LibraryState, LibraryIntent, LibraryEffect>(LibraryState()) {
+    private val savedStateHandle: SavedStateHandle,
+) : MviViewModel<LibraryState, LibraryIntent, LibraryEffect>(
+    LibraryState(audioPermission = savedStateHandle.restoredPermission()),
+) {
 
     private var tracksJob: Job? = null
 
-    private var deniedWithoutRationale = false
+    private var deniedWithoutRationale: Boolean
+        get() = savedStateHandle[KEY_DENIED_WITHOUT_RATIONALE] ?: false
+        set(value) {
+            savedStateHandle[KEY_DENIED_WITHOUT_RATIONALE] = value
+        }
 
     override fun onIntent(intent: LibraryIntent) {
         when (intent) {
@@ -40,11 +48,11 @@ internal class LibraryViewModel @Inject constructor(
         }
         when (currentState.audioPermission) {
             AudioPermissionStatus.Unknown -> {
-                setState { copy(audioPermission = AudioPermissionStatus.Denied) }
+                updatePermission(AudioPermissionStatus.Denied)
                 sendEffect(LibraryEffect.RequestAudioPermission)
             }
             AudioPermissionStatus.PermanentlyDenied -> Unit
-            else -> setState { copy(audioPermission = AudioPermissionStatus.Denied) }
+            else -> updatePermission(AudioPermissionStatus.Denied)
         }
     }
 
@@ -56,13 +64,13 @@ internal class LibraryViewModel @Inject constructor(
             }
             result.rationaleAfter -> {
                 deniedWithoutRationale = false
-                setState { copy(audioPermission = AudioPermissionStatus.Denied) }
+                updatePermission(AudioPermissionStatus.Denied)
             }
             result.rationaleBefore || deniedWithoutRationale ->
-                setState { copy(audioPermission = AudioPermissionStatus.PermanentlyDenied) }
+                updatePermission(AudioPermissionStatus.PermanentlyDenied)
             else -> {
                 deniedWithoutRationale = true
-                setState { copy(audioPermission = AudioPermissionStatus.Denied) }
+                updatePermission(AudioPermissionStatus.Denied)
             }
         }
     }
@@ -78,7 +86,7 @@ internal class LibraryViewModel @Inject constructor(
 
     private fun onPermissionGranted() {
         if (currentState.audioPermission != AudioPermissionStatus.Granted) {
-            setState { copy(audioPermission = AudioPermissionStatus.Granted) }
+            updatePermission(AudioPermissionStatus.Granted)
         }
         startObservingTracks()
     }
@@ -91,4 +99,17 @@ internal class LibraryViewModel @Inject constructor(
             .catch { setState { copy(isLoadingTracks = false, tracksLoadFailed = true) } }
             .launchIn(viewModelScope)
     }
+
+    private fun updatePermission(status: AudioPermissionStatus) {
+        savedStateHandle[KEY_AUDIO_PERMISSION] = status.name
+        setState { copy(audioPermission = status) }
+    }
 }
+
+private const val KEY_AUDIO_PERMISSION = "audio_permission"
+private const val KEY_DENIED_WITHOUT_RATIONALE = "denied_without_rationale"
+
+private fun SavedStateHandle.restoredPermission(): AudioPermissionStatus =
+    get<String>(KEY_AUDIO_PERMISSION)
+        ?.let { name -> AudioPermissionStatus.entries.firstOrNull { it.name == name } }
+        ?: AudioPermissionStatus.Unknown
