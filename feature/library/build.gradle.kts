@@ -5,3 +5,7 @@ plugins {
 android {
     namespace = "tj.umar.navoplayer.feature.library"
 }
+
+dependencies {
+    implementation(libs.androidx.activity.compose)
+}

@@ -1,11 +1,22 @@
 package tj.umar.navoplayer.feature.library.library
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import tj.umar.navoplayer.core.ui.mvi.CollectEffects
+import tj.umar.navoplayer.core.ui.permission.audioReadPermission
+import tj.umar.navoplayer.core.ui.permission.hasAudioReadPermission
 
 @Composable
 internal fun LibraryRoute(
@@ -13,12 +24,39 @@ internal fun LibraryRoute(
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val activity = LocalActivity.current
 
-    viewModel.effects.CollectEffects { }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        val canAskAgain = activity?.shouldShowRequestPermissionRationale(audioReadPermission) ?: true
+        viewModel.onIntent(LibraryIntent.PermissionResult(granted, canAskAgain))
+    }
+
+    LifecycleResumeEffect(Unit) {
+        viewModel.onIntent(LibraryIntent.PermissionChecked(context.hasAudioReadPermission()))
+        onPauseOrDispose { }
+    }
+
+    viewModel.effects.CollectEffects { effect ->
+        when (effect) {
+            LibraryEffect.RequestAudioPermission -> permissionLauncher.launch(audioReadPermission)
+            LibraryEffect.OpenAppSettings -> context.openAppSettings()
+        }
+    }
 
     LibraryScreen(
         state = state,
         onIntent = viewModel::onIntent,
         modifier = modifier,
     )
+}
+
+private fun Context.openAppSettings() {
+    val intent = Intent(
+        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+        Uri.fromParts("package", packageName, null),
+    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    startActivity(intent)
 }
