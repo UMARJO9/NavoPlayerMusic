@@ -29,3 +29,4 @@ rootProject.name = "NavoPlayerMusic"
 include(":app")
  include(":core:common")
 include(":core:testing")
+include(":core:designsystem")

@@ -1,4 +1,4 @@
-package tj.umar.navoplayer.ui.theme
+package tj.umar.navoplayer.core.designsystem.theme
 
 import android.app.Activity
 import android.os.Build
@@ -34,7 +34,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun NavoPlayerMusicTheme(
+fun NavoTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
@@ -52,7 +52,7 @@ fun NavoPlayerMusicTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = NavoTypography,
         content = content
     )
 }
