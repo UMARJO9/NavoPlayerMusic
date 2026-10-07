@@ -6,6 +6,8 @@ import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
+import android.os.CancellationSignal
+import android.os.OperationCanceledException
 import android.provider.MediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -15,6 +17,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import tj.umar.navoplayer.core.common.dispatchers.IoDispatcher
 import javax.inject.Inject
@@ -37,13 +40,23 @@ internal class MediaStoreAudioSource @Inject constructor(
     }.buffer(Channel.CONFLATED)
 
     override suspend fun queryAudio(): List<MediaStoreAudioRow> = withContext(ioDispatcher) {
-        val cursor = context.contentResolver.query(
-            collection,
-            PROJECTION,
-            "${MediaStore.Audio.Media.IS_MUSIC} != 0",
-            null,
-            null,
-        ) ?: return@withContext emptyList()
+        val cancellationSignal = CancellationSignal()
+        val cancelHandle = coroutineContext.job.invokeOnCompletion { cancellationSignal.cancel() }
+        val cursor = try {
+            context.contentResolver.query(
+                collection,
+                PROJECTION,
+                "${MediaStore.Audio.Media.IS_MUSIC} != 0",
+                null,
+                null,
+                cancellationSignal,
+            )
+        } catch (e: OperationCanceledException) {
+            ensureActive()
+            throw e
+        } finally {
+            cancelHandle.dispose()
+        } ?: return@withContext emptyList()
 
         cursor.use {
             val columns = AudioColumns(it)
