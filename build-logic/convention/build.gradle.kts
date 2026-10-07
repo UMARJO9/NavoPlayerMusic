@@ -46,5 +46,9 @@ gradlePlugin {
             id = libs.plugins.navo.hilt.get().pluginId
             implementationClass = "tj.umar.navoplayer.buildlogic.HiltConventionPlugin"
         }
+        register("androidFeature") {
+            id = libs.plugins.navo.android.feature.get().pluginId
+            implementationClass = "tj.umar.navoplayer.buildlogic.AndroidFeatureConventionPlugin"
+        }
     }
 }

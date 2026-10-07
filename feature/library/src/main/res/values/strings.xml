@@ -1,0 +1,8 @@
+<resources>
+    <string name="library_title">Library</string>
+    <string name="library_tab_tracks">Tracks</string>
+    <string name="library_tab_albums">Albums</string>
+    <string name="library_tab_artists">Artists</string>
+    <string name="library_tab_folders">Folders</string>
+    <string name="library_placeholder_empty">Nothing here yet</string>
+</resources>

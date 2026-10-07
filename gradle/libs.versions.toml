@@ -11,7 +11,7 @@ ksp = "2.3.12"
 composeBom = "2026.02.01"
 hilt = "2.59.2"
 androidxHilt = "1.3.0"
-navigation = "2.10.2"
+navigation = "2.9.6"
 kotlinxSerialization = "1.9.0"
 kotlinxCoroutines = "1.10.2"
 turbine = "1.2.1"
@@ -64,3 +64,4 @@ navo-android-compose = { id = "navo.android.compose" }
 navo-android-library = { id = "navo.android.library" }
 navo-jvm-library = { id = "navo.jvm.library" }
 navo-hilt = { id = "navo.hilt" }
+navo-android-feature = { id = "navo.android.feature" }
