@@ -27,4 +27,4 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "NavoPlayerMusic"
 include(":app")
- 
+ include(":core:common")
