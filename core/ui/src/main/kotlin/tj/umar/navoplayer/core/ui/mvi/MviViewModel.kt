@@ -11,10 +11,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * Base for every screen ViewModel: a single [state] stream, one-shot [effects]
- * and a single entry point [onIntent].
- */
 abstract class MviViewModel<S : Any, I : Any, E : Any>(initialState: S) : ViewModel() {
 
     private val _state = MutableStateFlow(initialState)
@@ -22,7 +18,6 @@ abstract class MviViewModel<S : Any, I : Any, E : Any>(initialState: S) : ViewMo
 
     private val _effects = Channel<E>(Channel.BUFFERED)
 
-    /** Each effect is delivered to exactly one collector, once. */
     val effects: Flow<E> = _effects.receiveAsFlow()
 
     protected val currentState: S

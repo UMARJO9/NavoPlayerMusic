@@ -9,7 +9,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.flow.Flow
 
-/** Collects one-shot MVI effects while the composition's lifecycle is at least STARTED. */
 @Composable
 fun <E> Flow<E>.CollectEffects(onEffect: suspend (E) -> Unit) {
     val lifecycleOwner = LocalLifecycleOwner.current

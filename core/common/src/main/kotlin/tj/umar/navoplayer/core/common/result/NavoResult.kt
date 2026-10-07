@@ -22,7 +22,6 @@ inline fun <T> NavoResult<T>.onError(action: (Throwable) -> Unit): NavoResult<T>
     return this
 }
 
-/** Like [runCatching], but never swallows coroutine cancellation. */
 suspend inline fun <T> navoRunCatching(crossinline block: suspend () -> T): NavoResult<T> =
     try {
         NavoResult.Success(block())
