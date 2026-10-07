@@ -88,4 +88,22 @@ class MediaStoreTrackRepositoryTest {
             assertEquals(emptyList<Any>(), awaitItem())
         }
     }
+
+    @Test
+    fun `changes during a slow scan do not cancel it`() = runTest {
+        source.rows = listOf(audioRow(1, "Song"))
+        source.queryDelayMs = 1_000
+
+        repository().observeTracks().test {
+            source.awaitObserver()
+            repeat(3) {
+                testScheduler.advanceTimeBy(CHANGE_DEBOUNCE_MS + 100)
+                source.notifyChange()
+            }
+
+            assertEquals(listOf("Song"), awaitItem().map { it.title })
+            assertTrue(testScheduler.currentTime < 2_000)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package tj.umar.navoplayer.core.data.repository
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
@@ -12,6 +13,8 @@ internal class FakeAudioMediaSource : AudioMediaSource {
 
     var rows: List<MediaStoreAudioRow> = emptyList()
 
+    var queryDelayMs: Long = 0
+
     var queryCount: Int = 0
         private set
 
@@ -19,7 +22,9 @@ internal class FakeAudioMediaSource : AudioMediaSource {
 
     override suspend fun queryAudio(): List<MediaStoreAudioRow> {
         queryCount++
-        return rows
+        val result = rows
+        if (queryDelayMs > 0) delay(queryDelayMs)
+        return result
     }
 
     suspend fun awaitObserver() {

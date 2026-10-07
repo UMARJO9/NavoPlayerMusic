@@ -1,14 +1,13 @@
 package tj.umar.navoplayer.core.data.repository
 
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import tj.umar.navoplayer.core.common.dispatchers.IoDispatcher
 import tj.umar.navoplayer.core.data.mapper.toTrack
@@ -24,13 +23,13 @@ internal class MediaStoreTrackRepository @Inject constructor(
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : TrackRepository {
 
-    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+    @OptIn(FlowPreview::class)
     override fun observeTracks(): Flow<List<Track>> =
         audioSource.observeChanges()
             .debounce(CHANGE_DEBOUNCE_MS)
             .onStart { emit(Unit) }
             .conflate()
-            .mapLatest {
+            .map {
                 audioSource.queryAudio()
                     .map { it.toTrack() }
                     .sortedWith(trackTitleComparator())
