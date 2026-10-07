@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -22,6 +23,8 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Navo Player - Music"
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
+rootProject.name = "NavoPlayerMusic"
 include(":app")
  
