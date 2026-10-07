@@ -93,7 +93,7 @@ class LibraryViewModelTest {
 
     @Test
     fun `denied check keeps permanently denied status`() {
-        viewModel.onIntent(LibraryIntent.PermissionResult(granted = false, canAskAgain = false))
+        viewModel.onIntent(LibraryIntent.PermissionResult(granted = false, rationaleBefore = true, rationaleAfter = false))
         viewModel.onIntent(LibraryIntent.PermissionChecked(granted = false))
 
         assertEquals(AudioPermissionStatus.PermanentlyDenied, viewModel.state.value.audioPermission)
@@ -101,30 +101,30 @@ class LibraryViewModelTest {
 
     @Test
     fun `granted result starts observing tracks`() {
-        viewModel.onIntent(LibraryIntent.PermissionResult(granted = true, canAskAgain = true))
+        viewModel.onIntent(LibraryIntent.PermissionResult(granted = true, rationaleBefore = false, rationaleAfter = false))
 
         assertEquals(AudioPermissionStatus.Granted, viewModel.state.value.audioPermission)
         assertEquals(1, repository.observeCalls)
     }
 
     @Test
-    fun `denied result that can ask again is denied`() {
-        viewModel.onIntent(LibraryIntent.PermissionResult(granted = false, canAskAgain = true))
+    fun `denial with rationale is denied`() {
+        viewModel.onIntent(LibraryIntent.PermissionResult(granted = false, rationaleBefore = false, rationaleAfter = true))
 
         assertEquals(AudioPermissionStatus.Denied, viewModel.state.value.audioPermission)
         assertEquals(0, repository.observeCalls)
     }
 
     @Test
-    fun `denied result that cannot ask again is permanently denied`() {
-        viewModel.onIntent(LibraryIntent.PermissionResult(granted = false, canAskAgain = false))
+    fun `denial after rationale is permanently denied`() {
+        viewModel.onIntent(LibraryIntent.PermissionResult(granted = false, rationaleBefore = true, rationaleAfter = false))
 
         assertEquals(AudioPermissionStatus.PermanentlyDenied, viewModel.state.value.audioPermission)
     }
 
     @Test
     fun `grant click when denied requests permission`() = runTest {
-        viewModel.onIntent(LibraryIntent.PermissionResult(granted = false, canAskAgain = true))
+        viewModel.onIntent(LibraryIntent.PermissionResult(granted = false, rationaleBefore = false, rationaleAfter = true))
 
         viewModel.effects.test {
             viewModel.onIntent(LibraryIntent.GrantPermissionClicked)
@@ -134,7 +134,7 @@ class LibraryViewModelTest {
 
     @Test
     fun `grant click when permanently denied opens settings`() = runTest {
-        viewModel.onIntent(LibraryIntent.PermissionResult(granted = false, canAskAgain = false))
+        viewModel.onIntent(LibraryIntent.PermissionResult(granted = false, rationaleBefore = true, rationaleAfter = false))
 
         viewModel.effects.test {
             viewModel.onIntent(LibraryIntent.GrantPermissionClicked)
@@ -171,4 +171,31 @@ class LibraryViewModelTest {
 
         assertEquals(TestTracks.tracks, viewModel.state.value.tracks)
     }
+
+    @Test
+    fun `dismissed dialog without rationale stays denied`() {
+        viewModel.onIntent(dismissedResult)
+
+        assertEquals(AudioPermissionStatus.Denied, viewModel.state.value.audioPermission)
+    }
+
+    @Test
+    fun `second silent denial is permanently denied`() {
+        viewModel.onIntent(dismissedResult)
+        viewModel.onIntent(dismissedResult)
+
+        assertEquals(AudioPermissionStatus.PermanentlyDenied, viewModel.state.value.audioPermission)
+    }
+
+    @Test
+    fun `denial with rationale resets silent denial count`() {
+        viewModel.onIntent(dismissedResult)
+        viewModel.onIntent(LibraryIntent.PermissionResult(granted = false, rationaleBefore = false, rationaleAfter = true))
+        viewModel.onIntent(dismissedResult)
+
+        assertEquals(AudioPermissionStatus.Denied, viewModel.state.value.audioPermission)
+    }
+
+    private val dismissedResult =
+        LibraryIntent.PermissionResult(granted = false, rationaleBefore = false, rationaleAfter = false)
 }

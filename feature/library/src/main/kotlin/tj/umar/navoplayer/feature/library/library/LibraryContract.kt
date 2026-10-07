@@ -26,7 +26,11 @@ internal data class LibraryState(
 internal sealed interface LibraryIntent {
     data class TabSelected(val tab: LibraryTab) : LibraryIntent
     data class PermissionChecked(val granted: Boolean) : LibraryIntent
-    data class PermissionResult(val granted: Boolean, val canAskAgain: Boolean) : LibraryIntent
+    data class PermissionResult(
+        val granted: Boolean,
+        val rationaleBefore: Boolean,
+        val rationaleAfter: Boolean,
+    ) : LibraryIntent
     data object GrantPermissionClicked : LibraryIntent
 }
 

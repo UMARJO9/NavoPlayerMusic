@@ -17,11 +17,13 @@ internal class LibraryViewModel @Inject constructor(
 
     private var tracksJob: Job? = null
 
+    private var deniedWithoutRationale = false
+
     override fun onIntent(intent: LibraryIntent) {
         when (intent) {
             is LibraryIntent.TabSelected -> selectTab(intent.tab)
             is LibraryIntent.PermissionChecked -> onPermissionChecked(intent.granted)
-            is LibraryIntent.PermissionResult -> onPermissionResult(intent.granted, intent.canAskAgain)
+            is LibraryIntent.PermissionResult -> onPermissionResult(intent)
             LibraryIntent.GrantPermissionClicked -> onGrantPermissionClicked()
         }
     }
@@ -46,11 +48,22 @@ internal class LibraryViewModel @Inject constructor(
         }
     }
 
-    private fun onPermissionResult(granted: Boolean, canAskAgain: Boolean) {
+    private fun onPermissionResult(result: LibraryIntent.PermissionResult) {
         when {
-            granted -> onPermissionGranted()
-            canAskAgain -> setState { copy(audioPermission = AudioPermissionStatus.Denied) }
-            else -> setState { copy(audioPermission = AudioPermissionStatus.PermanentlyDenied) }
+            result.granted -> {
+                deniedWithoutRationale = false
+                onPermissionGranted()
+            }
+            result.rationaleAfter -> {
+                deniedWithoutRationale = false
+                setState { copy(audioPermission = AudioPermissionStatus.Denied) }
+            }
+            result.rationaleBefore || deniedWithoutRationale ->
+                setState { copy(audioPermission = AudioPermissionStatus.PermanentlyDenied) }
+            else -> {
+                deniedWithoutRationale = true
+                setState { copy(audioPermission = AudioPermissionStatus.Denied) }
+            }
         }
     }
 

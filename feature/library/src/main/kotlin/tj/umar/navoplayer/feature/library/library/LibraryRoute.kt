@@ -1,5 +1,6 @@
 package tj.umar.navoplayer.feature.library.library
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -9,6 +10,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -27,11 +30,17 @@ internal fun LibraryRoute(
     val context = LocalContext.current
     val activity = LocalActivity.current
 
+    val rationaleBeforeRequest = remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
-        val canAskAgain = activity?.shouldShowRequestPermissionRationale(audioReadPermission) ?: true
-        viewModel.onIntent(LibraryIntent.PermissionResult(granted, canAskAgain))
+        viewModel.onIntent(
+            LibraryIntent.PermissionResult(
+                granted = granted,
+                rationaleBefore = rationaleBeforeRequest.value,
+                rationaleAfter = activity.shouldShowAudioRationale(),
+            ),
+        )
     }
 
     LifecycleResumeEffect(Unit) {
@@ -41,7 +50,10 @@ internal fun LibraryRoute(
 
     viewModel.effects.CollectEffects { effect ->
         when (effect) {
-            LibraryEffect.RequestAudioPermission -> permissionLauncher.launch(audioReadPermission)
+            LibraryEffect.RequestAudioPermission -> {
+                rationaleBeforeRequest.value = activity.shouldShowAudioRationale()
+                permissionLauncher.launch(audioReadPermission)
+            }
             LibraryEffect.OpenAppSettings -> context.openAppSettings()
         }
     }
@@ -52,6 +64,9 @@ internal fun LibraryRoute(
         modifier = modifier,
     )
 }
+
+private fun Activity?.shouldShowAudioRationale(): Boolean =
+    this?.shouldShowRequestPermissionRationale(audioReadPermission) ?: false
 
 private fun Context.openAppSettings() {
     val intent = Intent(
