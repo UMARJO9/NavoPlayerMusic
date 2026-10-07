@@ -34,5 +34,17 @@ gradlePlugin {
             id = libs.plugins.navo.android.compose.get().pluginId
             implementationClass = "tj.umar.navoplayer.buildlogic.AndroidComposeConventionPlugin"
         }
+        register("androidLibrary") {
+            id = libs.plugins.navo.android.library.get().pluginId
+            implementationClass = "tj.umar.navoplayer.buildlogic.AndroidLibraryConventionPlugin"
+        }
+        register("jvmLibrary") {
+            id = libs.plugins.navo.jvm.library.get().pluginId
+            implementationClass = "tj.umar.navoplayer.buildlogic.JvmLibraryConventionPlugin"
+        }
+        register("hilt") {
+            id = libs.plugins.navo.hilt.get().pluginId
+            implementationClass = "tj.umar.navoplayer.buildlogic.HiltConventionPlugin"
+        }
     }
 }

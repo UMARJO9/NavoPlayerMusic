@@ -63,3 +63,6 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 # convention plugins (build-logic)
 navo-android-application = { id = "navo.android.application" }
 navo-android-compose = { id = "navo.android.compose" }
+navo-android-library = { id = "navo.android.library" }
+navo-jvm-library = { id = "navo.jvm.library" }
+navo-hilt = { id = "navo.hilt" }
