@@ -27,6 +27,6 @@ suspend inline fun <T> navoRunCatching(crossinline block: suspend () -> T): Navo
         NavoResult.Success(block())
     } catch (e: CancellationException) {
         throw e
-    } catch (e: Throwable) {
+    } catch (e: Exception) {
         NavoResult.Error(e)
     }

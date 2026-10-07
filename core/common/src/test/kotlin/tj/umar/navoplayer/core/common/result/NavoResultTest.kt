@@ -60,4 +60,9 @@ class NavoResultTest {
     fun `navoRunCatching rethrows cancellation`() = runTest {
         navoRunCatching { throw CancellationException("cancelled") }
     }
+
+    @Test(expected = AssertionError::class)
+    fun `navoRunCatching does not catch errors`() = runTest {
+        navoRunCatching { throw AssertionError("fatal") }
+    }
 }
