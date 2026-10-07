@@ -13,11 +13,9 @@ class LibraryViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun `initial state selects tracks and exposes all tabs`() {
+    fun `initial state selects tracks`() {
         val state = LibraryViewModel().state.value
-
         assertEquals(LibraryTab.Tracks, state.selectedTab)
-        assertEquals(LibraryTab.entries, state.tabs)
     }
 
     @Test

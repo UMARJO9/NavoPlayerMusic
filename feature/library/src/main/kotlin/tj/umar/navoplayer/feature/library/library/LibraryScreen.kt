@@ -37,8 +37,8 @@ internal fun LibraryScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            PrimaryTabRow(selectedTabIndex = state.tabs.indexOf(state.selectedTab)) {
-                state.tabs.forEach { tab ->
+            PrimaryTabRow(selectedTabIndex = state.selectedTab.ordinal) {
+                LibraryTab.entries.forEach { tab ->
                     Tab(
                         selected = tab == state.selectedTab,
                         onClick = { onIntent(LibraryIntent.TabSelected(tab)) },

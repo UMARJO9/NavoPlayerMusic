@@ -13,7 +13,6 @@ enum class LibraryTab(@param:StringRes val titleRes: Int) {
 
 @Immutable
 data class LibraryState(
-    val tabs: List<LibraryTab> = LibraryTab.entries,
     val selectedTab: LibraryTab = LibraryTab.Tracks,
 )
 
