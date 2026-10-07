@@ -8,6 +8,7 @@
     <string name="library_unknown_artist">Unknown artist</string>
     <string name="library_unknown_title">Unknown title</string>
     <string name="library_tracks_empty">No music found on this device</string>
+    <string name="library_tracks_retry">Try again</string>
     <string name="library_tracks_error">Couldn\'t load your music</string>
     <string name="library_permission_rationale">Navo needs access to audio files on this device to show your music.</string>
     <string name="library_permission_grant">Allow access</string>

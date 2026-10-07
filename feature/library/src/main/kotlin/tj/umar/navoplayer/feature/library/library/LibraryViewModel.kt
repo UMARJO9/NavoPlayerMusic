@@ -33,6 +33,7 @@ internal class LibraryViewModel @Inject constructor(
             is LibraryIntent.PermissionChecked -> onPermissionChecked(intent.granted)
             is LibraryIntent.PermissionResult -> onPermissionResult(intent)
             LibraryIntent.GrantPermissionClicked -> onGrantPermissionClicked()
+            LibraryIntent.RetryLoadTracks -> startObservingTracks()
         }
     }
 

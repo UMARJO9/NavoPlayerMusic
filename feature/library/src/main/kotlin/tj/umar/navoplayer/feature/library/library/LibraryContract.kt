@@ -32,6 +32,7 @@ internal sealed interface LibraryIntent {
         val rationaleAfter: Boolean,
     ) : LibraryIntent
     data object GrantPermissionClicked : LibraryIntent
+    data object RetryLoadTracks : LibraryIntent
 }
 
 internal sealed interface LibraryEffect {

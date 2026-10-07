@@ -45,19 +45,32 @@ internal fun TracksTabContent(
             onGrantClick = { onIntent(LibraryIntent.GrantPermissionClicked) },
             modifier = modifier,
         )
-        AudioPermissionStatus.Granted -> GrantedTracksContent(state, modifier)
+        AudioPermissionStatus.Granted -> GrantedTracksContent(
+            state = state,
+            onRetryClick = { onIntent(LibraryIntent.RetryLoadTracks) },
+            modifier = modifier,
+        )
     }
 }
 
 @Composable
-private fun GrantedTracksContent(state: LibraryState, modifier: Modifier) {
+private fun GrantedTracksContent(
+    state: LibraryState,
+    onRetryClick: () -> Unit,
+    modifier: Modifier,
+) {
     when {
-        state.isLoadingTracks && state.tracks.isEmpty() -> CenteredBox(modifier) {
+        state.tracks.isNotEmpty() -> TrackList(state.tracks, modifier)
+        state.isLoadingTracks -> CenteredBox(modifier) {
             CircularProgressIndicator()
         }
-        state.tracksLoadFailed -> CenteredMessage(stringResource(R.string.library_tracks_error), modifier)
-        state.tracks.isEmpty() -> CenteredMessage(stringResource(R.string.library_tracks_empty), modifier)
-        else -> TrackList(state.tracks, modifier)
+        state.tracksLoadFailed -> MessageWithAction(
+            message = stringResource(R.string.library_tracks_error),
+            actionLabel = stringResource(R.string.library_tracks_retry),
+            onActionClick = onRetryClick,
+            modifier = modifier,
+        )
+        else -> CenteredMessage(stringResource(R.string.library_tracks_empty), modifier)
     }
 }
 
@@ -113,23 +126,38 @@ private fun PermissionRequestContent(
     onGrantClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val label = if (permanentlyDenied) {
+        R.string.library_permission_open_settings
+    } else {
+        R.string.library_permission_grant
+    }
+    MessageWithAction(
+        message = stringResource(R.string.library_permission_rationale),
+        actionLabel = stringResource(label),
+        onActionClick = onGrantClick,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun MessageWithAction(
+    message: String,
+    actionLabel: String,
+    onActionClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier.padding(horizontal = 32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = stringResource(R.string.library_permission_rationale),
+            text = message,
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
         )
-        Button(onClick = onGrantClick) {
-            val label = if (permanentlyDenied) {
-                R.string.library_permission_open_settings
-            } else {
-                R.string.library_permission_grant
-            }
-            Text(stringResource(label))
+        Button(onClick = onActionClick) {
+            Text(actionLabel)
         }
     }
 }
@@ -213,6 +241,18 @@ private fun TracksPermissionPermanentlyDeniedPreview() {
     NavoTheme {
         TracksTabContent(
             state = LibraryState(audioPermission = AudioPermissionStatus.PermanentlyDenied),
+            onIntent = {},
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
+}
+
+@PreviewLightDark
+@Composable
+private fun TracksErrorPreview() {
+    NavoTheme {
+        TracksTabContent(
+            state = LibraryState(audioPermission = AudioPermissionStatus.Granted, tracksLoadFailed = true),
             onIntent = {},
             modifier = Modifier.fillMaxSize(),
         )

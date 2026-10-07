@@ -232,6 +232,29 @@ class LibraryViewModelTest {
         assertEquals(AudioPermissionStatus.PermanentlyDenied, restored.state.value.audioPermission)
     }
 
+    @Test
+    fun `retry after failure observes tracks again`() = runTest {
+        repository.error = IllegalStateException("scan failed")
+        viewModel.onIntent(LibraryIntent.PermissionChecked(granted = true))
+        repository.error = null
+
+        viewModel.onIntent(LibraryIntent.RetryLoadTracks)
+        repository.emit(TestTracks.tracks)
+
+        val state = viewModel.state.value
+        assertEquals(2, repository.observeCalls)
+        assertFalse(state.tracksLoadFailed)
+        assertEquals(TestTracks.tracks, state.tracks)
+    }
+
+    @Test
+    fun `retry while observing does not subscribe twice`() {
+        viewModel.onIntent(LibraryIntent.PermissionChecked(granted = true))
+        viewModel.onIntent(LibraryIntent.RetryLoadTracks)
+
+        assertEquals(1, repository.observeCalls)
+    }
+
     private val dismissedResult =
         LibraryIntent.PermissionResult(granted = false, rationaleBefore = false, rationaleAfter = false)
 }
