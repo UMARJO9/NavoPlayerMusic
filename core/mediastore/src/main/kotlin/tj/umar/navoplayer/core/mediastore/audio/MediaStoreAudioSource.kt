@@ -1,0 +1,115 @@
+package tj.umar.navoplayer.core.mediastore.audio
+
+import android.content.ContentUris
+import android.content.Context
+import android.database.ContentObserver
+import android.database.Cursor
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.withContext
+import tj.umar.navoplayer.core.common.dispatchers.IoDispatcher
+import javax.inject.Inject
+
+internal class MediaStoreAudioSource @Inject constructor(
+    @param:ApplicationContext private val context: Context,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : AudioMediaSource {
+
+    private val collection: Uri = audioCollection()
+
+    override fun observeChanges(): Flow<Unit> = callbackFlow {
+        val observer = object : ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                trySend(Unit)
+            }
+        }
+        context.contentResolver.registerContentObserver(collection, true, observer)
+        awaitClose { context.contentResolver.unregisterContentObserver(observer) }
+    }.buffer(Channel.CONFLATED)
+
+    override suspend fun queryAudio(): List<MediaStoreAudioRow> = withContext(ioDispatcher) {
+        val cursor = context.contentResolver.query(
+            collection,
+            PROJECTION,
+            "${MediaStore.Audio.Media.IS_MUSIC} != 0",
+            null,
+            null,
+        ) ?: return@withContext emptyList()
+
+        cursor.use {
+            val columns = AudioColumns(it)
+            val rows = ArrayList<MediaStoreAudioRow>(it.count)
+            while (it.moveToNext()) {
+                if (rows.size % CANCELLATION_CHECK_INTERVAL == 0) ensureActive()
+                rows += columns.read(it)
+            }
+            rows
+        }
+    }
+
+    private inner class AudioColumns(cursor: Cursor) {
+        private val id = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+        private val title = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+        private val displayName = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
+        private val artist = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+        private val artistId = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID)
+        private val album = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+        private val albumId = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+        private val duration = cursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.DURATION)
+        private val track = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)
+
+        fun read(cursor: Cursor): MediaStoreAudioRow {
+            val rowId = cursor.getLong(id)
+            return MediaStoreAudioRow(
+                id = rowId,
+                title = cursor.stringOrNull(title),
+                displayName = cursor.stringOrNull(displayName),
+                artist = cursor.stringOrNull(artist),
+                artistId = cursor.longOrNull(artistId),
+                album = cursor.stringOrNull(album),
+                albumId = cursor.longOrNull(albumId),
+                durationMs = cursor.longOrNull(duration),
+                track = cursor.intOrNull(track),
+                contentUri = ContentUris.withAppendedId(collection, rowId).toString(),
+            )
+        }
+    }
+
+    private companion object {
+        const val CANCELLATION_CHECK_INTERVAL = 200
+
+        val PROJECTION = arrayOf(
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.DISPLAY_NAME,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.ARTIST_ID,
+            MediaStore.Audio.Media.ALBUM,
+            MediaStore.Audio.Media.ALBUM_ID,
+            MediaStore.Audio.AudioColumns.DURATION,
+            MediaStore.Audio.Media.TRACK,
+        )
+
+        fun audioCollection(): Uri =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+            } else {
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+            }
+    }
+}
+
+private fun Cursor.stringOrNull(index: Int): String? = if (isNull(index)) null else getString(index)
+
+private fun Cursor.longOrNull(index: Int): Long? = if (isNull(index)) null else getLong(index)
+
+private fun Cursor.intOrNull(index: Int): Int? = if (isNull(index)) null else getInt(index)
