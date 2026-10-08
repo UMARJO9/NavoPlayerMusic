@@ -51,6 +51,7 @@ import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.TrackGroup
+import tj.umar.navoplayer.core.ui.R as CoreUiR
 import tj.umar.navoplayer.core.ui.group.displaySubtitle
 import tj.umar.navoplayer.core.ui.group.displayTitle
 import tj.umar.navoplayer.core.ui.group.leading
@@ -147,6 +148,7 @@ private fun SearchState.contentPhase(): ContentPhase = when (phase) {
 @Composable
 private fun SearchResultsList(state: SearchState, onIntent: (SearchIntent) -> Unit, onScroll: () -> Unit) {
     val listState = rememberLazyListState()
+    val addToPlaylistLabel = stringResource(CoreUiR.string.core_ui_add_to_playlist)
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrollInProgress }.filter { it }.collect { onScroll() }
     }
@@ -175,6 +177,8 @@ private fun SearchResultsList(state: SearchState, onIntent: (SearchIntent) -> Un
                     isCurrent = track.id == state.currentTrackId,
                     isPlaying = track.id == state.currentTrackId && state.isPlaying,
                     onClick = { onIntent(SearchIntent.TrackClicked(track.id)) },
+                    onLongClick = { onIntent(SearchIntent.TrackLongPressed(track.id)) },
+                    onLongClickLabel = addToPlaylistLabel,
                     modifier = Modifier.animateItem(),
                 )
             }

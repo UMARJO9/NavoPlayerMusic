@@ -48,6 +48,7 @@ internal class SearchViewModel @Inject constructor(
             is SearchIntent.TrackClicked -> onTrackClicked(intent.trackId)
             is SearchIntent.GroupClicked -> sendEffect(SearchEffect.NavigateToGroup(intent.key))
             SearchIntent.RetryClicked -> retry()
+            is SearchIntent.TrackLongPressed -> sendEffect(SearchEffect.OpenAddToPlaylist(listOf(intent.trackId)))
         }
     }
 

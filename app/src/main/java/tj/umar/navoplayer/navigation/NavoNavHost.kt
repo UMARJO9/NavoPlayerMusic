@@ -95,6 +95,7 @@ fun NavoNavHost(
             },
             onGroupClick = { key -> if (isResumed()) navController.navigateToGroupDetail(key) },
             onAudioPermissionMissing = onAudioPermissionMissing,
+            onAddToPlaylist = onAddToPlaylist,
         )
         groupDetailScreen(
             onBack = {

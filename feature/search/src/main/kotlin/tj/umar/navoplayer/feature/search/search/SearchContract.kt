@@ -39,10 +39,12 @@ internal sealed interface SearchIntent {
     data class TrackClicked(val trackId: Long) : SearchIntent
     data class GroupClicked(val key: TrackGroupKey) : SearchIntent
     data object RetryClicked : SearchIntent
+    data class TrackLongPressed(val trackId: Long) : SearchIntent
 }
 
 internal sealed interface SearchEffect {
     data object NavigateBack : SearchEffect
     data object NavigateToWelcome : SearchEffect
     data class NavigateToGroup(val key: TrackGroupKey) : SearchEffect
+    data class OpenAddToPlaylist(val trackIds: List<Long>) : SearchEffect
 }
