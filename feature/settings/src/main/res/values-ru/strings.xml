@@ -1,0 +1,23 @@
+<resources>
+    <string name="settings_title">Настройки</string>
+    <string name="settings_back">Назад</string>
+    <string name="settings_section_library">Медиатека</string>
+    <string name="settings_min_duration_title">Скрывать короткие треки</string>
+    <string name="settings_min_duration_subtitle">Треки короче выбранного скрываются везде</string>
+    <string name="settings_min_duration_off">Выкл.</string>
+    <string name="settings_min_duration_seconds">%d с</string>
+    <string name="settings_hidden_folders_title">Скрытые папки</string>
+    <string name="settings_hidden_folders_none">Нет</string>
+    <string name="settings_section_playback">Воспроизведение</string>
+    <string name="settings_pause_on_disconnect_title">Пауза при отключении наушников</string>
+    <string name="settings_pause_on_disconnect_subtitle">Проводных и Bluetooth</string>
+    <string name="settings_section_about">О приложении</string>
+    <string name="settings_about_version">Версия %1$s</string>
+    <string name="settings_about_description">Офлайн-плеер, без интернета</string>
+    <string name="settings_licenses_title">Лицензии открытого ПО</string>
+    <string name="settings_save_failed">Не удалось сохранить настройку</string>
+    <string name="settings_folders_hint">Отключите папку, чтобы скрыть её треки везде</string>
+    <string name="settings_folders_empty">Папки с музыкой не найдены</string>
+    <string name="settings_folders_error">Не удалось загрузить папки</string>
+    <string name="settings_folders_retry">Повторить</string>
+</resources>

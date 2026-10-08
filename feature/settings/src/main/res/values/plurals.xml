@@ -1,0 +1,6 @@
+<resources>
+    <plurals name="settings_hidden_folders_count">
+        <item quantity="one">%d folder hidden</item>
+        <item quantity="other">%d folders hidden</item>
+    </plurals>
+</resources>

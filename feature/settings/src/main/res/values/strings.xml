@@ -1,0 +1,24 @@
+<resources>
+    <string name="settings_title">Settings</string>
+    <string name="settings_back">Back</string>
+    <string name="settings_section_library">Library</string>
+    <string name="settings_min_duration_title">Hide short tracks</string>
+    <string name="settings_min_duration_subtitle">Shorter tracks are hidden everywhere</string>
+    <string name="settings_min_duration_off">Off</string>
+    <string name="settings_min_duration_seconds">%d s</string>
+    <string name="settings_hidden_folders_title">Hidden folders</string>
+    <string name="settings_hidden_folders_none">None</string>
+    <string name="settings_section_playback">Playback</string>
+    <string name="settings_pause_on_disconnect_title">Pause when headphones disconnect</string>
+    <string name="settings_pause_on_disconnect_subtitle">Wired and Bluetooth</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_about_app_name" translatable="false">Navo</string>
+    <string name="settings_about_version">Version %1$s</string>
+    <string name="settings_about_description">Offline player, no internet</string>
+    <string name="settings_licenses_title">Open-source licenses</string>
+    <string name="settings_save_failed">Couldn’t save the setting</string>
+    <string name="settings_folders_hint">Turn a folder off to hide its tracks everywhere</string>
+    <string name="settings_folders_empty">No music folders found</string>
+    <string name="settings_folders_error">Couldn’t load folders</string>
+    <string name="settings_folders_retry">Try again</string>
+</resources>

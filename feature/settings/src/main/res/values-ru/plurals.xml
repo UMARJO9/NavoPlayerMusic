@@ -1,0 +1,8 @@
+<resources>
+    <plurals name="settings_hidden_folders_count">
+        <item quantity="one">%d папка скрыта</item>
+        <item quantity="few">%d папки скрыты</item>
+        <item quantity="many">%d папок скрыто</item>
+        <item quantity="other">%d папки скрыто</item>
+    </plurals>
+</resources>
