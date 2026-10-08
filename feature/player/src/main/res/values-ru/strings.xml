@@ -2,6 +2,7 @@
     <string name="player_collapse">Свернуть плеер</string>
     <string name="player_playing_from">Играет из</string>
     <string name="player_source_all_tracks">Все треки</string>
+    <string name="player_source_search">Поиск: «%1$s»</string>
     <string name="player_more">Ещё</string>
     <string name="player_play">Играть</string>
     <string name="player_pause">Пауза</string>

@@ -2,6 +2,7 @@
     <string name="player_collapse">Collapse player</string>
     <string name="player_playing_from">Playing from</string>
     <string name="player_source_all_tracks">All tracks</string>
+    <string name="player_source_search">Search: “%1$s”</string>
     <string name="player_more">More</string>
     <string name="player_play">Play</string>
     <string name="player_pause">Pause</string>

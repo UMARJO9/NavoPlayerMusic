@@ -5,6 +5,7 @@ sealed interface PlaybackSource {
     data class Album(val title: String?) : PlaybackSource
     data class Artist(val name: String?) : PlaybackSource
     data class Folder(val name: String?) : PlaybackSource
+    data class Search(val query: String) : PlaybackSource
 }
 
 fun TrackGroup.toPlaybackSource(): PlaybackSource = when (this) {
