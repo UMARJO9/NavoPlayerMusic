@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -191,6 +192,7 @@ private fun TrackRow(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 64.dp)
+            .semantics(mergeDescendants = true) { }
             .clip(NavoShapes.TrackRow)
             .background(if (isCurrent) colors.raised else Color.Transparent)
             .padding(horizontal = 12.dp, vertical = 8.dp),
