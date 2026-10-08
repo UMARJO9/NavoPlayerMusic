@@ -7,9 +7,17 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import tj.umar.navoplayer.core.domain.model.PlaybackSource
+import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveTracksUseCase
+import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
+import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
+import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
 import tj.umar.navoplayer.core.testing.MainDispatcherRule
+import tj.umar.navoplayer.core.testing.data.TestPlaybackStates
 import tj.umar.navoplayer.core.testing.data.TestTracks
+import tj.umar.navoplayer.core.testing.playback.FakePlaybackController
+import tj.umar.navoplayer.core.testing.playback.PlaybackCommand
 import tj.umar.navoplayer.core.testing.repository.FakeTrackRepository
 
 class LibraryViewModelTest {
@@ -18,7 +26,14 @@ class LibraryViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val repository = FakeTrackRepository()
-    private val viewModel = LibraryViewModel(ObserveTracksUseCase(repository))
+    private val playback = FakePlaybackController()
+    private val viewModel = LibraryViewModel(
+        observeTracks = ObserveTracksUseCase(repository),
+        observePlaybackState = ObservePlaybackStateUseCase(playback),
+        playTracks = PlayTracksUseCase(playback),
+        shufflePlayTracks = ShufflePlayTracksUseCase(playback),
+        togglePlayPause = TogglePlayPauseUseCase(playback),
+    )
 
     @Test
     fun `initial state is loading tracks tab without subscription`() {
@@ -155,14 +170,14 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `header and summary clicks change nothing yet`() = runTest {
+    fun `header and sort clicks change nothing yet`() = runTest {
         val before = viewModel.state.value
 
         viewModel.effects.test {
             viewModel.onIntent(LibraryIntent.SearchClicked)
             viewModel.onIntent(LibraryIntent.SettingsClicked)
             viewModel.onIntent(LibraryIntent.SortClicked)
-            viewModel.onIntent(LibraryIntent.ShuffleClicked)
+
             expectNoEvents()
         }
         assertEquals(before, viewModel.state.value)
@@ -177,5 +192,91 @@ class LibraryViewModelTest {
         viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
 
         assertFalse(viewModel.state.value.isLoadingTracks)
+    }
+
+    private suspend fun startWithTracks() {
+        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
+        repository.emit(TestTracks.tracks)
+    }
+
+    @Test
+    fun `track click plays all tracks from that track`() = runTest {
+        startWithTracks()
+
+        viewModel.onIntent(LibraryIntent.TrackClicked(TestTracks.beta.id))
+
+        assertEquals(
+            listOf(PlaybackCommand.Play(TestTracks.tracks, 1, PlaybackSource.AllTracks)),
+            playback.commands,
+        )
+    }
+
+    @Test
+    fun `unknown track click is ignored`() = runTest {
+        startWithTracks()
+
+        viewModel.onIntent(LibraryIntent.TrackClicked(999))
+
+        assertTrue(playback.commands.isEmpty())
+    }
+
+    @Test
+    fun `click on paused current track resumes`() = runTest {
+        startWithTracks()
+        playback.state.emit(TestPlaybackStates.pausedAlpha)
+
+        viewModel.onIntent(LibraryIntent.TrackClicked(TestTracks.alpha.id))
+
+        assertEquals(listOf(PlaybackCommand.TogglePlayPause), playback.commands)
+    }
+
+    @Test
+    fun `click on playing current track does nothing`() = runTest {
+        startWithTracks()
+        playback.state.emit(TestPlaybackStates.playingAlpha)
+
+        viewModel.onIntent(LibraryIntent.TrackClicked(TestTracks.alpha.id))
+
+        assertTrue(playback.commands.isEmpty())
+    }
+
+    @Test
+    fun `shuffle click plays shuffled library`() = runTest {
+        startWithTracks()
+
+        viewModel.onIntent(LibraryIntent.ShuffleClicked)
+
+        assertEquals(listOf(PlaybackCommand.PlayShuffled(TestTracks.tracks, PlaybackSource.AllTracks)), playback.commands)
+    }
+
+    @Test
+    fun `shuffle click without tracks does nothing`() = runTest {
+        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
+        repository.emit(emptyList())
+
+        viewModel.onIntent(LibraryIntent.ShuffleClicked)
+
+        assertTrue(playback.commands.isEmpty())
+    }
+
+    @Test
+    fun `playback state marks current track`() = runTest {
+        startWithTracks()
+        playback.state.emit(TestPlaybackStates.playingAlpha)
+
+        val state = viewModel.state.value
+        assertEquals(TestTracks.alpha.id, state.currentTrackId)
+        assertTrue(state.isPlaying)
+        assertTrue(state.hasActivePlayback)
+    }
+
+    @Test
+    fun `screen stop ends playback subscription`() = runTest {
+        startWithTracks()
+        assertEquals(1, playback.stateSubscribers)
+
+        viewModel.onIntent(LibraryIntent.ScreenStopped)
+
+        assertEquals(0, playback.stateSubscribers)
     }
 }

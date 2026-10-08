@@ -22,13 +22,19 @@ internal data class LibraryState(
     val tracks: List<Track> = emptyList(),
     val totalMinutes: Int = 0,
     val tracksLoadFailed: Boolean = false,
-)
+    val currentTrackId: Long? = null,
+    val isPlaying: Boolean = false,
+) {
+    val hasActivePlayback: Boolean
+        get() = currentTrackId != null
+}
 
 internal sealed interface LibraryIntent {
     data class TabSelected(val tab: LibraryTab) : LibraryIntent
     data class ScreenStarted(val hasPermission: Boolean) : LibraryIntent
     data object ScreenStopped : LibraryIntent
     data object RetryLoadTracks : LibraryIntent
+    data class TrackClicked(val trackId: Long) : LibraryIntent
     data object SearchClicked : LibraryIntent
     data object SettingsClicked : LibraryIntent
     data object SortClicked : LibraryIntent
