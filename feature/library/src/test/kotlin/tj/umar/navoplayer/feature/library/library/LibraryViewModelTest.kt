@@ -1,6 +1,7 @@
 package tj.umar.navoplayer.feature.library.library
 
 import app.cash.turbine.test
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -401,5 +402,18 @@ class LibraryViewModelTest {
             viewModel.onIntent(LibraryIntent.TrackLongPressed(TestTracks.alpha.id))
             assertEquals(LibraryEffect.OpenAddToPlaylist(listOf(TestTracks.alpha.id)), awaitItem())
         }
+    }
+
+    @Test
+    fun `double confirm creates one playlist`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        playlists.writeGate = gate
+
+        viewModel.onIntent(LibraryIntent.CreatePlaylistConfirmed("Дорога"))
+        viewModel.onIntent(LibraryIntent.CreatePlaylistConfirmed("Дорога"))
+        gate.complete(Unit)
+
+        assertEquals(1, playlists.writeCalls)
+        assertEquals(1, playlists.current.count { it.name == "Дорога" })
     }
 }
