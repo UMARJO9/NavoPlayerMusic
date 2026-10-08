@@ -90,7 +90,7 @@ internal class FavoritesViewModel @Inject constructor(
         val track = currentState.tracks.firstOrNull { it.id == trackId } ?: return
         viewModelScope.launch {
             setFavorite(track.id, false)
-                .onSuccess { sendEffect(FavoritesEffect.TrackRemoved(track.title)) }
+                .onSuccess { changed -> if (changed) sendEffect(FavoritesEffect.TrackRemoved(track.title)) }
                 .onError { sendEffect(FavoritesEffect.RemoveFailed) }
         }
     }

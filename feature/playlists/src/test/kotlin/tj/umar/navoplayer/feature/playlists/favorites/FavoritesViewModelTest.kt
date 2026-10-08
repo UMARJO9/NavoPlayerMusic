@@ -1,6 +1,7 @@
 package tj.umar.navoplayer.feature.playlists.favorites
 
 import app.cash.turbine.test
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -186,5 +187,30 @@ class FavoritesViewModelTest {
         favorites.addFavorite(TestTracks.beta.id)
 
         assertEquals(favoriteTracks, viewModel.state.value.tracks)
+    }
+
+    @Test
+    fun `long press on already removed track shows nothing`() = runTest {
+        val viewModel = viewModel().started()
+        val gate = CompletableDeferred<Unit>()
+        favorites.writeGate = gate
+
+        viewModel.effects.test {
+            viewModel.onIntent(FavoritesIntent.TrackLongPressed(TestTracks.alpha.id))
+            viewModel.onIntent(FavoritesIntent.TrackLongPressed(TestTracks.alpha.id))
+            gate.complete(Unit)
+            assertEquals(FavoritesEffect.TrackRemoved(TestTracks.alpha.title), awaitItem())
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun `restart after load does not show loading`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.onIntent(FavoritesIntent.ScreenStopped)
+        viewModel.onIntent(FavoritesIntent.ScreenStarted(hasPermission = true))
+
+        assertFalse(viewModel.state.value.isLoading)
     }
 }
