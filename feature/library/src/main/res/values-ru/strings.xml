@@ -9,11 +9,11 @@
     <string name="library_sort">Сортировка</string>
     <string name="library_shuffle">Перемешать</string>
     <string name="library_tracks_empty">На телефоне не найдено музыки</string>
-    <string name="library_albums_placeholder">Альбомы скоро появятся здесь</string>
-    <string name="library_artists_placeholder">Исполнители скоро появятся здесь</string>
-    <string name="library_folders_placeholder">Папки скоро появятся здесь</string>
     <string name="library_play_track">Воспроизвести</string>
     <string name="library_now_playing">Сейчас играет</string>
     <string name="library_tracks_retry">Повторить</string>
     <string name="library_tracks_error">Не удалось загрузить музыку</string>
+    <string name="library_back">Назад</string>
+    <string name="library_open_group">Открыть</string>
+    <string name="library_group_missing">Этой подборки больше нет на телефоне</string>
 </resources>

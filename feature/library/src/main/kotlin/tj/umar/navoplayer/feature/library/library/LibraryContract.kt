@@ -11,12 +11,11 @@ import tj.umar.navoplayer.feature.library.R
 
 internal enum class LibraryTab(
     @param:StringRes val titleRes: Int,
-    @param:StringRes val placeholderRes: Int,
 ) {
-    Tracks(R.string.library_tab_tracks, R.string.library_tracks_empty),
-    Albums(R.string.library_tab_albums, R.string.library_albums_placeholder),
-    Artists(R.string.library_tab_artists, R.string.library_artists_placeholder),
-    Folders(R.string.library_tab_folders, R.string.library_folders_placeholder),
+    Tracks(R.string.library_tab_tracks),
+    Albums(R.string.library_tab_albums),
+    Artists(R.string.library_tab_artists),
+    Folders(R.string.library_tab_folders),
 }
 
 @Immutable
