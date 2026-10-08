@@ -13,4 +13,5 @@ object NavoSpacing {
     val OnboardingHorizontal: Dp = 24.dp
     val MinTouchTarget: Dp = 44.dp
     val ListBottomInset: Dp = 24.dp
+    val MiniPlayerListInset: Dp = 104.dp
 }

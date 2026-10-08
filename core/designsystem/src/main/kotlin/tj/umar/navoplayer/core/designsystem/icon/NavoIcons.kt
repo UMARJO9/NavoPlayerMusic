@@ -26,4 +26,31 @@ object NavoIcons {
 
     val Pause: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_pause)
+
+    val SkipPrevious: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_skip_previous)
+
+    val SkipNext: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_skip_next)
+
+    val Repeat: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_repeat)
+
+    val Heart: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_heart)
+
+    val HeartFilled: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_heart_filled)
+
+    val Queue: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_queue)
+
+    val Timer: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_timer)
+
+    val ChevronDown: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_chevron_down)
+
+    val More: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_more)
 }
