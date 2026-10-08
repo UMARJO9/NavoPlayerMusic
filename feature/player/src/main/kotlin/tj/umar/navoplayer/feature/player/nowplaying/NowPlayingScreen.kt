@@ -7,8 +7,8 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
@@ -43,10 +44,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.min
 import kotlinx.coroutines.launch
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
 import tj.umar.navoplayer.core.designsystem.component.NavoSlider
@@ -81,7 +80,7 @@ internal fun NowPlayingScreen(
     val density = LocalDensity.current
     val dragOffset = remember { Animatable(0f) }
     var screenHeightPx by remember { mutableIntStateOf(0) }
-    BoxWithConstraints(
+    Box(
         modifier = modifier
             .fillMaxSize()
             .onSizeChanged { screenHeightPx = it.height }
@@ -103,20 +102,25 @@ internal fun NowPlayingScreen(
                 },
             ),
     ) {
-        val medallionSize = min(MedallionMaxSize, maxWidth - NavoSpacing.ScreenHorizontal * 2)
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.safeDrawing)
-                .padding(start = NavoSpacing.ScreenHorizontal, top = 12.dp, end = NavoSpacing.ScreenHorizontal, bottom = 28.dp),
+                .padding(start = NavoSpacing.ScreenHorizontal, top = 12.dp, end = NavoSpacing.ScreenHorizontal, bottom = 20.dp),
         ) {
             TopBar(source = state.source, onIntent = onIntent)
-            Spacer(modifier = Modifier.height(40.dp))
             val track = state.track
-            if (track != null) {
-                RotatingMedallion(trackId = track.id, isPlaying = state.isPlaying, size = medallionSize)
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (track != null) {
+                    RotatingMedallion(trackId = track.id, isPlaying = state.isPlaying)
+                }
             }
-            Spacer(modifier = Modifier.weight(1f))
             if (track != null) {
                 TrackInfo(track = track, isFavorite = state.isFavorite, onIntent = onIntent)
             }
@@ -171,21 +175,20 @@ private fun TopBar(source: PlaybackSource?, onIntent: (NowPlayingIntent) -> Unit
 }
 
 @Composable
-private fun RotatingMedallion(trackId: Long, isPlaying: Boolean, size: Dp) {
+private fun RotatingMedallion(trackId: Long, isPlaying: Boolean) {
     val palette = remember(trackId) { MedallionPalettes.forKey(trackId) }
-    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        Box(
-            modifier = Modifier
-                .size(size)
-                .dropShadow(CircleShape, NavoShadows.Medallion),
-        ) {
-            Medallion(
-                palette = palette,
-                modifier = Modifier.fillMaxSize(),
-                variant = MedallionVariant.Detailed,
-                rotationDegrees = rememberMedallionRotation(running = isPlaying),
-            )
-        }
+    Box(
+        modifier = Modifier
+            .sizeIn(maxWidth = MedallionMaxSize, maxHeight = MedallionMaxSize)
+            .aspectRatio(1f, matchHeightConstraintsFirst = true)
+            .dropShadow(CircleShape, NavoShadows.Medallion),
+    ) {
+        Medallion(
+            palette = palette,
+            modifier = Modifier.fillMaxSize(),
+            variant = MedallionVariant.Detailed,
+            rotationDegrees = rememberMedallionRotation(running = isPlaying),
+        )
     }
 }
 
