@@ -14,6 +14,7 @@ object TestTracks {
         durationMs = 185_000,
         trackNumber = 1,
         contentUri = "content://media/external/audio/media/1",
+        folderPath = "Music/Navo",
     )
 
     val beta = Track(
@@ -26,6 +27,7 @@ object TestTracks {
         durationMs = 42_000,
         trackNumber = null,
         contentUri = "content://media/external/audio/media/2",
+        folderPath = null,
     )
 
     val longMix = Track(
@@ -38,6 +40,7 @@ object TestTracks {
         durationMs = 3_725_000,
         trackNumber = 2,
         contentUri = "content://media/external/audio/media/3",
+        folderPath = "Music/Mixes",
     )
 
     val tracks: List<Track> = listOf(alpha, beta, longMix)

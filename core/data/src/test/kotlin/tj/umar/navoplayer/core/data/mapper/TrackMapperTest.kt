@@ -19,6 +19,7 @@ class TrackMapperTest {
         durationMs = 200_000,
         track = 3,
         contentUri = "content://media/external/audio/media/7",
+        relativePath = "Music/Navo/",
     )
 
     @Test
@@ -33,6 +34,7 @@ class TrackMapperTest {
             durationMs = 200_000,
             trackNumber = 3,
             contentUri = "content://media/external/audio/media/7",
+            folderPath = "Music/Navo",
         )
         assertEquals(expected, row.toTrack())
     }
@@ -76,5 +78,29 @@ class TrackMapperTest {
         assertNull(row.copy(track = 0).toTrack().trackNumber)
         assertNull(row.copy(track = 2000).toTrack().trackNumber)
         assertNull(row.copy(track = null).toTrack().trackNumber)
+    }
+
+    @Test
+    fun `relative path loses trailing slash and blank becomes null`() {
+        assertEquals("Music/Rock", folderPathOf("Music/Rock/", null))
+        assertNull(folderPathOf("  ", null))
+    }
+
+    @Test
+    fun `legacy data path strips storage root and file name`() {
+        assertEquals("Music", folderPathOf(null, "/storage/emulated/0/Music/a.mp3"))
+        assertEquals("Songs/x", folderPathOf(null, "/storage/1234-ABCD/Songs/x/a.mp3"))
+        assertEquals("Music", folderPathOf(null, "/sdcard/Music/a.mp3"))
+    }
+
+    @Test
+    fun `file at storage root has no folder`() {
+        assertNull(folderPathOf(null, "/storage/emulated/0/a.mp3"))
+        assertNull(folderPathOf(null, null))
+    }
+
+    @Test
+    fun `relative path wins over data path`() {
+        assertEquals("Music/New", folderPathOf("Music/New/", "/storage/emulated/0/Old/a.mp3"))
     }
 }

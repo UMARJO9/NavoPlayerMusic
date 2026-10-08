@@ -16,6 +16,7 @@ internal fun MediaStoreAudioRow.toTrack(): Track = Track(
     durationMs = durationMs?.coerceAtLeast(0) ?: 0,
     trackNumber = track?.takeIf { it > 0 }?.rem(DISC_TRACK_DIVIDER)?.takeIf { it > 0 },
     contentUri = contentUri,
+    folderPath = folderPathOf(relativePath, dataPath),
 )
 
 private fun cleanTag(value: String?): String? =
@@ -23,3 +24,11 @@ private fun cleanTag(value: String?): String? =
 
 private fun titleFromFileName(displayName: String?): String =
     displayName?.substringBeforeLast('.')?.trim().orEmpty()
+
+private val StorageRootPrefix = Regex("""^/storage/(emulated/\d+|[^/]+)/?|^/sdcard/?""")
+
+internal fun folderPathOf(relativePath: String?, dataPath: String?): String? {
+    if (relativePath != null) return relativePath.trim().trimEnd('/').ifBlank { null }
+    val directory = dataPath?.trim()?.substringBeforeLast('/', missingDelimiterValue = "") ?: return null
+    return directory.replaceFirst(StorageRootPrefix, "").trimEnd('/').ifBlank { null }
+}

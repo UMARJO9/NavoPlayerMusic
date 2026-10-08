@@ -8,12 +8,14 @@ import tj.umar.navoplayer.core.domain.model.Track
 
 private const val EXTRA_ALBUM_ID = "navo.album_id"
 private const val EXTRA_ARTIST_ID = "navo.artist_id"
+private const val EXTRA_FOLDER_PATH = "navo.folder_path"
 
 internal fun Track.toMediaItem(): MediaItem {
     val uri = Uri.parse(contentUri)
     val extras = Bundle().apply {
         albumId?.let { putLong(EXTRA_ALBUM_ID, it) }
         artistId?.let { putLong(EXTRA_ARTIST_ID, it) }
+        folderPath?.let { putString(EXTRA_FOLDER_PATH, it) }
     }
     val metadata = MediaMetadata.Builder()
         .setTitle(title)
@@ -44,6 +46,7 @@ internal fun MediaItem.toTrack(): Track {
         durationMs = mediaMetadata.durationMs ?: 0L,
         trackNumber = mediaMetadata.trackNumber,
         contentUri = uri?.toString().orEmpty(),
+        folderPath = extras?.getString(EXTRA_FOLDER_PATH),
     )
 }
 

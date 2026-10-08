@@ -10,4 +10,5 @@ data class Track(
     val durationMs: Long,
     val trackNumber: Int?,
     val contentUri: String,
+    val folderPath: String?,
 )
