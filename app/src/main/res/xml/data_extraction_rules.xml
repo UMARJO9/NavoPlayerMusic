@@ -1,4 +1,12 @@
 <data-extraction-rules>
     <cloud-backup>
+        <exclude domain="database" path="navo.db" />
+        <exclude domain="database" path="navo.db-wal" />
+        <exclude domain="database" path="navo.db-shm" />
     </cloud-backup>
+    <device-transfer>
+        <exclude domain="database" path="navo.db" />
+        <exclude domain="database" path="navo.db-wal" />
+        <exclude domain="database" path="navo.db-shm" />
+    </device-transfer>
 </data-extraction-rules>
