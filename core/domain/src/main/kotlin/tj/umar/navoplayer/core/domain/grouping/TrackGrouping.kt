@@ -19,7 +19,7 @@ fun Track.groupKey(type: TrackGroupType): TrackGroupKey = when (type) {
 }
 
 fun List<Track>.toAlbums(collator: Collator = nameCollator()): List<Album> {
-    val trackOrder = albumTrackOrder(collator)
+    val trackOrder = albumTrackOrder(CollationKeys(collator))
     return groupBy { it.groupKey(TrackGroupType.Album) }
         .map { (key, tracks) ->
             val artists = tracks.mapNotNull { it.artist }.distinct()
@@ -35,7 +35,7 @@ fun List<Track>.toAlbums(collator: Collator = nameCollator()): List<Album> {
 }
 
 fun List<Track>.toArtists(collator: Collator = nameCollator()): List<Artist> {
-    val trackOrder = artistTrackOrder(collator)
+    val trackOrder = artistTrackOrder(CollationKeys(collator))
     return groupBy { it.groupKey(TrackGroupType.Artist) }
         .map { (key, tracks) ->
             Artist(
@@ -49,7 +49,7 @@ fun List<Track>.toArtists(collator: Collator = nameCollator()): List<Artist> {
 }
 
 fun List<Track>.toFolders(collator: Collator = nameCollator()): List<Folder> {
-    val trackOrder = titleTrackOrder(collator)
+    val trackOrder = titleTrackOrder(CollationKeys(collator))
     return groupBy { it.groupKey(TrackGroupType.Folder) }
         .map { (key, tracks) ->
             Folder(
@@ -78,28 +78,34 @@ private fun namedKey(type: TrackGroupType, name: String?, id: Long?): TrackGroup
     else -> TrackGroupKey(type, id = null, name = name)
 }
 
-private fun <G : TrackGroup> List<G>.sortedByName(collator: Collator, displayName: (G) -> String?): List<G> {
-    val collationKeys: Map<G, CollationKey> = associateWith { collator.getCollationKey(displayName(it).orEmpty()) }
-    return sortedWith(
-        compareBy<G> { it.key.isUnknown }
-            .thenBy { collationKeys.getValue(it) }
-            .thenBy { it.key.id ?: Long.MAX_VALUE }
-            .thenBy { it.key.name.orEmpty() },
-    )
+private class CollationKeys(private val collator: Collator) {
+    private val cache = HashMap<String, CollationKey>()
+
+    fun of(text: String): CollationKey = cache.getOrPut(text) { collator.getCollationKey(text) }
 }
 
-private fun titleTrackOrder(collator: Collator): Comparator<Track> =
-    Comparator<Track> { first, second -> collator.compare(first.title, second.title) }
-        .thenBy { it.id }
+private fun <G : TrackGroup> List<G>.sortedByName(collator: Collator, displayName: (G) -> String?): List<G> =
+    map { group -> group to collator.getCollationKey(displayName(group).orEmpty()) }
+        .sortedWith(
+            compareBy<Pair<G, CollationKey>> { it.first.key.isUnknown }
+                .thenBy { it.second }
+                .thenBy { it.first.key.id ?: Long.MAX_VALUE }
+                .thenBy { it.first.key.name.orEmpty() },
+        )
+        .map { it.first }
 
-private fun albumTrackOrder(collator: Collator): Comparator<Track> =
+private fun titleTrackOrder(keys: CollationKeys): Comparator<Track> =
+    compareBy<Track> { keys.of(it.title) }.thenBy { it.id }
+
+private fun albumTrackOrder(keys: CollationKeys): Comparator<Track> =
     compareBy<Track> { it.discNumber ?: 0 }
         .thenBy(nullsLast()) { it.trackNumber }
-        .then(titleTrackOrder(collator))
+        .then(titleTrackOrder(keys))
 
-private fun artistTrackOrder(collator: Collator): Comparator<Track> =
+private fun artistTrackOrder(keys: CollationKeys): Comparator<Track> =
     compareBy<Track> { it.album == null }
-        .then(Comparator { first, second -> collator.compare(first.album.orEmpty(), second.album.orEmpty()) })
+        .thenBy { keys.of(it.album.orEmpty()) }
+        .thenBy { it.albumId ?: Long.MAX_VALUE }
         .thenBy { it.discNumber ?: 0 }
-        .thenComparator { first, second -> compareValues(first.trackNumber ?: Int.MAX_VALUE, second.trackNumber ?: Int.MAX_VALUE) }
-        .then(titleTrackOrder(collator))
+        .thenBy { it.trackNumber ?: Int.MAX_VALUE }
+        .then(titleTrackOrder(keys))

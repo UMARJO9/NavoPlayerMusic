@@ -144,4 +144,25 @@ class TrackGroupingTest {
 
         assertEquals(listOf(4L, 2L, 1L, 3L), album.tracks.map { it.id })
     }
+
+    @Test
+    fun `artist keeps same named albums apart`() {
+        val first = TestTracks.longMix.copy(id = 21, title = "B", album = "Hits", albumId = 1, trackNumber = 1)
+        val second = TestTracks.longMix.copy(id = 22, title = "A", album = "Hits", albumId = 2, trackNumber = 1)
+        val firstTwo = TestTracks.longMix.copy(id = 23, title = "C", album = "Hits", albumId = 1, trackNumber = 2)
+
+        val artist = listOf(second, firstTwo, first).toArtists(collator).single()
+
+        assertEquals(listOf(21L, 23L, 22L), artist.tracks.map { it.id })
+    }
+
+    @Test
+    fun `same named folders in different paths stay separate`() {
+        val rock = TestTracks.alpha.copy(id = 31, folderPath = "Music/Rock")
+        val downloadsRock = TestTracks.alpha.copy(id = 32, folderPath = "Download/Rock")
+
+        val folders = listOf(rock, downloadsRock).toFolders(collator)
+
+        assertEquals(listOf("Download/Rock", "Music/Rock"), folders.map { it.path })
+    }
 }
