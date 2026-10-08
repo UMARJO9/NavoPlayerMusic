@@ -2,7 +2,11 @@ package tj.umar.navoplayer.feature.library.library
 
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
+import tj.umar.navoplayer.core.domain.model.Album
+import tj.umar.navoplayer.core.domain.model.Artist
+import tj.umar.navoplayer.core.domain.model.Folder
 import tj.umar.navoplayer.core.domain.model.Track
+import tj.umar.navoplayer.core.domain.model.TrackGroupKey
 import tj.umar.navoplayer.feature.library.R
 
 internal enum class LibraryTab(
@@ -22,6 +26,9 @@ internal data class LibraryState(
     val tracks: List<Track> = emptyList(),
     val totalMinutes: Int = 0,
     val tracksLoadFailed: Boolean = false,
+    val albums: List<Album> = emptyList(),
+    val artists: List<Artist> = emptyList(),
+    val folders: List<Folder> = emptyList(),
     val currentTrackId: Long? = null,
     val isPlaying: Boolean = false,
 ) {
@@ -35,6 +42,7 @@ internal sealed interface LibraryIntent {
     data object ScreenStopped : LibraryIntent
     data object RetryLoadTracks : LibraryIntent
     data class TrackClicked(val trackId: Long) : LibraryIntent
+    data class GroupClicked(val key: TrackGroupKey) : LibraryIntent
     data object SearchClicked : LibraryIntent
     data object SettingsClicked : LibraryIntent
     data object SortClicked : LibraryIntent
@@ -43,4 +51,5 @@ internal sealed interface LibraryIntent {
 
 internal sealed interface LibraryEffect {
     data object NavigateToWelcome : LibraryEffect
+    data class NavigateToGroup(val key: TrackGroupKey) : LibraryEffect
 }

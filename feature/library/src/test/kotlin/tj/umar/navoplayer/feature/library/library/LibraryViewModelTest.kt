@@ -8,7 +8,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
+import tj.umar.navoplayer.core.domain.model.TrackGroupKey
+import tj.umar.navoplayer.core.domain.model.TrackGroupType
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObserveLibraryUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
@@ -28,7 +31,7 @@ class LibraryViewModelTest {
     private val repository = FakeTrackRepository()
     private val playback = FakePlaybackController()
     private val viewModel = LibraryViewModel(
-        observeTracks = ObserveTracksUseCase(repository),
+        observeLibrary = ObserveLibraryUseCase(ObserveTracksUseCase(repository), mainDispatcherRule.testDispatcher),
         observePlaybackState = ObservePlaybackStateUseCase(playback),
         playTracks = PlayTracksUseCase(playback),
         shufflePlayTracks = ShufflePlayTracksUseCase(playback),
@@ -278,5 +281,26 @@ class LibraryViewModelTest {
         viewModel.onIntent(LibraryIntent.ScreenStopped)
 
         assertEquals(0, playback.stateSubscribers)
+    }
+
+    @Test
+    fun `library emission fills albums artists and folders`() = runTest {
+        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
+        repository.emit(TestTracks.library)
+
+        val state = viewModel.state.value
+        assertEquals(4, state.albums.size)
+        assertEquals(5, state.artists.size)
+        assertEquals(4, state.folders.size)
+    }
+
+    @Test
+    fun `group click navigates to group`() = runTest {
+        val key = TrackGroupKey(TrackGroupType.Album, 10, null)
+
+        viewModel.effects.test {
+            viewModel.onIntent(LibraryIntent.GroupClicked(key))
+            assertEquals(LibraryEffect.NavigateToGroup(key), awaitItem())
+        }
     }
 }

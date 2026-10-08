@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.totalDurationMinutes
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
-import tj.umar.navoplayer.core.domain.usecase.ObserveTracksUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObserveLibraryUseCase
 import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class LibraryViewModel @Inject constructor(
-    private val observeTracks: ObserveTracksUseCase,
+    private val observeLibrary: ObserveLibraryUseCase,
     private val observePlaybackState: ObservePlaybackStateUseCase,
     private val playTracks: PlayTracksUseCase,
     private val shufflePlayTracks: ShufflePlayTracksUseCase,
@@ -38,6 +38,7 @@ internal class LibraryViewModel @Inject constructor(
             LibraryIntent.ScreenStopped -> stopObserving()
             LibraryIntent.RetryLoadTracks -> startObservingTracks()
             is LibraryIntent.TrackClicked -> onTrackClicked(intent.trackId)
+            is LibraryIntent.GroupClicked -> sendEffect(LibraryEffect.NavigateToGroup(intent.key))
             LibraryIntent.ShuffleClicked -> onShuffleClicked()
             LibraryIntent.SearchClicked,
             LibraryIntent.SettingsClicked,
@@ -80,11 +81,18 @@ internal class LibraryViewModel @Inject constructor(
     private fun startObservingTracks() {
         if (tracksJob?.isActive == true) return
         setState { copy(isLoadingTracks = !hasLoadedTracks, tracksLoadFailed = false) }
-        tracksJob = observeTracks()
-            .onEach { tracks ->
+        tracksJob = observeLibrary()
+            .onEach { content ->
                 hasLoadedTracks = true
                 setState {
-                    copy(tracks = tracks, totalMinutes = tracks.totalDurationMinutes(), isLoadingTracks = false)
+                    copy(
+                        tracks = content.tracks,
+                        totalMinutes = content.tracks.totalDurationMinutes(),
+                        albums = content.albums,
+                        artists = content.artists,
+                        folders = content.folders,
+                        isLoadingTracks = false,
+                    )
                 }
             }
             .catch { setState { copy(isLoadingTracks = false, tracksLoadFailed = true) } }
