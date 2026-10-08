@@ -255,4 +255,34 @@ class AddToPlaylistViewModelTest {
 
         assertEquals(false, viewModel.state.value.isFavorite)
     }
+
+    @Test
+    fun `favorite load error can be retried`() = runTest {
+        favorites.observeError = IllegalStateException("db closed")
+        opened(TestTracks.alpha.id)
+        assertNull(viewModel.state.value.isFavorite)
+
+        favorites.observeError = null
+        viewModel.onIntent(AddToPlaylistIntent.RetryLoad)
+
+        assertEquals(true, viewModel.state.value.isFavorite)
+    }
+
+    @Test
+    fun `favorite click is ignored while saving or unknown`() = runTest {
+        favorites.observeError = IllegalStateException("db closed")
+        opened(TestTracks.beta.id)
+        viewModel.onIntent(AddToPlaylistIntent.FavoriteClicked)
+        assertEquals(0, favorites.writeCalls)
+
+        favorites.observeError = null
+        viewModel.onIntent(AddToPlaylistIntent.RetryLoad)
+        val gate = CompletableDeferred<Unit>()
+        favorites.writeGate = gate
+        viewModel.onIntent(AddToPlaylistIntent.FavoriteClicked)
+        viewModel.onIntent(AddToPlaylistIntent.FavoriteClicked)
+        gate.complete(Unit)
+
+        assertEquals(1, favorites.writeCalls)
+    }
 }

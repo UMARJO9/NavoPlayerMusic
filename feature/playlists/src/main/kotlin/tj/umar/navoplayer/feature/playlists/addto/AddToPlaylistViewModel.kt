@@ -111,13 +111,13 @@ internal class AddToPlaylistViewModel @Inject constructor(
     }
 
     private fun startObserving() {
+        startObservingFavorite()
         if (playlistsJob?.isActive == true) return
         setState { copy(isLoading = playlists.isEmpty(), loadFailed = false) }
         playlistsJob = observePlaylists()
             .onEach { playlists -> setState { copy(playlists = playlists, isLoading = false) } }
             .catch { setState { copy(isLoading = false, loadFailed = true) } }
             .launchIn(viewModelScope)
-        startObservingFavorite()
     }
 
     private fun stopObserving() {
