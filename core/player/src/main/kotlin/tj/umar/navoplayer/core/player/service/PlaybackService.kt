@@ -2,6 +2,7 @@ package tj.umar.navoplayer.core.player.service
 
 import android.app.PendingIntent
 import android.content.Intent
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -28,9 +29,12 @@ class PlaybackService : MediaSessionService() {
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         val sessionPlayer = mediaSession?.player
-        if (sessionPlayer == null || !sessionPlayer.playWhenReady || sessionPlayer.mediaItemCount == 0) {
-            stopSelf()
-        }
+        val stillPlaying = sessionPlayer != null &&
+            sessionPlayer.playWhenReady &&
+            sessionPlayer.mediaItemCount > 0 &&
+            sessionPlayer.playbackState != Player.STATE_ENDED &&
+            sessionPlayer.playbackState != Player.STATE_IDLE
+        if (!stillPlaying) stopSelf()
     }
 
     override fun onDestroy() {
