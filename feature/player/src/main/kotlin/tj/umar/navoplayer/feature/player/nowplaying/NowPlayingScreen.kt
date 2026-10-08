@@ -309,6 +309,7 @@ private fun PlaybackSource.label(): String = when (this) {
     is PlaybackSource.Artist -> name ?: stringResource(CoreUiR.string.core_ui_unknown_artist)
     is PlaybackSource.Folder -> name ?: stringResource(CoreUiR.string.core_ui_unknown_folder)
     is PlaybackSource.Search -> stringResource(R.string.player_source_search, query)
+    is PlaybackSource.Playlist -> name
 }
 
 @Preview(widthDp = 390, heightDp = 844)

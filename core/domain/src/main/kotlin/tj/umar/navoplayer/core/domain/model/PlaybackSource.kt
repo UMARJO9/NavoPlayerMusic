@@ -6,6 +6,7 @@ sealed interface PlaybackSource {
     data class Artist(val name: String?) : PlaybackSource
     data class Folder(val name: String?) : PlaybackSource
     data class Search(val query: String) : PlaybackSource
+    data class Playlist(val id: Long, val name: String) : PlaybackSource
 }
 
 fun TrackGroup.toPlaybackSource(): PlaybackSource = when (this) {
@@ -13,3 +14,5 @@ fun TrackGroup.toPlaybackSource(): PlaybackSource = when (this) {
     is Artist -> PlaybackSource.Artist(name)
     is Folder -> PlaybackSource.Folder(name)
 }
+
+fun PlaybackSource?.isPlaylist(id: Long): Boolean = this is PlaybackSource.Playlist && this.id == id
