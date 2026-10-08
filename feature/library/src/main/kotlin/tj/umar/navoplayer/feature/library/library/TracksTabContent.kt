@@ -15,10 +15,10 @@ import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.feature.library.R
 import tj.umar.navoplayer.feature.library.component.ListSummary
-import tj.umar.navoplayer.feature.library.component.PhasedContent
-import tj.umar.navoplayer.feature.library.component.StateMessage
+import tj.umar.navoplayer.core.designsystem.component.PhasedContent
+import tj.umar.navoplayer.core.designsystem.component.StateMessage
 import tj.umar.navoplayer.feature.library.component.TrackListItem
-import tj.umar.navoplayer.feature.library.component.libraryListPadding
+import tj.umar.navoplayer.core.designsystem.component.navoListPadding
 
 @Composable
 internal fun TracksTabContent(
@@ -63,7 +63,7 @@ internal fun LibraryPhasedContent(
 private fun TrackList(state: LibraryState, onIntent: (LibraryIntent) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = libraryListPadding(state.hasActivePlayback),
+        contentPadding = navoListPadding(state.hasActivePlayback),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         item(key = "summary", contentType = "summary") {

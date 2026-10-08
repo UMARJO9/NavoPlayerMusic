@@ -16,12 +16,12 @@ import tj.umar.navoplayer.core.domain.grouping.toArtists
 import tj.umar.navoplayer.core.domain.grouping.toFolders
 import tj.umar.navoplayer.core.domain.model.TrackGroup
 import tj.umar.navoplayer.feature.library.R
-import tj.umar.navoplayer.feature.library.component.GroupRow
+import tj.umar.navoplayer.core.designsystem.component.GroupRow
 import tj.umar.navoplayer.feature.library.component.ListSummary
 import tj.umar.navoplayer.feature.library.component.displaySubtitle
 import tj.umar.navoplayer.feature.library.component.displayTitle
 import tj.umar.navoplayer.feature.library.component.leading
-import tj.umar.navoplayer.feature.library.component.libraryListPadding
+import tj.umar.navoplayer.core.designsystem.component.navoListPadding
 import tj.umar.navoplayer.feature.library.component.stableKey
 
 @Composable
@@ -50,7 +50,7 @@ private fun GroupTabContent(
     LibraryPhasedContent(state = state, onIntent = onIntent, modifier = modifier) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = libraryListPadding(state.hasActivePlayback),
+            contentPadding = navoListPadding(state.hasActivePlayback),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             item(key = "summary", contentType = "summary") {

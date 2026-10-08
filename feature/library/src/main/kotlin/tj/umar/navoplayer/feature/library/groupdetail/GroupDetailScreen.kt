@@ -36,17 +36,17 @@ import tj.umar.navoplayer.core.domain.model.TrackGroup
 import tj.umar.navoplayer.core.domain.model.TrackGroupKey
 import tj.umar.navoplayer.core.domain.model.TrackGroupType
 import tj.umar.navoplayer.feature.library.R
-import tj.umar.navoplayer.feature.library.component.ContentPhase
-import tj.umar.navoplayer.feature.library.component.GroupArtwork
+import tj.umar.navoplayer.core.designsystem.component.ContentPhase
+import tj.umar.navoplayer.core.designsystem.component.GroupArtwork
 import tj.umar.navoplayer.feature.library.component.ListSummary
-import tj.umar.navoplayer.feature.library.component.PhasedContent
-import tj.umar.navoplayer.feature.library.component.StateMessage
+import tj.umar.navoplayer.core.designsystem.component.PhasedContent
+import tj.umar.navoplayer.core.designsystem.component.StateMessage
 import tj.umar.navoplayer.feature.library.component.TrackListItem
-import tj.umar.navoplayer.feature.library.component.contentPhase
+import tj.umar.navoplayer.core.designsystem.component.contentPhase
 import tj.umar.navoplayer.feature.library.component.description
 import tj.umar.navoplayer.feature.library.component.displayTitle
 import tj.umar.navoplayer.feature.library.component.leading
-import tj.umar.navoplayer.feature.library.component.libraryListPadding
+import tj.umar.navoplayer.core.designsystem.component.navoListPadding
 import tj.umar.navoplayer.feature.library.library.previewTracks
 
 @Composable
@@ -103,7 +103,7 @@ internal fun GroupDetailScreen(
 private fun GroupTrackList(state: GroupDetailState, group: TrackGroup, onIntent: (GroupDetailIntent) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = libraryListPadding(state.hasActivePlayback),
+        contentPadding = navoListPadding(state.hasActivePlayback),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         item(key = "header", contentType = "header") {

@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.component.NavoButton
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
+import tj.umar.navoplayer.core.designsystem.component.NavoSummaryHorizontalPadding
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
 import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
@@ -33,7 +34,7 @@ internal fun ListSummary(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = SummaryHorizontalPadding, top = 12.dp, end = SummaryHorizontalPadding, bottom = 12.dp),
+            .padding(start = NavoSummaryHorizontalPadding, top = 12.dp, end = NavoSummaryHorizontalPadding, bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {

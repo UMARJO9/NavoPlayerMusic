@@ -1,4 +1,4 @@
-package tj.umar.navoplayer.feature.library.component
+package tj.umar.navoplayer.core.designsystem.component
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,36 +32,12 @@ import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalette
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
-import tj.umar.navoplayer.core.domain.model.Track
-import tj.umar.navoplayer.core.ui.format.formatDuration
-import tj.umar.navoplayer.core.ui.R as CoreUiR
-import tj.umar.navoplayer.feature.library.R
+import tj.umar.navoplayer.core.designsystem.R
 
 private const val CURRENT_ROW_FADE_MILLIS = 220
 
 @Composable
-internal fun TrackListItem(
-    track: Track,
-    isCurrent: Boolean,
-    isPlaying: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val palette = remember(track.id) { MedallionPalettes.forKey(track.id) }
-    TrackRow(
-        title = track.title.ifBlank { stringResource(CoreUiR.string.core_ui_unknown_title) },
-        artist = track.artist ?: stringResource(CoreUiR.string.core_ui_unknown_artist),
-        duration = formatDuration(track.durationMs),
-        palette = palette,
-        isCurrent = isCurrent,
-        isPlaying = isCurrent && isPlaying,
-        onClick = onClick,
-        modifier = modifier,
-    )
-}
-
-@Composable
-internal fun TrackRow(
+fun TrackRow(
     title: String,
     artist: String,
     duration: String,
@@ -79,8 +54,8 @@ internal fun TrackRow(
         animationSpec = tween(CURRENT_ROW_FADE_MILLIS),
         label = "trackRowBackground",
     )
-    val playLabel = stringResource(R.string.library_play_track)
-    val nowPlaying = stringResource(R.string.library_now_playing)
+    val playLabel = stringResource(R.string.designsystem_play_track)
+    val nowPlaying = stringResource(R.string.designsystem_now_playing)
     Row(
         modifier = modifier
             .fillMaxWidth()

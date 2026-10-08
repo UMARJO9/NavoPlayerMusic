@@ -1,3 +1,5 @@
 <resources>
     <string name="designsystem_now_playing">Сейчас играет</string>
+    <string name="designsystem_play_track">Воспроизвести</string>
+    <string name="designsystem_open">Открыть</string>
 </resources>

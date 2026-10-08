@@ -1,4 +1,4 @@
-package tj.umar.navoplayer.feature.library.component
+package tj.umar.navoplayer.core.designsystem.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,15 +27,15 @@ import tj.umar.navoplayer.core.designsystem.medallion.Medallion
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalette
 import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
-import tj.umar.navoplayer.feature.library.R
+import tj.umar.navoplayer.core.designsystem.R
 
-internal sealed interface GroupLeading {
+sealed interface GroupLeading {
     data class Artwork(val palette: MedallionPalette) : GroupLeading
     data object Folder : GroupLeading
 }
 
 @Composable
-internal fun GroupRow(
+fun GroupRow(
     title: String,
     subtitle: String,
     leading: GroupLeading,
@@ -50,7 +50,7 @@ internal fun GroupRow(
             .heightIn(min = 64.dp)
             .semantics(mergeDescendants = true) { }
             .clip(NavoShapes.TrackRow)
-            .clickable(onClickLabel = stringResource(R.string.library_open_group), onClick = onClick)
+            .clickable(onClickLabel = stringResource(R.string.designsystem_open), onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -76,7 +76,7 @@ internal fun GroupRow(
 }
 
 @Composable
-internal fun GroupArtwork(leading: GroupLeading, size: Dp, modifier: Modifier = Modifier) {
+fun GroupArtwork(leading: GroupLeading, size: Dp, modifier: Modifier = Modifier) {
     when (leading) {
         is GroupLeading.Artwork -> Medallion(palette = leading.palette, modifier = modifier.size(size))
         GroupLeading.Folder -> Box(

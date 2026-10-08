@@ -1,4 +1,4 @@
-package tj.umar.navoplayer.feature.library.component
+package tj.umar.navoplayer.core.designsystem.component
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
@@ -27,9 +27,9 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 private const val PHASE_ENTER_MILLIS = 260
 private const val PHASE_EXIT_MILLIS = 160
 
-internal enum class ContentPhase { Loading, Content, Empty, Error }
+enum class ContentPhase { Loading, Content, Empty, Error }
 
-internal fun contentPhase(hasContent: Boolean, isLoading: Boolean, loadFailed: Boolean): ContentPhase = when {
+fun contentPhase(hasContent: Boolean, isLoading: Boolean, loadFailed: Boolean): ContentPhase = when {
     hasContent -> ContentPhase.Content
     isLoading -> ContentPhase.Loading
     loadFailed -> ContentPhase.Error
@@ -37,7 +37,7 @@ internal fun contentPhase(hasContent: Boolean, isLoading: Boolean, loadFailed: B
 }
 
 @Composable
-internal fun PhasedContent(
+fun PhasedContent(
     phase: ContentPhase,
     modifier: Modifier = Modifier,
     empty: @Composable () -> Unit,
@@ -62,7 +62,7 @@ internal fun PhasedContent(
 }
 
 @Composable
-internal fun StateMessage(
+fun StateMessage(
     message: String,
     palette: MedallionPalette,
     actionLabel: String? = null,

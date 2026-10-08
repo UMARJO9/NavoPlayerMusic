@@ -9,12 +9,9 @@
     <string name="library_sort">Sort</string>
     <string name="library_shuffle">Shuffle</string>
     <string name="library_tracks_empty">No music found on this device</string>
-    <string name="library_play_track">Play</string>
-    <string name="library_now_playing">Now playing</string>
     <string name="library_tracks_retry">Try again</string>
     <string name="library_tracks_error">Couldn\'t load your music</string>
     <string name="library_back">Back</string>
-    <string name="library_open_group">Open</string>
     <string name="library_group_subtitle" translatable="false">%1$s · %2$s</string>
     <string name="library_group_missing">This collection is no longer on your device</string>
 </resources>
