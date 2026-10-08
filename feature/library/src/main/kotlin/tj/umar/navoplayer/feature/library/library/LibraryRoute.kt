@@ -20,6 +20,7 @@ internal fun LibraryRoute(
     onGroupClick: (TrackGroupKey) -> Unit,
     onSearchClick: () -> Unit,
     onPlaylistClick: (Long) -> Unit,
+    onAddToPlaylist: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
@@ -29,6 +30,7 @@ internal fun LibraryRoute(
     val currentOnGroupClick by rememberUpdatedState(onGroupClick)
     val currentOnSearchClick by rememberUpdatedState(onSearchClick)
     val currentOnPlaylistClick by rememberUpdatedState(onPlaylistClick)
+    val currentOnAddToPlaylist by rememberUpdatedState(onAddToPlaylist)
 
     LifecycleStartEffect(Unit) {
         viewModel.onIntent(LibraryIntent.ScreenStarted(context.hasAudioReadPermission()))
@@ -41,6 +43,7 @@ internal fun LibraryRoute(
             is LibraryEffect.NavigateToGroup -> currentOnGroupClick(effect.key)
             LibraryEffect.NavigateToSearch -> currentOnSearchClick()
             is LibraryEffect.NavigateToPlaylist -> currentOnPlaylistClick(effect.playlistId)
+            is LibraryEffect.OpenAddToPlaylist -> currentOnAddToPlaylist(effect.trackIds)
             LibraryEffect.ShowCreatePlaylistFailed ->
                 Toast.makeText(context, R.string.library_create_playlist_failed, Toast.LENGTH_SHORT).show()
         }

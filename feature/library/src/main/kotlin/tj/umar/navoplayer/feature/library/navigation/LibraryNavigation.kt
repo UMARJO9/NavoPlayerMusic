@@ -40,6 +40,7 @@ fun NavGraphBuilder.libraryScreen(
     onGroupClick: (TrackGroupKey) -> Unit,
     onSearchClick: () -> Unit,
     onPlaylistClick: (Long) -> Unit,
+    onAddToPlaylist: (List<Long>) -> Unit,
 ) {
     composable<LibraryDestination> {
         LibraryRoute(
@@ -47,6 +48,7 @@ fun NavGraphBuilder.libraryScreen(
             onGroupClick = onGroupClick,
             onSearchClick = onSearchClick,
             onPlaylistClick = onPlaylistClick,
+            onAddToPlaylist = onAddToPlaylist,
         )
     }
 }

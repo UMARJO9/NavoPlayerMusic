@@ -62,6 +62,7 @@ internal fun LibraryPhasedContent(
 
 @Composable
 private fun TrackList(state: LibraryState, onIntent: (LibraryIntent) -> Unit) {
+    val addToPlaylistLabel = stringResource(CoreUiR.string.core_ui_add_to_playlist)
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = navoListPadding(state.hasActivePlayback),
@@ -81,6 +82,8 @@ private fun TrackList(state: LibraryState, onIntent: (LibraryIntent) -> Unit) {
                 isCurrent = track.id == state.currentTrackId,
                 isPlaying = track.id == state.currentTrackId && state.isPlaying,
                 onClick = { onIntent(LibraryIntent.TrackClicked(track.id)) },
+                onLongClick = { onIntent(LibraryIntent.TrackLongPressed(track.id)) },
+                onLongClickLabel = addToPlaylistLabel,
                 modifier = Modifier.animateItem(),
             )
         }

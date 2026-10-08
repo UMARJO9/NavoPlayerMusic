@@ -37,6 +37,7 @@ private const val EXIT_FADE_MILLIS = 200
 fun NavoNavHost(
     navController: NavHostController,
     startDestination: Any,
+    onAddToPlaylist: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val isResumed = { navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED }
@@ -84,6 +85,7 @@ fun NavoNavHost(
             onGroupClick = { key -> if (isResumed()) navController.navigateToGroupDetail(key) },
             onSearchClick = { if (isResumed()) navController.navigateToSearch() },
             onPlaylistClick = { id -> if (isResumed()) navController.navigateToPlaylistDetail(id) },
+            onAddToPlaylist = onAddToPlaylist,
         )
         searchScreen(
             onBack = {

@@ -394,4 +394,12 @@ class LibraryViewModelTest {
             assertEquals(LibraryEffect.ShowCreatePlaylistFailed, awaitItem())
         }
     }
+
+    @Test
+    fun `track long press opens add to playlist`() = runTest {
+        viewModel.effects.test {
+            viewModel.onIntent(LibraryIntent.TrackLongPressed(TestTracks.alpha.id))
+            assertEquals(LibraryEffect.OpenAddToPlaylist(listOf(TestTracks.alpha.id)), awaitItem())
+        }
+    }
 }

@@ -59,6 +59,7 @@ internal sealed interface LibraryIntent {
     data object CreatePlaylistDismissed : LibraryIntent
     data class CreatePlaylistConfirmed(val name: String) : LibraryIntent
     data object RetryLoadPlaylists : LibraryIntent
+    data class TrackLongPressed(val trackId: Long) : LibraryIntent
 }
 
 internal sealed interface LibraryEffect {
@@ -67,4 +68,5 @@ internal sealed interface LibraryEffect {
     data class NavigateToGroup(val key: TrackGroupKey) : LibraryEffect
     data class NavigateToPlaylist(val playlistId: Long) : LibraryEffect
     data object ShowCreatePlaylistFailed : LibraryEffect
+    data class OpenAddToPlaylist(val trackIds: List<Long>) : LibraryEffect
 }

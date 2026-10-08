@@ -54,6 +54,7 @@ internal class LibraryViewModel @Inject constructor(
             LibraryIntent.CreatePlaylistDismissed -> setState { copy(isCreatePlaylistDialogVisible = false) }
             is LibraryIntent.CreatePlaylistConfirmed -> onCreatePlaylistConfirmed(intent.name)
             LibraryIntent.RetryLoadPlaylists -> startObservingPlaylists()
+            is LibraryIntent.TrackLongPressed -> sendEffect(LibraryEffect.OpenAddToPlaylist(listOf(intent.trackId)))
             LibraryIntent.SettingsClicked,
             LibraryIntent.SortClicked -> Unit
         }
