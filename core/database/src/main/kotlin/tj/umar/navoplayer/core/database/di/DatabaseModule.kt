@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import tj.umar.navoplayer.core.database.NAVO_DATABASE_NAME
 import tj.umar.navoplayer.core.database.NavoDatabase
+import tj.umar.navoplayer.core.database.dao.FavoriteDao
 import tj.umar.navoplayer.core.database.dao.PlaylistDao
 import javax.inject.Singleton
 
@@ -23,4 +24,7 @@ internal object DatabaseModule {
 
     @Provides
     fun providePlaylistDao(database: NavoDatabase): PlaylistDao = database.playlistDao()
+
+    @Provides
+    fun provideFavoriteDao(database: NavoDatabase): FavoriteDao = database.favoriteDao()
 }
