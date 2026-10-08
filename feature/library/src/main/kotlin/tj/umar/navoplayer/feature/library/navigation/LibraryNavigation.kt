@@ -1,8 +1,6 @@
 package tj.umar.navoplayer.feature.library.navigation
 
 import androidx.navigation.NavController
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
@@ -58,9 +56,6 @@ fun NavGraphBuilder.groupDetailScreen(
         )
     }
 }
-
-fun NavDestination.showsMiniPlayer(): Boolean =
-    hasRoute<LibraryDestination>() || hasRoute<GroupDetailDestination>()
 
 internal fun GroupDetailDestination.toKey(): TrackGroupKey = TrackGroupKey(
     type = when (type) {
