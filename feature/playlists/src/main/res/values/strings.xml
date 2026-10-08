@@ -26,4 +26,10 @@
     <string name="playlists_sheet_created">Playlist “%1$s” created</string>
     <string name="playlists_sheet_failed">Couldn’t save to the playlist</string>
     <string name="playlists_sheet_error">Couldn’t load playlists</string>
+    <string name="playlists_favorites_empty">No favorite tracks yet</string>
+    <string name="playlists_favorites_empty_hint">Tap ♥ in the player to add a track</string>
+    <string name="playlists_favorites_error">Couldn’t load favorites</string>
+    <string name="playlists_favorites_remove_label">Remove from favorites</string>
+    <string name="playlists_favorites_removed">“%1$s” removed from favorites</string>
+    <string name="playlists_favorites_remove_failed">Couldn’t remove from favorites</string>
 </resources>

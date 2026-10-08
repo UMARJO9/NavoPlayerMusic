@@ -26,4 +26,10 @@
     <string name="playlists_sheet_created">Плейлист «%1$s» создан</string>
     <string name="playlists_sheet_failed">Не удалось сохранить в плейлист</string>
     <string name="playlists_sheet_error">Не удалось загрузить плейлисты</string>
+    <string name="playlists_favorites_empty">В избранном пока нет треков</string>
+    <string name="playlists_favorites_empty_hint">Нажмите ♥ в плеере, чтобы добавить трек</string>
+    <string name="playlists_favorites_error">Не удалось загрузить избранное</string>
+    <string name="playlists_favorites_remove_label">Убрать из избранного</string>
+    <string name="playlists_favorites_removed">«%1$s» убран из избранного</string>
+    <string name="playlists_favorites_remove_failed">Не удалось убрать из избранного</string>
 </resources>
