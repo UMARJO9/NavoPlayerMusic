@@ -5,6 +5,8 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import tj.umar.navoplayer.core.data.repository.MediaStoreTrackRepository
+import tj.umar.navoplayer.core.data.repository.RoomPlaylistRepository
+import tj.umar.navoplayer.core.domain.repository.PlaylistRepository
 import tj.umar.navoplayer.core.domain.repository.TrackRepository
 
 @Module
@@ -13,4 +15,7 @@ internal interface DataModule {
 
     @Binds
     fun bindsTrackRepository(repository: MediaStoreTrackRepository): TrackRepository
+
+    @Binds
+    fun bindsPlaylistRepository(repository: RoomPlaylistRepository): PlaylistRepository
 }
