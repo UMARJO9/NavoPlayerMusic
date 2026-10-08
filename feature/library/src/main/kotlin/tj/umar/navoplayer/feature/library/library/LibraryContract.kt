@@ -5,6 +5,7 @@ import androidx.compose.runtime.Immutable
 import tj.umar.navoplayer.core.domain.model.Album
 import tj.umar.navoplayer.core.domain.model.Artist
 import tj.umar.navoplayer.core.domain.model.Folder
+import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.Track
 import tj.umar.navoplayer.core.domain.model.TrackGroupKey
 import tj.umar.navoplayer.feature.library.R
@@ -29,6 +30,7 @@ internal data class LibraryState(
     val artists: List<Artist> = emptyList(),
     val folders: List<Folder> = emptyList(),
     val currentTrackId: Long? = null,
+    val currentSource: PlaybackSource? = null,
     val isPlaying: Boolean = false,
 ) {
     val hasActivePlayback: Boolean

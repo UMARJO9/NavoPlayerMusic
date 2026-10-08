@@ -62,7 +62,7 @@ internal class LibraryViewModel @Inject constructor(
 
     private fun onTrackClicked(trackId: Long) {
         val state = currentState
-        if (trackId == state.currentTrackId) {
+        if (trackId == state.currentTrackId && state.currentSource == PlaybackSource.AllTracks) {
             if (!state.isPlaying) viewModelScope.launch { togglePlayPause() }
             return
         }
@@ -103,7 +103,13 @@ internal class LibraryViewModel @Inject constructor(
         if (playbackJob?.isActive == true) return
         playbackJob = observePlaybackState()
             .onEach { playback ->
-                setState { copy(currentTrackId = playback.currentTrack?.id, isPlaying = playback.isPlaying) }
+                setState {
+                    copy(
+                        currentTrackId = playback.currentTrack?.id,
+                        currentSource = playback.source,
+                        isPlaying = playback.isPlaying,
+                    )
+                }
             }
             .catch { }
             .launchIn(viewModelScope)

@@ -1,6 +1,7 @@
 package tj.umar.navoplayer.feature.library.groupdetail
 
 import androidx.compose.runtime.Immutable
+import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.Track
 import tj.umar.navoplayer.core.domain.model.TrackGroup
 import tj.umar.navoplayer.core.domain.model.TrackGroupKey
@@ -14,6 +15,7 @@ internal data class GroupDetailState(
     val loadFailed: Boolean = false,
     val isMissing: Boolean = false,
     val currentTrackId: Long? = null,
+    val currentSource: PlaybackSource? = null,
     val isPlaying: Boolean = false,
 ) {
     val hasActivePlayback: Boolean

@@ -303,4 +303,17 @@ class LibraryViewModelTest {
             assertEquals(LibraryEffect.NavigateToGroup(key), awaitItem())
         }
     }
+
+    @Test
+    fun `current track from album queue switches to all tracks`() = runTest {
+        startWithTracks()
+        playback.state.emit(TestPlaybackStates.playingAlpha.copy(source = PlaybackSource.Album("First")))
+
+        viewModel.onIntent(LibraryIntent.TrackClicked(TestTracks.alpha.id))
+
+        assertEquals(
+            listOf(PlaybackCommand.Play(TestTracks.tracks, 0, PlaybackSource.AllTracks)),
+            playback.commands,
+        )
+    }
 }

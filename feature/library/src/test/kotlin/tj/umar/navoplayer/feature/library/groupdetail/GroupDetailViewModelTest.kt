@@ -128,9 +128,9 @@ class GroupDetailViewModelTest {
     fun `click on paused current track resumes and playing does nothing`() = runTest {
         val viewModel = viewModel().started()
 
-        playback.state.emit(TestPlaybackStates.pausedAlpha)
+        playback.state.emit(TestPlaybackStates.pausedAlpha.copy(source = PlaybackSource.Album("First")))
         viewModel.onIntent(GroupDetailIntent.TrackClicked(TestTracks.alpha.id))
-        playback.state.emit(TestPlaybackStates.playingAlpha)
+        playback.state.emit(TestPlaybackStates.playingAlpha.copy(source = PlaybackSource.Album("First")))
         viewModel.onIntent(GroupDetailIntent.TrackClicked(TestTracks.alpha.id))
 
         assertEquals(listOf(PlaybackCommand.TogglePlayPause), playback.commands)
@@ -186,5 +186,26 @@ class GroupDetailViewModelTest {
 
         assertEquals(TestTracks.alpha.id, viewModel.state.value.currentTrackId)
         assertTrue(viewModel.state.value.isPlaying)
+    }
+
+    @Test
+    fun `current track from another queue switches to group queue`() = runTest {
+        val viewModel = viewModel().started()
+        playback.state.emit(TestPlaybackStates.playingAlpha)
+
+        viewModel.onIntent(GroupDetailIntent.TrackClicked(TestTracks.alpha.id))
+
+        assertEquals(listOf(PlaybackCommand.Play(albumTracks, 0, PlaybackSource.Album("First"))), playback.commands)
+    }
+
+    @Test
+    fun `actions on missing group do nothing`() = runTest {
+        val viewModel = viewModel(TrackGroupKey(TrackGroupType.Album, 999, null)).started()
+
+        viewModel.onIntent(GroupDetailIntent.ShuffleClicked)
+        viewModel.onIntent(GroupDetailIntent.TrackClicked(TestTracks.alpha.id))
+        viewModel.onIntent(GroupDetailIntent.SortClicked)
+
+        assertTrue(playback.commands.isEmpty())
     }
 }
