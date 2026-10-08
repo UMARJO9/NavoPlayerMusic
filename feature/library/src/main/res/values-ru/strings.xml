@@ -1,0 +1,17 @@
+<resources>
+    <string name="library_tab_tracks">Треки</string>
+    <string name="library_tab_albums">Альбомы</string>
+    <string name="library_tab_artists">Исполнители</string>
+    <string name="library_tab_folders">Папки</string>
+    <string name="library_sections">Разделы медиатеки</string>
+    <string name="library_search">Поиск</string>
+    <string name="library_settings">Настройки</string>
+    <string name="library_unknown_artist">Неизвестный исполнитель</string>
+    <string name="library_unknown_title">Без названия</string>
+    <string name="library_tracks_empty">На телефоне не найдено музыки</string>
+    <string name="library_albums_placeholder">Альбомы скоро появятся здесь</string>
+    <string name="library_artists_placeholder">Исполнители скоро появятся здесь</string>
+    <string name="library_folders_placeholder">Папки скоро появятся здесь</string>
+    <string name="library_tracks_retry">Повторить</string>
+    <string name="library_tracks_error">Не удалось загрузить музыку</string>
+</resources>

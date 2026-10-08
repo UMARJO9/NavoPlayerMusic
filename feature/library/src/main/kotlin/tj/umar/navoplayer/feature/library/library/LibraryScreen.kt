@@ -1,85 +1,169 @@
 package tj.umar.navoplayer.feature.library.library
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import tj.umar.navoplayer.core.designsystem.component.NavoChip
+import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
+import tj.umar.navoplayer.core.designsystem.component.Wordmark
+import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
+import tj.umar.navoplayer.core.designsystem.medallion.Medallion
+import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
+import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.feature.library.R
 
-@OptIn(ExperimentalMaterial3Api::class)
+private const val TAB_ENTER_MILLIS = 220
+private const val TAB_EXIT_MILLIS = 150
+private const val PLACEHOLDER_MEDALLION_ALPHA = 0.55f
+
 @Composable
 internal fun LibraryScreen(
     state: LibraryState,
     onIntent: (LibraryIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.library_title)) })
-        },
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-        ) {
-            PrimaryTabRow(selectedTabIndex = state.selectedTab.ordinal) {
-                LibraryTab.entries.forEach { tab ->
-                    Tab(
-                        selected = tab == state.selectedTab,
-                        onClick = { onIntent(LibraryIntent.TabSelected(tab)) },
-                        text = { Text(stringResource(tab.titleRes)) },
-                    )
-                }
-            }
-            when (state.selectedTab) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(NavoTheme.colors.background)
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)),
+    ) {
+        LibraryHeader(onIntent = onIntent)
+        LibraryTabs(selectedTab = state.selectedTab, onIntent = onIntent)
+        AnimatedContent(
+            targetState = state.selectedTab,
+            transitionSpec = { fadeIn(tween(TAB_ENTER_MILLIS)) togetherWith fadeOut(tween(TAB_EXIT_MILLIS)) },
+            modifier = Modifier.fillMaxSize(),
+            label = "libraryTab",
+        ) { tab ->
+            when (tab) {
                 LibraryTab.Tracks -> TracksTabContent(
                     state = state,
                     onIntent = onIntent,
                     modifier = Modifier.fillMaxSize(),
                 )
-                else -> Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = stringResource(R.string.library_placeholder_empty),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                }
+                else -> TabPlaceholder(tab = tab, modifier = Modifier.fillMaxSize())
             }
         }
     }
 }
 
-@PreviewLightDark
+@Composable
+private fun LibraryHeader(onIntent: (LibraryIntent) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = NavoSpacing.ScreenHorizontal, top = 8.dp, end = 12.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Wordmark()
+        Spacer(modifier = Modifier.weight(1f))
+        Row(horizontalArrangement = Arrangement.spacedBy(NavoSpacing.ExtraSmall)) {
+            NavoIconButton(
+                icon = NavoIcons.Search,
+                contentDescription = stringResource(R.string.library_search),
+                onClick = { onIntent(LibraryIntent.SearchClicked) },
+            )
+            NavoIconButton(
+                icon = NavoIcons.Settings,
+                contentDescription = stringResource(R.string.library_settings),
+                onClick = { onIntent(LibraryIntent.SettingsClicked) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun LibraryTabs(selectedTab: LibraryTab, onIntent: (LibraryIntent) -> Unit) {
+    val sectionsDescription = stringResource(R.string.library_sections)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .semantics { contentDescription = sectionsDescription }
+            .selectableGroup()
+            .padding(horizontal = NavoSpacing.ScreenHorizontal, vertical = NavoSpacing.Small),
+        horizontalArrangement = Arrangement.spacedBy(NavoSpacing.Small),
+    ) {
+        LibraryTab.entries.forEach { tab ->
+            NavoChip(
+                label = stringResource(tab.titleRes),
+                selected = tab == selectedTab,
+                onClick = { onIntent(LibraryIntent.TabSelected(tab)) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun TabPlaceholder(tab: LibraryTab, modifier: Modifier = Modifier) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            modifier = Modifier.padding(horizontal = NavoSpacing.ExtraLarge),
+        ) {
+            Medallion(
+                palette = MedallionPalettes.all[tab.ordinal % MedallionPalettes.all.size],
+                modifier = Modifier
+                    .size(104.dp)
+                    .alpha(PLACEHOLDER_MEDALLION_ALPHA),
+            )
+            Text(
+                text = stringResource(tab.placeholderRes),
+                style = NavoTheme.typography.secondary,
+                color = NavoTheme.colors.contentSecondary,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+@Preview(widthDp = 390, heightDp = 844)
 @Composable
 private fun LibraryScreenPreview() {
     NavoTheme {
         LibraryScreen(
-            state = LibraryState(
-                tracks = previewTracks,
-            ),
+            state = LibraryState(isLoadingTracks = false, tracks = previewTracks),
             onIntent = {},
         )
     }
 }
 
-@PreviewLightDark
+@Preview(widthDp = 390, heightDp = 844)
 @Composable
 private fun LibraryScreenAlbumsPreview() {
     NavoTheme {
