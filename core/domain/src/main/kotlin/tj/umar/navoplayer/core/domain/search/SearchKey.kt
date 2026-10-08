@@ -22,22 +22,41 @@ private val LetterFolds: Map<Char, String> = mapOf(
     'ı' to "i",
 )
 
+private val Apostrophes: Set<Int> = setOf('\''.code, '’'.code, 'ʼ'.code, '`'.code, '‘'.code)
+
+private val IgnoredMarkTypes: Set<Int> = setOf(
+    Character.NON_SPACING_MARK.toInt(),
+    Character.COMBINING_SPACING_MARK.toInt(),
+    Character.ENCLOSING_MARK.toInt(),
+)
+
 internal fun String.toSearchKey(): String {
     val composed = Normalizer.normalize(this, Normalizer.Form.NFC).lowercase(Locale.ROOT)
     val folded = StringBuilder(composed.length)
-    for (char in composed) {
+    var index = 0
+    while (index < composed.length) {
+        val codePoint = composed.codePointAt(index)
+        index += Character.charCount(codePoint)
+        val fold = if (Character.isBmpCodePoint(codePoint)) LetterFolds[codePoint.toChar()] else null
         when {
-            char == 'й' -> folded.append(char)
-            char in LetterFolds -> folded.append(LetterFolds.getValue(char))
-            Character.getType(char) == Character.NON_SPACING_MARK.toInt() -> Unit
-            !char.isLetterOrDigit() -> folded.append(' ')
-            char.code <= ASCII_LIMIT -> folded.append(char)
-            else -> folded.append(char.withoutMarks())
+            codePoint == 'й'.code -> folded.appendCodePoint(codePoint)
+            fold != null -> folded.append(fold)
+            codePoint in Apostrophes -> Unit
+            Character.getType(codePoint) in IgnoredMarkTypes -> Unit
+            !Character.isLetterOrDigit(codePoint) -> folded.append(' ')
+            codePoint <= ASCII_LIMIT -> folded.appendCodePoint(codePoint)
+            else -> folded.append(String(Character.toChars(codePoint)).withoutMarks())
         }
     }
     return folded.split(' ').filter { it.isNotEmpty() }.joinToString(" ")
 }
 
-private fun Char.withoutMarks(): String =
-    Normalizer.normalize(toString(), Normalizer.Form.NFD)
-        .filterNot { Character.getType(it) == Character.NON_SPACING_MARK.toInt() }
+internal fun String.toJoinedSearchKey(): String? {
+    val hasInnerPunctuation = any { !it.isLetterOrDigit() && !it.isWhitespace() && it.code !in Apostrophes }
+    if (!hasInnerPunctuation) return null
+    return toSearchKey().replace(" ", "").takeIf { it.isNotEmpty() }
+}
+
+private fun String.withoutMarks(): String =
+    Normalizer.normalize(this, Normalizer.Form.NFD)
+        .filterNot { Character.getType(it) in IgnoredMarkTypes }

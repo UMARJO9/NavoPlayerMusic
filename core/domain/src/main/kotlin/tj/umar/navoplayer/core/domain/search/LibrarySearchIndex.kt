@@ -44,6 +44,10 @@ internal class LibrarySearchIndex(content: LibraryContent) {
 }
 
 private fun fieldsOf(vararg values: Pair<String?, Int>): List<SearchField> =
-    values.mapNotNull { (text, rank) ->
-        text?.toSearchKey()?.takeIf { it.isNotEmpty() }?.let { SearchField(it, rank) }
+    values.flatMap { (text, rank) ->
+        if (text == null) return@flatMap emptyList()
+        listOfNotNull(
+            text.toSearchKey().takeIf { it.isNotEmpty() }?.let { SearchField(it, rank) },
+            text.toJoinedSearchKey()?.let { SearchField(it, rank) },
+        )
     }

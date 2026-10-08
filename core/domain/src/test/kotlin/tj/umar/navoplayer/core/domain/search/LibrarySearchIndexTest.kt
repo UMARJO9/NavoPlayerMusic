@@ -77,7 +77,28 @@ class LibrarySearchIndexTest {
         val results = index.search(SearchQuery.parse("ватан"))
 
         assertEquals(listOf("Ватан"), results.albums.map { it.title })
-        assertTrue(index.search(SearchQuery.parse("daler")).artists.single().name == "Daler Nazarov")
+        assertEquals("Daler Nazarov", index.search(SearchQuery.parse("daler")).artists.single().name)
         assertTrue(index.search(SearchQuery.parse("untitled")).artists.isEmpty())
+    }
+
+    @Test
+    fun `punctuated names match joined and split queries`() {
+        assertEquals(listOf("Back in Black"), titles("acdc"))
+        assertEquals(listOf("Back in Black"), titles("ac dc"))
+    }
+
+    @Test
+    fun `exact title ranks before prefix`() {
+        val exact = TestSearchTracks.blackbird.copy(id = 50, title = "Black")
+        val content = (library + exact).let { LibraryContent(it, it.toAlbums(), it.toArtists(), it.toFolders()) }
+
+        val result = LibrarySearchIndex(content).search(SearchQuery.parse("black")).tracks.map { it.title }
+
+        assertEquals("Black", result.first())
+    }
+
+    @Test
+    fun `very long query does not crash`() {
+        assertTrue(titles("x".repeat(500)).isEmpty())
     }
 }

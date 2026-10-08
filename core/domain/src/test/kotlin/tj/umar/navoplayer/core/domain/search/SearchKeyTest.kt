@@ -53,4 +53,22 @@ class SearchKeyTest {
         assertEquals("a b", "  a   b  ".toSearchKey())
         assertTrue("  \t ".toSearchKey().isEmpty())
     }
+
+    @Test
+    fun `apostrophes are dropped inside words`() {
+        assertEquals("dont stop", "Don't Stop".toSearchKey())
+        assertEquals("rocknroll", "Rock’n’Roll".toSearchKey())
+    }
+
+    @Test
+    fun `joined key exists only for inner punctuation`() {
+        assertEquals("acdc", "AC/DC".toJoinedSearchKey())
+        assertEquals("jayz", "Jay-Z".toJoinedSearchKey())
+        assertEquals(null, "Back in Black".toJoinedSearchKey())
+    }
+
+    @Test
+    fun `surrogate pairs do not split words`() {
+        assertEquals("a𝒜b", "a𝒜b".toSearchKey())
+    }
 }
