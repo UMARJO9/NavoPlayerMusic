@@ -3,11 +3,12 @@ package tj.umar.navoplayer.core.domain.grouping
 import tj.umar.navoplayer.core.domain.model.Album
 import tj.umar.navoplayer.core.domain.model.Artist
 import tj.umar.navoplayer.core.domain.model.Folder
+import tj.umar.navoplayer.core.domain.model.GroupSort
 import tj.umar.navoplayer.core.domain.model.Track
 import tj.umar.navoplayer.core.domain.model.TrackGroup
 import tj.umar.navoplayer.core.domain.model.TrackGroupKey
 import tj.umar.navoplayer.core.domain.model.TrackGroupType
-import java.text.CollationKey
+import tj.umar.navoplayer.core.domain.sorting.sortedFor
 import java.text.Collator
 
 fun nameCollator(): Collator = Collator.getInstance().apply { strength = Collator.PRIMARY }
@@ -32,7 +33,7 @@ fun List<Track>.toAlbums(collator: Collator = nameCollator()): List<Album> {
                 tracks = tracks.sortedWith(trackOrder),
             )
         }
-        .sortedByName(collator) { it.title }
+        .sortedFor(GroupSort.Default, collator)
 }
 
 fun List<Track>.toArtists(collator: Collator = nameCollator()): List<Artist> {
@@ -46,7 +47,7 @@ fun List<Track>.toArtists(collator: Collator = nameCollator()): List<Artist> {
                 tracks = tracks.sortedWith(trackOrder),
             )
         }
-        .sortedByName(collator) { it.name }
+        .sortedFor(GroupSort.Default, collator)
 }
 
 fun List<Track>.toFolders(collator: Collator = nameCollator()): List<Folder> {
@@ -60,7 +61,7 @@ fun List<Track>.toFolders(collator: Collator = nameCollator()): List<Folder> {
                 tracks = tracks.sortedWith(trackOrder),
             )
         }
-        .sortedByName(collator) { it.name }
+        .sortedFor(GroupSort.Default, collator)
 }
 
 fun List<Track>.groupFor(key: TrackGroupKey, collator: Collator = nameCollator()): TrackGroup? {
@@ -78,22 +79,6 @@ private fun namedKey(type: TrackGroupType, name: String?, id: Long?): TrackGroup
     id != null -> TrackGroupKey(type, id = id, name = null)
     else -> TrackGroupKey(type, id = null, name = name)
 }
-
-private class CollationKeys(private val collator: Collator) {
-    private val cache = HashMap<String, CollationKey>()
-
-    fun of(text: String): CollationKey = cache.getOrPut(text) { collator.getCollationKey(text) }
-}
-
-private fun <G : TrackGroup> List<G>.sortedByName(collator: Collator, displayName: (G) -> String?): List<G> =
-    map { group -> group to collator.getCollationKey(displayName(group).orEmpty()) }
-        .sortedWith(
-            compareBy<Pair<G, CollationKey>> { it.first.key.isUnknown }
-                .thenBy { it.second }
-                .thenBy { it.first.key.id ?: Long.MAX_VALUE }
-                .thenBy { it.first.key.name.orEmpty() },
-        )
-        .map { it.first }
 
 private fun titleTrackOrder(keys: CollationKeys): Comparator<Track> =
     compareBy<Track> { keys.of(it.title) }.thenBy { it.id }
