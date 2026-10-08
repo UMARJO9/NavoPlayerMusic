@@ -20,9 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
@@ -60,25 +60,27 @@ fun TrackRow(
     )
     val playLabel = stringResource(R.string.designsystem_play_track)
     val nowPlaying = stringResource(R.string.designsystem_now_playing)
-    val haptics = LocalHapticFeedback.current
     Row(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 64.dp)
             .semantics(mergeDescendants = true) {
                 if (isCurrent) stateDescription = nowPlaying
+                if (onLongClick != null && onLongClickLabel != null) {
+                    customActions = listOf(
+                        CustomAccessibilityAction(onLongClickLabel) {
+                            onLongClick()
+                            true
+                        },
+                    )
+                }
             }
             .clip(NavoShapes.TrackRow)
             .background(background)
             .combinedClickable(
                 onClickLabel = playLabel,
                 onLongClickLabel = onLongClickLabel,
-                onLongClick = onLongClick?.let { longClick ->
-                    {
-                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                        longClick()
-                    }
-                },
+                onLongClick = onLongClick,
                 onClick = onClick,
             )
             .padding(horizontal = 12.dp, vertical = 8.dp),
