@@ -35,17 +35,18 @@ import tj.umar.navoplayer.core.domain.grouping.groupFor
 import tj.umar.navoplayer.core.domain.model.TrackGroup
 import tj.umar.navoplayer.core.domain.model.TrackGroupKey
 import tj.umar.navoplayer.core.domain.model.TrackGroupType
+import tj.umar.navoplayer.core.ui.R as CoreUiR
 import tj.umar.navoplayer.feature.library.R
 import tj.umar.navoplayer.core.designsystem.component.ContentPhase
 import tj.umar.navoplayer.core.designsystem.component.GroupArtwork
 import tj.umar.navoplayer.feature.library.component.ListSummary
 import tj.umar.navoplayer.core.designsystem.component.PhasedContent
 import tj.umar.navoplayer.core.designsystem.component.StateMessage
-import tj.umar.navoplayer.feature.library.component.TrackListItem
+import tj.umar.navoplayer.core.ui.track.TrackListItem
 import tj.umar.navoplayer.core.designsystem.component.contentPhase
-import tj.umar.navoplayer.feature.library.component.description
-import tj.umar.navoplayer.feature.library.component.displayTitle
-import tj.umar.navoplayer.feature.library.component.leading
+import tj.umar.navoplayer.core.ui.group.description
+import tj.umar.navoplayer.core.ui.group.displayTitle
+import tj.umar.navoplayer.core.ui.group.leading
 import tj.umar.navoplayer.core.designsystem.component.navoListPadding
 import tj.umar.navoplayer.feature.library.library.previewTracks
 
@@ -111,7 +112,7 @@ private fun GroupTrackList(state: GroupDetailState, group: TrackGroup, onIntent:
         }
         item(key = "summary", contentType = "summary") {
             ListSummary(
-                title = pluralStringResource(R.plurals.library_track_count, group.tracks.size, group.tracks.size),
+                title = pluralStringResource(CoreUiR.plurals.core_ui_track_count, group.tracks.size, group.tracks.size),
                 subtitle = pluralStringResource(R.plurals.library_minute_count, state.totalMinutes, state.totalMinutes),
                 onSortClick = { onIntent(GroupDetailIntent.SortClicked) },
                 onShuffleClick = { onIntent(GroupDetailIntent.ShuffleClicked) },

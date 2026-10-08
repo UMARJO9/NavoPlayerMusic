@@ -15,18 +15,19 @@ import tj.umar.navoplayer.core.domain.grouping.toAlbums
 import tj.umar.navoplayer.core.domain.grouping.toArtists
 import tj.umar.navoplayer.core.domain.grouping.toFolders
 import tj.umar.navoplayer.core.domain.model.TrackGroup
+import tj.umar.navoplayer.core.ui.R as CoreUiR
 import tj.umar.navoplayer.feature.library.R
 import tj.umar.navoplayer.core.designsystem.component.GroupRow
 import tj.umar.navoplayer.feature.library.component.ListSummary
-import tj.umar.navoplayer.feature.library.component.displaySubtitle
-import tj.umar.navoplayer.feature.library.component.displayTitle
-import tj.umar.navoplayer.feature.library.component.leading
+import tj.umar.navoplayer.core.ui.group.displaySubtitle
+import tj.umar.navoplayer.core.ui.group.displayTitle
+import tj.umar.navoplayer.core.ui.group.leading
 import tj.umar.navoplayer.core.designsystem.component.navoListPadding
-import tj.umar.navoplayer.feature.library.component.stableKey
+import tj.umar.navoplayer.core.ui.group.stableKey
 
 @Composable
 internal fun AlbumsTabContent(state: LibraryState, onIntent: (LibraryIntent) -> Unit, modifier: Modifier = Modifier) {
-    GroupTabContent(state, state.albums, R.plurals.library_album_count, onIntent, modifier)
+    GroupTabContent(state, state.albums, CoreUiR.plurals.core_ui_album_count, onIntent, modifier)
 }
 
 @Composable
@@ -56,7 +57,7 @@ private fun GroupTabContent(
             item(key = "summary", contentType = "summary") {
                 ListSummary(
                     title = pluralStringResource(countPluralRes, groups.size, groups.size),
-                    subtitle = pluralStringResource(R.plurals.library_track_count, state.tracks.size, state.tracks.size),
+                    subtitle = pluralStringResource(CoreUiR.plurals.core_ui_track_count, state.tracks.size, state.tracks.size),
                     onSortClick = { onIntent(LibraryIntent.SortClicked) },
                     onShuffleClick = { onIntent(LibraryIntent.ShuffleClicked) },
                 )

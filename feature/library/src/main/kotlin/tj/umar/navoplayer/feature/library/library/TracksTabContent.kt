@@ -13,11 +13,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
+import tj.umar.navoplayer.core.ui.R as CoreUiR
 import tj.umar.navoplayer.feature.library.R
 import tj.umar.navoplayer.feature.library.component.ListSummary
 import tj.umar.navoplayer.core.designsystem.component.PhasedContent
 import tj.umar.navoplayer.core.designsystem.component.StateMessage
-import tj.umar.navoplayer.feature.library.component.TrackListItem
+import tj.umar.navoplayer.core.ui.track.TrackListItem
 import tj.umar.navoplayer.core.designsystem.component.navoListPadding
 
 @Composable
@@ -68,7 +69,7 @@ private fun TrackList(state: LibraryState, onIntent: (LibraryIntent) -> Unit) {
     ) {
         item(key = "summary", contentType = "summary") {
             ListSummary(
-                title = pluralStringResource(R.plurals.library_track_count, state.tracks.size, state.tracks.size),
+                title = pluralStringResource(CoreUiR.plurals.core_ui_track_count, state.tracks.size, state.tracks.size),
                 subtitle = pluralStringResource(R.plurals.library_minute_count, state.totalMinutes, state.totalMinutes),
                 onSortClick = { onIntent(LibraryIntent.SortClicked) },
                 onShuffleClick = { onIntent(LibraryIntent.ShuffleClicked) },

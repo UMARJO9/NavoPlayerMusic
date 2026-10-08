@@ -1,21 +1,9 @@
 <resources>
-    <plurals name="library_track_count">
-        <item quantity="one">%d трек</item>
-        <item quantity="few">%d трека</item>
-        <item quantity="many">%d треков</item>
-        <item quantity="other">%d трека</item>
-    </plurals>
     <plurals name="library_minute_count">
         <item quantity="one">%d минута</item>
         <item quantity="few">%d минуты</item>
         <item quantity="many">%d минут</item>
         <item quantity="other">%d минуты</item>
-    </plurals>
-    <plurals name="library_album_count">
-        <item quantity="one">%d альбом</item>
-        <item quantity="few">%d альбома</item>
-        <item quantity="many">%d альбомов</item>
-        <item quantity="other">%d альбома</item>
     </plurals>
     <plurals name="library_artist_count">
         <item quantity="one">%d исполнитель</item>
