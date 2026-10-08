@@ -44,4 +44,32 @@ object TestTracks {
     )
 
     val tracks: List<Track> = listOf(alpha, beta, longMix)
+
+    val alphaTwo = Track(
+        id = 4,
+        title = "Second",
+        artist = "Guest Singer",
+        album = "First",
+        albumId = 10,
+        artistId = 200,
+        durationMs = 120_000,
+        trackNumber = 2,
+        contentUri = "content://media/external/audio/media/4",
+        folderPath = "Music/Navo",
+    )
+
+    val namedOnly = Track(
+        id = 5,
+        title = "Ёлочка",
+        artist = "Ахмад",
+        album = "Ёлка",
+        albumId = null,
+        artistId = null,
+        durationMs = 90_000,
+        trackNumber = null,
+        contentUri = "content://media/external/audio/media/5",
+        folderPath = "Download",
+    )
+
+    val library: List<Track> = listOf(alpha, beta, longMix, alphaTwo, namedOnly)
 }
