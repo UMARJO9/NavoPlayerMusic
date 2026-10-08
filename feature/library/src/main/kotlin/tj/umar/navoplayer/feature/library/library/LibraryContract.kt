@@ -5,6 +5,7 @@ import androidx.compose.runtime.Immutable
 import tj.umar.navoplayer.core.domain.model.Album
 import tj.umar.navoplayer.core.domain.model.Artist
 import tj.umar.navoplayer.core.domain.model.Folder
+import tj.umar.navoplayer.core.domain.model.FavoritesSummary
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.PlaylistSummary
 import tj.umar.navoplayer.core.domain.model.Track
@@ -32,6 +33,7 @@ internal data class LibraryState(
     val artists: List<Artist> = emptyList(),
     val folders: List<Folder> = emptyList(),
     val playlists: List<PlaylistSummary> = emptyList(),
+    val favorites: FavoritesSummary = FavoritesSummary.Empty,
     val isLoadingPlaylists: Boolean = true,
     val playlistsLoadFailed: Boolean = false,
     val isCreatePlaylistSheetVisible: Boolean = false,
@@ -55,6 +57,7 @@ internal sealed interface LibraryIntent {
     data object SortClicked : LibraryIntent
     data object ShuffleClicked : LibraryIntent
     data class PlaylistClicked(val playlistId: Long) : LibraryIntent
+    data object FavoritesClicked : LibraryIntent
     data object CreatePlaylistClicked : LibraryIntent
     data object CreatePlaylistDismissed : LibraryIntent
     data class CreatePlaylistConfirmed(val name: String) : LibraryIntent
@@ -67,6 +70,7 @@ internal sealed interface LibraryEffect {
     data object NavigateToSearch : LibraryEffect
     data class NavigateToGroup(val key: TrackGroupKey) : LibraryEffect
     data class NavigateToPlaylist(val playlistId: Long) : LibraryEffect
+    data object NavigateToFavorites : LibraryEffect
     data object ShowCreatePlaylistFailed : LibraryEffect
     data class OpenAddToPlaylist(val trackIds: List<Long>) : LibraryEffect
 }

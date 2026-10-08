@@ -17,5 +17,4 @@
     <string name="library_tab_playlists">Плейлисты</string>
     <string name="library_playlists_empty">Плейлистов пока нет</string>
     <string name="library_playlists_error">Не удалось загрузить плейлисты</string>
-    <string name="library_create_playlist">Создать плейлист</string>
 </resources>

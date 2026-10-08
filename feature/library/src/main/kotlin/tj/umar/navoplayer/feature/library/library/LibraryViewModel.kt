@@ -13,7 +13,7 @@ import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.totalDurationMinutes
 import tj.umar.navoplayer.core.domain.usecase.CreatePlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
-import tj.umar.navoplayer.core.domain.usecase.ObservePlaylistsUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObservePlaylistsOverviewUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveLibraryUseCase
 import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
@@ -28,7 +28,7 @@ internal class LibraryViewModel @Inject constructor(
     private val playTracks: PlayTracksUseCase,
     private val shufflePlayTracks: ShufflePlayTracksUseCase,
     private val togglePlayPause: TogglePlayPauseUseCase,
-    private val observePlaylists: ObservePlaylistsUseCase,
+    private val observePlaylistsOverview: ObservePlaylistsOverviewUseCase,
     private val createPlaylist: CreatePlaylistUseCase,
 ) : MviViewModel<LibraryState, LibraryIntent, LibraryEffect>(LibraryState()) {
 
@@ -36,6 +36,7 @@ internal class LibraryViewModel @Inject constructor(
     private var playbackJob: Job? = null
     private var playlistsJob: Job? = null
     private var isCreatingPlaylist = false
+    private var hasLoadedPlaylists = false
 
     private var hasLoadedTracks = false
 
@@ -50,6 +51,7 @@ internal class LibraryViewModel @Inject constructor(
             LibraryIntent.SearchClicked -> sendEffect(LibraryEffect.NavigateToSearch)
             LibraryIntent.ShuffleClicked -> onShuffleClicked()
             is LibraryIntent.PlaylistClicked -> sendEffect(LibraryEffect.NavigateToPlaylist(intent.playlistId))
+            LibraryIntent.FavoritesClicked -> sendEffect(LibraryEffect.NavigateToFavorites)
             LibraryIntent.CreatePlaylistClicked -> setState { copy(isCreatePlaylistSheetVisible = true) }
             LibraryIntent.CreatePlaylistDismissed -> setState { copy(isCreatePlaylistSheetVisible = false) }
             is LibraryIntent.CreatePlaylistConfirmed -> onCreatePlaylistConfirmed(intent.name)
@@ -128,9 +130,12 @@ internal class LibraryViewModel @Inject constructor(
 
     private fun startObservingPlaylists() {
         if (playlistsJob?.isActive == true) return
-        setState { copy(isLoadingPlaylists = playlists.isEmpty(), playlistsLoadFailed = false) }
-        playlistsJob = observePlaylists()
-            .onEach { playlists -> setState { copy(playlists = playlists, isLoadingPlaylists = false) } }
+        setState { copy(isLoadingPlaylists = !hasLoadedPlaylists, playlistsLoadFailed = false) }
+        playlistsJob = observePlaylistsOverview()
+            .onEach { overview ->
+                hasLoadedPlaylists = true
+                setState { copy(playlists = overview.playlists, favorites = overview.favorites, isLoadingPlaylists = false) }
+            }
             .catch { setState { copy(isLoadingPlaylists = false, playlistsLoadFailed = true) } }
             .launchIn(viewModelScope)
     }

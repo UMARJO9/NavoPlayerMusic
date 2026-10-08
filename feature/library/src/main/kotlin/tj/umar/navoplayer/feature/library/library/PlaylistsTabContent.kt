@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.component.GroupLeading
@@ -40,19 +41,12 @@ import tj.umar.navoplayer.feature.library.R
 internal fun PlaylistsTabContent(state: LibraryState, onIntent: (LibraryIntent) -> Unit, modifier: Modifier = Modifier) {
     PhasedContent(
         phase = contentPhase(
-            hasContent = state.playlists.isNotEmpty(),
+            hasContent = !state.isLoadingPlaylists && !state.playlistsLoadFailed,
             isLoading = state.isLoadingPlaylists,
             loadFailed = state.playlistsLoadFailed,
         ),
         modifier = modifier,
-        empty = {
-            StateMessage(
-                message = stringResource(R.string.library_playlists_empty),
-                palette = MedallionPalettes.all[3],
-                actionLabel = stringResource(R.string.library_create_playlist),
-                onAction = { onIntent(LibraryIntent.CreatePlaylistClicked) },
-            )
-        },
+        empty = {},
         error = {
             StateMessage(
                 message = stringResource(R.string.library_playlists_error),
@@ -83,6 +77,32 @@ private fun PlaylistList(state: LibraryState, onIntent: (LibraryIntent) -> Unit)
     ) {
         item(key = "summary", contentType = "summary") {
             PlaylistsSummary(count = state.playlists.size, onIntent = onIntent)
+        }
+        item(key = "favorites", contentType = "playlist") {
+            val minutes = state.favorites.durationMinutes()
+            GroupRow(
+                title = stringResource(CoreUiR.string.core_ui_favorites),
+                subtitle = stringResource(
+                    CoreUiR.string.core_ui_group_subtitle,
+                    pluralStringResource(CoreUiR.plurals.core_ui_track_count, state.favorites.trackCount, state.favorites.trackCount),
+                    pluralStringResource(CoreUiR.plurals.core_ui_minute_count, minutes, minutes),
+                ),
+                leading = GroupLeading.Favorites,
+                onClick = { onIntent(LibraryIntent.FavoritesClicked) },
+            )
+        }
+        if (state.playlists.isEmpty()) {
+            item(key = "empty", contentType = "note") {
+                Text(
+                    text = stringResource(R.string.library_playlists_empty),
+                    style = NavoTheme.typography.secondary,
+                    color = NavoTheme.colors.contentSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(NavoSpacing.Large),
+                )
+            }
         }
         items(state.playlists, key = { it.id }, contentType = { "playlist" }) { playlist ->
             GroupRow(

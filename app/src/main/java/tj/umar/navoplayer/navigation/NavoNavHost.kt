@@ -22,6 +22,7 @@ import tj.umar.navoplayer.feature.player.navigation.NowPlayingDestination
 import tj.umar.navoplayer.feature.player.navigation.nowPlayingScreen
 import tj.umar.navoplayer.feature.playlists.navigation.FavoritesDestination
 import tj.umar.navoplayer.feature.playlists.navigation.favoritesScreen
+import tj.umar.navoplayer.feature.playlists.navigation.navigateToFavorites
 import tj.umar.navoplayer.feature.playlists.navigation.PlaylistDetailDestination
 import tj.umar.navoplayer.feature.playlists.navigation.navigateToPlaylistDetail
 import tj.umar.navoplayer.feature.playlists.navigation.playlistDetailScreen
@@ -87,6 +88,7 @@ fun NavoNavHost(
             onGroupClick = { key -> if (isResumed()) navController.navigateToGroupDetail(key) },
             onSearchClick = { if (isResumed()) navController.navigateToSearch() },
             onPlaylistClick = { id -> if (isResumed()) navController.navigateToPlaylistDetail(id) },
+            onFavoritesClick = { if (isResumed()) navController.navigateToFavorites() },
             onAddToPlaylist = onAddToPlaylist,
         )
         searchScreen(

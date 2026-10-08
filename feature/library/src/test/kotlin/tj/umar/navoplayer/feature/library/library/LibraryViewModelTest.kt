@@ -13,7 +13,7 @@ import tj.umar.navoplayer.core.domain.model.TrackGroupKey
 import tj.umar.navoplayer.core.domain.model.TrackGroupType
 import tj.umar.navoplayer.core.domain.usecase.CreatePlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
-import tj.umar.navoplayer.core.domain.usecase.ObservePlaylistsUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObservePlaylistsOverviewUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveLibraryUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
@@ -25,6 +25,7 @@ import tj.umar.navoplayer.core.testing.data.TestPlaylists
 import tj.umar.navoplayer.core.testing.data.TestTracks
 import tj.umar.navoplayer.core.testing.playback.FakePlaybackController
 import tj.umar.navoplayer.core.testing.playback.PlaybackCommand
+import tj.umar.navoplayer.core.testing.repository.FakeFavoritesRepository
 import tj.umar.navoplayer.core.testing.repository.FakePlaylistRepository
 import tj.umar.navoplayer.core.testing.repository.FakeTrackRepository
 
@@ -37,13 +38,19 @@ class LibraryViewModelTest {
     private val playback = FakePlaybackController()
     private val playlists = FakePlaylistRepository(TestPlaylists.all)
     private val playlistTracks = FakeTrackRepository()
+    private val favorites = FakeFavoritesRepository(listOf(TestTracks.alpha.id))
     private val viewModel = LibraryViewModel(
         observeLibrary = ObserveLibraryUseCase(ObserveTracksUseCase(repository), mainDispatcherRule.testDispatcher),
         observePlaybackState = ObservePlaybackStateUseCase(playback),
         playTracks = PlayTracksUseCase(playback),
         shufflePlayTracks = ShufflePlayTracksUseCase(playback),
         togglePlayPause = TogglePlayPauseUseCase(playback),
-        observePlaylists = ObservePlaylistsUseCase(playlists, ObserveTracksUseCase(playlistTracks), mainDispatcherRule.testDispatcher),
+        observePlaylistsOverview = ObservePlaylistsOverviewUseCase(
+            playlists,
+            favorites,
+            ObserveTracksUseCase(playlistTracks),
+            mainDispatcherRule.testDispatcher,
+        ),
         createPlaylist = CreatePlaylistUseCase(playlists),
     )
 
@@ -415,5 +422,34 @@ class LibraryViewModelTest {
 
         assertEquals(1, playlists.writeCalls)
         assertEquals(1, playlists.current.count { it.name == "Дорога" })
+    }
+
+    @Test
+    fun `start loads favorites summary with playlists`() = runTest {
+        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
+        playlistTracks.emit(TestTracks.tracks)
+
+        val favoritesSummary = viewModel.state.value.favorites
+        assertEquals(1, favoritesSummary.trackCount)
+        assertEquals(TestTracks.alpha.durationMs, favoritesSummary.durationMs)
+    }
+
+    @Test
+    fun `favorites click navigates to favorites`() = runTest {
+        viewModel.effects.test {
+            viewModel.onIntent(LibraryIntent.FavoritesClicked)
+            assertEquals(LibraryEffect.NavigateToFavorites, awaitItem())
+        }
+    }
+
+    @Test
+    fun `restart does not show playlists loading again`() = runTest {
+        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
+        playlistTracks.emit(TestTracks.tracks)
+
+        viewModel.onIntent(LibraryIntent.ScreenStopped)
+        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
+
+        assertFalse(viewModel.state.value.isLoadingPlaylists)
     }
 }
