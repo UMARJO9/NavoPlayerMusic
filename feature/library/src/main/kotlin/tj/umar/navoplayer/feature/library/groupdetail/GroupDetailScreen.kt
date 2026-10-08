@@ -113,7 +113,7 @@ private fun GroupTrackList(state: GroupDetailState, group: TrackGroup, onIntent:
         item(key = "summary", contentType = "summary") {
             ListSummary(
                 title = pluralStringResource(CoreUiR.plurals.core_ui_track_count, group.tracks.size, group.tracks.size),
-                subtitle = pluralStringResource(R.plurals.library_minute_count, state.totalMinutes, state.totalMinutes),
+                subtitle = pluralStringResource(CoreUiR.plurals.core_ui_minute_count, state.totalMinutes, state.totalMinutes),
                 onSortClick = { onIntent(GroupDetailIntent.SortClicked) },
                 onShuffleClick = { onIntent(GroupDetailIntent.ShuffleClicked) },
             )

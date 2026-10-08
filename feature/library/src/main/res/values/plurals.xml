@@ -1,8 +1,4 @@
 <resources>
-    <plurals name="library_minute_count">
-        <item quantity="one">%d minute</item>
-        <item quantity="other">%d minutes</item>
-    </plurals>
     <plurals name="library_artist_count">
         <item quantity="one">%d artist</item>
         <item quantity="other">%d artists</item>
