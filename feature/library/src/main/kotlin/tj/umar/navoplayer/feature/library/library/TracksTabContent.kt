@@ -78,7 +78,7 @@ private fun TrackList(state: LibraryState, onIntent: (LibraryIntent) -> Unit) {
             TrackListItem(
                 track = track,
                 isCurrent = track.id == state.currentTrackId,
-                isPlaying = state.isPlaying,
+                isPlaying = track.id == state.currentTrackId && state.isPlaying,
                 onClick = { onIntent(LibraryIntent.TrackClicked(track.id)) },
                 modifier = Modifier.animateItem(),
             )

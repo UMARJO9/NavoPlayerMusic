@@ -121,7 +121,7 @@ private fun GroupTrackList(state: GroupDetailState, group: TrackGroup, onIntent:
             TrackListItem(
                 track = track,
                 isCurrent = track.id == state.currentTrackId,
-                isPlaying = state.isPlaying,
+                isPlaying = track.id == state.currentTrackId && state.isPlaying,
                 onClick = { onIntent(GroupDetailIntent.TrackClicked(track.id)) },
                 modifier = Modifier.animateItem(),
             )

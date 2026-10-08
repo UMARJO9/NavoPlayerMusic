@@ -74,7 +74,7 @@ private fun GroupTabContent(
     }
 }
 
-private val previewLibraryState = LibraryState(
+internal val previewLibraryState = LibraryState(
     isLoadingTracks = false,
     tracks = previewTracks,
     albums = previewTracks.toAlbums(),

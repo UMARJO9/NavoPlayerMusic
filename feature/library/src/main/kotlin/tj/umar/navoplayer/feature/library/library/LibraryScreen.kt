@@ -136,6 +136,6 @@ private fun LibraryScreenPreview() {
 @Composable
 private fun LibraryScreenAlbumsPreview() {
     NavoTheme {
-        LibraryScreen(state = LibraryState(selectedTab = LibraryTab.Albums), onIntent = {})
+        LibraryScreen(state = previewLibraryState.copy(selectedTab = LibraryTab.Albums), onIntent = {})
     }
 }
