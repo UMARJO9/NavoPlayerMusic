@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import tj.umar.navoplayer.core.datastore.di.SettingsDataStore
 import java.io.IOException
 import javax.inject.Inject
 
@@ -18,7 +19,7 @@ private val ExcludedFolders = stringSetPreferencesKey("excluded_folders")
 private val PauseOnHeadphonesDisconnect = booleanPreferencesKey("pause_on_headphones_disconnect")
 
 class SettingsPreferencesDataSource @Inject constructor(
-    private val dataStore: DataStore<Preferences>,
+    @param:SettingsDataStore private val dataStore: DataStore<Preferences>,
 ) {
     val settings: Flow<StoredSettings> = dataStore.data
         .catch { error -> if (error is IOException) emit(emptyPreferences()) else throw error }

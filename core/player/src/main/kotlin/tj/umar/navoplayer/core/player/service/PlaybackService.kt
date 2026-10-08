@@ -26,7 +26,7 @@ class PlaybackService : MediaSessionService() {
     internal lateinit var noisyPolicy: AudioBecomingNoisyPolicy
 
     @Inject
-    @MainDispatcher
+    @field:MainDispatcher
     lateinit var mainDispatcher: CoroutineDispatcher
 
     private var serviceScope: CoroutineScope? = null
