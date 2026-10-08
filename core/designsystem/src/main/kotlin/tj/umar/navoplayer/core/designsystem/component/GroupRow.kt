@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
@@ -32,6 +33,7 @@ import tj.umar.navoplayer.core.designsystem.R
 sealed interface GroupLeading {
     data class Artwork(val palette: MedallionPalette) : GroupLeading
     data object Folder : GroupLeading
+    data object Favorites : GroupLeading
 }
 
 @Composable
@@ -90,6 +92,34 @@ fun GroupArtwork(leading: GroupLeading, size: Dp, modifier: Modifier = Modifier)
                 contentDescription = null,
                 tint = NavoTheme.colors.accent,
                 modifier = Modifier.size(size / 2),
+            )
+        }
+        GroupLeading.Favorites -> Box(
+            modifier = modifier
+                .size(size)
+                .background(NavoTheme.colors.accent, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = NavoIcons.HeartFilled,
+                contentDescription = null,
+                tint = NavoTheme.colors.onAccent,
+                modifier = Modifier.size(size / 2),
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun FavoritesGroupRowPreview() {
+    NavoTheme {
+        Column(modifier = Modifier.background(NavoTheme.colors.background).padding(8.dp)) {
+            GroupRow(
+                title = "Избранное",
+                subtitle = "12 треков · 48 минут",
+                leading = GroupLeading.Favorites,
+                onClick = {},
             )
         }
     }
