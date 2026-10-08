@@ -60,6 +60,9 @@ object NavoIcons {
     val ChevronLeft: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_chevron_left)
 
+    val ChevronRight: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_chevron_right)
+
     val Close: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_close)
 }
