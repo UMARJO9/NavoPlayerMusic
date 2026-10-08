@@ -1,4 +1,7 @@
 <resources>
     <string name="core_ui_unknown_title">Unknown title</string>
     <string name="core_ui_unknown_artist">Unknown artist</string>
+    <string name="core_ui_unknown_album">Unknown album</string>
+    <string name="core_ui_unknown_folder">Unknown folder</string>
+    <string name="core_ui_various_artists">Various artists</string>
 </resources>

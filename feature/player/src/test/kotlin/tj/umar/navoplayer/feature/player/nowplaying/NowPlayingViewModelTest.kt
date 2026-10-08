@@ -209,4 +209,11 @@ class NowPlayingViewModelTest {
 
         assertEquals(31_005L, viewModel.state.value.positionMs)
     }
+
+    @Test
+    fun `album source passes through`() = runTest {
+        startWith(TestPlaybackStates.playingAlpha.copy(source = PlaybackSource.Album("First")))
+
+        assertEquals(PlaybackSource.Album("First"), viewModel.state.value.source)
+    }
 }

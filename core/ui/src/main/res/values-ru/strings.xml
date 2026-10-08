@@ -1,4 +1,7 @@
 <resources>
     <string name="core_ui_unknown_title">Без названия</string>
     <string name="core_ui_unknown_artist">Неизвестный исполнитель</string>
+    <string name="core_ui_unknown_album">Неизвестный альбом</string>
+    <string name="core_ui_unknown_folder">Неизвестная папка</string>
+    <string name="core_ui_various_artists">Разные исполнители</string>
 </resources>

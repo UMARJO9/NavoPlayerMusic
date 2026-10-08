@@ -159,7 +159,9 @@ private fun TopBar(source: PlaybackSource?, onIntent: (NowPlayingIntent) -> Unit
                     color = colors.contentSecondary,
                 )
                 Text(
-                    text = stringResource(source.labelRes()),
+                    text = source.label(),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     style = NavoTheme.typography.label.copy(fontWeight = FontWeight.SemiBold),
                     color = colors.content,
                 )
@@ -300,8 +302,12 @@ private fun BottomRow(nextTrack: Track?, onIntent: (NowPlayingIntent) -> Unit) {
     }
 }
 
-private fun PlaybackSource.labelRes(): Int = when (this) {
-    PlaybackSource.AllTracks -> R.string.player_source_all_tracks
+@Composable
+private fun PlaybackSource.label(): String = when (this) {
+    PlaybackSource.AllTracks -> stringResource(R.string.player_source_all_tracks)
+    is PlaybackSource.Album -> title ?: stringResource(CoreUiR.string.core_ui_unknown_album)
+    is PlaybackSource.Artist -> name ?: stringResource(CoreUiR.string.core_ui_unknown_artist)
+    is PlaybackSource.Folder -> name ?: stringResource(CoreUiR.string.core_ui_unknown_folder)
 }
 
 @Preview(widthDp = 390, heightDp = 844)

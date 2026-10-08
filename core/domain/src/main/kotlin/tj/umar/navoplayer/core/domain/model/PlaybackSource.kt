@@ -2,4 +2,13 @@ package tj.umar.navoplayer.core.domain.model
 
 sealed interface PlaybackSource {
     data object AllTracks : PlaybackSource
+    data class Album(val title: String?) : PlaybackSource
+    data class Artist(val name: String?) : PlaybackSource
+    data class Folder(val name: String?) : PlaybackSource
+}
+
+fun TrackGroup.toPlaybackSource(): PlaybackSource = when (this) {
+    is Album -> PlaybackSource.Album(title)
+    is Artist -> PlaybackSource.Artist(name)
+    is Folder -> PlaybackSource.Folder(name)
 }
