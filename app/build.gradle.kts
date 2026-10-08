@@ -7,6 +7,10 @@ plugins {
 android {
     namespace = "tj.umar.navoplayer"
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "tj.umar.navoplayer"
         versionCode = 1
