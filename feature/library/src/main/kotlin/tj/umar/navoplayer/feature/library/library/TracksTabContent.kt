@@ -1,11 +1,13 @@
 package tj.umar.navoplayer.feature.library.library
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +27,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -54,6 +58,7 @@ import tj.umar.navoplayer.feature.library.R
 
 private const val PHASE_ENTER_MILLIS = 260
 private const val PHASE_EXIT_MILLIS = 160
+private const val CURRENT_ROW_FADE_MILLIS = 220
 private val ListHorizontalPadding = 8.dp
 private val SummaryHorizontalPadding = NavoSpacing.ScreenHorizontal - ListHorizontalPadding
 
@@ -100,13 +105,14 @@ internal fun TracksTabContent(
 @Composable
 private fun TrackList(state: LibraryState, onIntent: (LibraryIntent) -> Unit) {
     val navigationBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val listBottomInset = if (state.hasActivePlayback) NavoSpacing.MiniPlayerListInset else NavoSpacing.ListBottomInset
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             start = ListHorizontalPadding,
             top = NavoSpacing.ExtraSmall,
             end = ListHorizontalPadding,
-            bottom = NavoSpacing.ListBottomInset + navigationBarBottom,
+            bottom = listBottomInset + navigationBarBottom,
         ),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
@@ -125,6 +131,9 @@ private fun TrackList(state: LibraryState, onIntent: (LibraryIntent) -> Unit) {
                 artist = track.artist ?: stringResource(CoreUiR.string.core_ui_unknown_artist),
                 duration = formatDuration(track.durationMs),
                 palette = palette,
+                isCurrent = track.id == state.currentTrackId,
+                isPlaying = state.isPlaying,
+                onClick = { onIntent(LibraryIntent.TrackClicked(track.id)) },
                 modifier = Modifier.animateItem(),
             )
         }
@@ -186,16 +195,27 @@ private fun TrackRow(
     modifier: Modifier = Modifier,
     isCurrent: Boolean = false,
     isPlaying: Boolean = false,
+    onClick: () -> Unit = {},
 ) {
     val colors = NavoTheme.colors
     val typography = NavoTheme.typography
+    val background by animateColorAsState(
+        targetValue = if (isCurrent) colors.raised else Color.Transparent,
+        animationSpec = tween(CURRENT_ROW_FADE_MILLIS),
+        label = "trackRowBackground",
+    )
+    val playLabel = stringResource(R.string.library_play_track)
+    val nowPlaying = stringResource(R.string.library_now_playing)
     Row(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 64.dp)
-            .semantics(mergeDescendants = true) { }
+            .semantics(mergeDescendants = true) {
+                if (isCurrent) stateDescription = nowPlaying
+            }
             .clip(NavoShapes.TrackRow)
-            .background(if (isCurrent) colors.raised else Color.Transparent)
+            .background(background)
+            .clickable(onClickLabel = playLabel, onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),

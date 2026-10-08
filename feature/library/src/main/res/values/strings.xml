@@ -12,6 +12,8 @@
     <string name="library_albums_placeholder">Albums will appear here soon</string>
     <string name="library_artists_placeholder">Artists will appear here soon</string>
     <string name="library_folders_placeholder">Folders will appear here soon</string>
+    <string name="library_play_track">Play</string>
+    <string name="library_now_playing">Now playing</string>
     <string name="library_tracks_retry">Try again</string>
     <string name="library_tracks_error">Couldn\'t load your music</string>
 </resources>
