@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -72,7 +73,11 @@ fun NavoNavHost(
                     },
                 )
             },
-            onGroupClick = navController::navigateToGroupDetail,
+            onGroupClick = { key ->
+                if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                    navController.navigateToGroupDetail(key)
+                }
+            },
         )
         groupDetailScreen(
             onBack = {
