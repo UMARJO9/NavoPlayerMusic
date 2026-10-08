@@ -126,13 +126,14 @@ private fun TrackList(state: LibraryState, onIntent: (LibraryIntent) -> Unit) {
         }
         items(state.tracks, key = { it.id }, contentType = { "track" }) { track ->
             val palette = remember(track.id) { MedallionPalettes.forKey(track.id) }
+            val isCurrent = track.id == state.currentTrackId
             TrackRow(
                 title = track.title.ifBlank { stringResource(CoreUiR.string.core_ui_unknown_title) },
                 artist = track.artist ?: stringResource(CoreUiR.string.core_ui_unknown_artist),
                 duration = formatDuration(track.durationMs),
                 palette = palette,
-                isCurrent = track.id == state.currentTrackId,
-                isPlaying = state.isPlaying,
+                isCurrent = isCurrent,
+                isPlaying = isCurrent && state.isPlaying,
                 onClick = { onIntent(LibraryIntent.TrackClicked(track.id)) },
                 modifier = Modifier.animateItem(),
             )
