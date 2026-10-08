@@ -30,6 +30,7 @@ dependencies {
     implementation(projects.core.player)
     implementation(projects.core.ui)
     implementation(projects.feature.library)
+    implementation(projects.feature.player)
     implementation(projects.feature.welcome)
 
     implementation(libs.androidx.activity.compose)

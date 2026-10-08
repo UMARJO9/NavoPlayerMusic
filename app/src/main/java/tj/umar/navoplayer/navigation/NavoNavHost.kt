@@ -1,16 +1,21 @@
 package tj.umar.navoplayer.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.navOptions
 import tj.umar.navoplayer.feature.library.navigation.LibraryDestination
 import tj.umar.navoplayer.feature.library.navigation.navigateToLibrary
 import tj.umar.navoplayer.feature.library.navigation.libraryScreen
+import tj.umar.navoplayer.feature.player.navigation.NowPlayingDestination
+import tj.umar.navoplayer.feature.player.navigation.nowPlayingScreen
 import tj.umar.navoplayer.feature.welcome.navigation.WelcomeDestination
 import tj.umar.navoplayer.feature.welcome.navigation.navigateToWelcome
 import tj.umar.navoplayer.feature.welcome.navigation.welcomeScreen
@@ -29,8 +34,20 @@ fun NavoNavHost(
         startDestination = startDestination,
         modifier = modifier,
         enterTransition = { fadeIn(tween(ENTER_FADE_MILLIS)) },
-        exitTransition = { fadeOut(tween(EXIT_FADE_MILLIS)) },
-        popEnterTransition = { fadeIn(tween(ENTER_FADE_MILLIS)) },
+        exitTransition = {
+            if (targetState.destination.hasRoute<NowPlayingDestination>()) {
+                ExitTransition.KeepUntilTransitionsFinished
+            } else {
+                fadeOut(tween(EXIT_FADE_MILLIS))
+            }
+        },
+        popEnterTransition = {
+            if (initialState.destination.hasRoute<NowPlayingDestination>()) {
+                EnterTransition.None
+            } else {
+                fadeIn(tween(ENTER_FADE_MILLIS))
+            }
+        },
         popExitTransition = { fadeOut(tween(EXIT_FADE_MILLIS)) },
     ) {
         welcomeScreen(
@@ -51,6 +68,13 @@ fun NavoNavHost(
                         launchSingleTop = true
                     },
                 )
+            },
+        )
+        nowPlayingScreen(
+            onCollapse = {
+                if (navController.currentDestination?.hasRoute<NowPlayingDestination>() == true) {
+                    navController.popBackStack()
+                }
             },
         )
     }
