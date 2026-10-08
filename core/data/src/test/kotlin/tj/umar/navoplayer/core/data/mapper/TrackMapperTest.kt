@@ -121,4 +121,11 @@ class TrackMapperTest {
         assertEquals("Music", folderPathOf(null, "/mnt/sdcard/Music/a.mp3"))
         assertEquals("sdcard2/Music", folderPathOf(null, "/sdcard2/Music/a.mp3"))
     }
+
+    @Test
+    fun `date added seconds become millis and zero is missing`() {
+        assertEquals(1_700_000_000_000L, row.copy(dateAddedSeconds = 1_700_000_000).toTrack().dateAddedMs)
+        assertEquals(null, row.copy(dateAddedSeconds = 0).toTrack().dateAddedMs)
+        assertEquals(null, row.copy(dateAddedSeconds = null).toTrack().dateAddedMs)
+    }
 }

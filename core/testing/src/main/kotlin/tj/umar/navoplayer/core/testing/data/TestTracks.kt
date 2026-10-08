@@ -17,6 +17,7 @@ object TestTracks {
         folderPath = "Music/Navo",
         discNumber = null,
         albumArtist = null,
+        dateAddedMs = 1700000000000L,
     )
 
     val beta = Track(
@@ -32,6 +33,7 @@ object TestTracks {
         folderPath = null,
         discNumber = null,
         albumArtist = null,
+        dateAddedMs = null,
     )
 
     val longMix = Track(
@@ -47,6 +49,7 @@ object TestTracks {
         folderPath = "Music/Mixes",
         discNumber = null,
         albumArtist = null,
+        dateAddedMs = 1600000000000L,
     )
 
     val tracks: List<Track> = listOf(alpha, beta, longMix)
@@ -64,6 +67,7 @@ object TestTracks {
         folderPath = "Music/Navo",
         discNumber = null,
         albumArtist = null,
+        dateAddedMs = 1750000000000L,
     )
 
     val namedOnly = Track(
@@ -79,6 +83,7 @@ object TestTracks {
         folderPath = "Download",
         discNumber = null,
         albumArtist = null,
+        dateAddedMs = 1650000000000L,
     )
 
     val library: List<Track> = listOf(alpha, beta, longMix, alphaTwo, namedOnly)

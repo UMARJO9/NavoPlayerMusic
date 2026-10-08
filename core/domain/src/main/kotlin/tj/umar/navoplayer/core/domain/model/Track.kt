@@ -13,4 +13,5 @@ data class Track(
     val folderPath: String?,
     val discNumber: Int?,
     val albumArtist: String?,
+    val dateAddedMs: Long? = null,
 )

@@ -5,6 +5,7 @@ import tj.umar.navoplayer.core.mediastore.audio.MediaStoreAudioRow
 
 private const val UNKNOWN_TAG = "<unknown>"
 private const val DISC_TRACK_DIVIDER = 1000
+private const val MILLIS_PER_SECOND = 1000L
 
 internal fun MediaStoreAudioRow.toTrack(): Track = Track(
     id = id,
@@ -19,6 +20,7 @@ internal fun MediaStoreAudioRow.toTrack(): Track = Track(
     folderPath = folderPathOf(relativePath, dataPath),
     discNumber = track?.takeIf { it >= DISC_TRACK_DIVIDER }?.div(DISC_TRACK_DIVIDER),
     albumArtist = cleanTag(albumArtist),
+    dateAddedMs = dateAddedSeconds?.takeIf { it > 0 }?.times(MILLIS_PER_SECOND),
 )
 
 private fun cleanTag(value: String?): String? =
