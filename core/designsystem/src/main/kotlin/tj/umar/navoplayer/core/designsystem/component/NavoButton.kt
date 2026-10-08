@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -32,6 +33,8 @@ import tj.umar.navoplayer.core.designsystem.modifier.pressScale
 import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 
+private const val DISABLED_ALPHA = 0.4f
+
 @Composable
 fun NavoButton(
     text: String,
@@ -41,12 +44,14 @@ fun NavoButton(
     height: Dp = 56.dp,
     contentPadding: PaddingValues = PaddingValues(horizontal = 24.dp),
     textStyle: TextStyle = NavoTheme.typography.labelStrong,
+    enabled: Boolean = true,
 ) {
     val colors = NavoTheme.colors
     val interactionSource = remember { MutableInteractionSource() }
     Row(
         modifier = modifier
             .pressScale(interactionSource)
+            .alpha(if (enabled) 1f else DISABLED_ALPHA)
             .heightIn(min = height)
             .clip(NavoShapes.Pill)
             .background(colors.accent)
@@ -54,6 +59,7 @@ fun NavoButton(
                 interactionSource = interactionSource,
                 indication = ripple(color = colors.onAccent),
                 role = Role.Button,
+                enabled = enabled,
                 onClick = onClick,
             )
             .padding(contentPadding),
