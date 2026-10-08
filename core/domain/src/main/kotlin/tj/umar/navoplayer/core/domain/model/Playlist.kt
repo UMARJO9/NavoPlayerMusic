@@ -22,4 +22,6 @@ data class PlaylistDetail(
     val missingTrackCount: Int,
 )
 
+data class CreatedPlaylist(val id: Long, val name: String)
+
 class InvalidPlaylistNameException : IllegalArgumentException()

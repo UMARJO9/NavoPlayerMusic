@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import tj.umar.navoplayer.core.common.result.NavoResult
-import tj.umar.navoplayer.core.domain.playlist.normalizePlaylistName
 import tj.umar.navoplayer.core.domain.usecase.AddTracksToPlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.CreatePlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaylistsUseCase
@@ -65,8 +64,8 @@ internal class AddToPlaylistViewModel @Inject constructor(
         if (state.isSaving) return
         setState { copy(isSaving = true, isNameDialogVisible = false) }
         viewModelScope.launch {
-            val effect = when (createPlaylist(name, state.trackIds)) {
-                is NavoResult.Success -> AddToPlaylistEffect.Created(token, normalizePlaylistName(name) ?: name)
+            val effect = when (val result = createPlaylist(name, state.trackIds)) {
+                is NavoResult.Success -> AddToPlaylistEffect.Created(token, result.data.name)
                 is NavoResult.Error -> AddToPlaylistEffect.Failed(token)
             }
             finishSaving(effect)

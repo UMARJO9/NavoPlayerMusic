@@ -120,7 +120,7 @@ internal class LibraryViewModel @Inject constructor(
         setState { copy(isCreatePlaylistDialogVisible = false) }
         viewModelScope.launch {
             createPlaylist(name)
-                .onSuccess { sendEffect(LibraryEffect.NavigateToPlaylist(it)) }
+                .onSuccess { sendEffect(LibraryEffect.NavigateToPlaylist(it.id)) }
                 .onError { sendEffect(LibraryEffect.ShowCreatePlaylistFailed) }
             isCreatingPlaylist = false
         }

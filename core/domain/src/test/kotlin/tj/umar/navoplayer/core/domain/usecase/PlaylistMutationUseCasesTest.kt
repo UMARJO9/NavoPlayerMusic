@@ -20,7 +20,9 @@ class PlaylistMutationUseCasesTest {
     fun `create normalizes name and dedupes tracks`() = runTest {
         val result = CreatePlaylistUseCase(repository)("  Вечер   дома ", listOf(1, 2, 1))
 
-        val id = (result as NavoResult.Success).data
+        val created = (result as NavoResult.Success).data
+        val id = created.id
+        assertEquals("Вечер дома", created.name)
         assertEquals("Вечер дома", playlist(id).name)
         assertEquals(listOf(1L, 2L), playlist(id).trackIds)
     }
