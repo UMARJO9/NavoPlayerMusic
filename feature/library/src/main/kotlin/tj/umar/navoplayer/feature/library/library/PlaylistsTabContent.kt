@@ -33,7 +33,7 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.PlaylistSummary
 import tj.umar.navoplayer.core.domain.model.durationMinutes
 import tj.umar.navoplayer.core.ui.R as CoreUiR
-import tj.umar.navoplayer.core.ui.playlist.PlaylistNameDialog
+import tj.umar.navoplayer.core.ui.playlist.PlaylistNameSheet
 import tj.umar.navoplayer.feature.library.R
 
 @Composable
@@ -64,8 +64,8 @@ internal fun PlaylistsTabContent(state: LibraryState, onIntent: (LibraryIntent) 
     ) {
         PlaylistList(state = state, onIntent = onIntent)
     }
-    if (state.isCreatePlaylistDialogVisible) {
-        PlaylistNameDialog(
+    if (state.isCreatePlaylistSheetVisible) {
+        PlaylistNameSheet(
             title = stringResource(CoreUiR.string.core_ui_new_playlist),
             confirmLabel = stringResource(CoreUiR.string.core_ui_create),
             onConfirm = { onIntent(LibraryIntent.CreatePlaylistConfirmed(it)) },

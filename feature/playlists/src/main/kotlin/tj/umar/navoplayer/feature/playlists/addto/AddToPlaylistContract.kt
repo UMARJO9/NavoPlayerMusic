@@ -10,7 +10,7 @@ internal data class AddToPlaylistState(
     val isLoading: Boolean = true,
     val playlists: List<PlaylistSummary> = emptyList(),
     val loadFailed: Boolean = false,
-    val isNameDialogVisible: Boolean = false,
+    val isNameFormVisible: Boolean = false,
     val isSaving: Boolean = false,
 )
 
@@ -18,7 +18,7 @@ internal sealed interface AddToPlaylistIntent {
     data class Opened(val request: AddToPlaylistRequest) : AddToPlaylistIntent
     data class PlaylistClicked(val playlistId: Long) : AddToPlaylistIntent
     data object NewPlaylistClicked : AddToPlaylistIntent
-    data object NameDialogDismissed : AddToPlaylistIntent
+    data object NameFormDismissed : AddToPlaylistIntent
     data class NewPlaylistConfirmed(val name: String) : AddToPlaylistIntent
     data object RetryLoad : AddToPlaylistIntent
     data object Dismissed : AddToPlaylistIntent

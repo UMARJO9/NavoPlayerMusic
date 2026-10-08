@@ -368,10 +368,10 @@ class LibraryViewModelTest {
     @Test
     fun `create playlist dialog opens and dismisses`() {
         viewModel.onIntent(LibraryIntent.CreatePlaylistClicked)
-        assertTrue(viewModel.state.value.isCreatePlaylistDialogVisible)
+        assertTrue(viewModel.state.value.isCreatePlaylistSheetVisible)
 
         viewModel.onIntent(LibraryIntent.CreatePlaylistDismissed)
-        assertFalse(viewModel.state.value.isCreatePlaylistDialogVisible)
+        assertFalse(viewModel.state.value.isCreatePlaylistSheetVisible)
     }
 
     @Test
@@ -383,7 +383,7 @@ class LibraryViewModelTest {
             val effect = awaitItem() as LibraryEffect.NavigateToPlaylist
             assertEquals("Дорога", playlists.current.single { it.id == effect.playlistId }.name)
         }
-        assertFalse(viewModel.state.value.isCreatePlaylistDialogVisible)
+        assertFalse(viewModel.state.value.isCreatePlaylistSheetVisible)
     }
 
     @Test

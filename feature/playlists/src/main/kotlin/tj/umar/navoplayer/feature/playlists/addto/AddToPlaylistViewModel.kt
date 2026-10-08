@@ -27,8 +27,8 @@ internal class AddToPlaylistViewModel @Inject constructor(
         when (intent) {
             is AddToPlaylistIntent.Opened -> onOpened(intent.request)
             is AddToPlaylistIntent.PlaylistClicked -> onPlaylistClicked(intent.playlistId)
-            AddToPlaylistIntent.NewPlaylistClicked -> setState { copy(isNameDialogVisible = true) }
-            AddToPlaylistIntent.NameDialogDismissed -> setState { copy(isNameDialogVisible = false) }
+            AddToPlaylistIntent.NewPlaylistClicked -> setState { copy(isNameFormVisible = true) }
+            AddToPlaylistIntent.NameFormDismissed -> setState { copy(isNameFormVisible = false) }
             is AddToPlaylistIntent.NewPlaylistConfirmed -> onNewPlaylistConfirmed(intent.name)
             AddToPlaylistIntent.RetryLoad -> startObserving()
             AddToPlaylistIntent.Dismissed -> stopObserving()
@@ -62,7 +62,7 @@ internal class AddToPlaylistViewModel @Inject constructor(
         val state = currentState
         val token = state.token ?: return
         if (state.isSaving) return
-        setState { copy(isSaving = true, isNameDialogVisible = false) }
+        setState { copy(isSaving = true, isNameFormVisible = false) }
         viewModelScope.launch {
             val effect = when (val result = createPlaylist(name, state.trackIds)) {
                 is NavoResult.Success -> AddToPlaylistEffect.Created(token, result.data.name)

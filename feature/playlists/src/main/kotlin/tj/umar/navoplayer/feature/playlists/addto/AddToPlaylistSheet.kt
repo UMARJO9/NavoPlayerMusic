@@ -40,7 +40,7 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.PlaylistSummary
 import tj.umar.navoplayer.core.domain.model.durationMinutes
 import tj.umar.navoplayer.core.ui.R as CoreUiR
-import tj.umar.navoplayer.core.ui.playlist.PlaylistNameDialog
+import tj.umar.navoplayer.core.ui.playlist.PlaylistNameForm
 import tj.umar.navoplayer.feature.playlists.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,15 +59,16 @@ internal fun AddToPlaylistSheet(
         containerColor = NavoTheme.colors.raised,
         contentColor = NavoTheme.colors.content,
     ) {
-        AddToPlaylistContent(state = state, onIntent = onIntent)
-    }
-    if (state.isNameDialogVisible) {
-        PlaylistNameDialog(
-            title = stringResource(CoreUiR.string.core_ui_new_playlist),
-            confirmLabel = stringResource(CoreUiR.string.core_ui_create),
-            onConfirm = { onIntent(AddToPlaylistIntent.NewPlaylistConfirmed(it)) },
-            onDismiss = { onIntent(AddToPlaylistIntent.NameDialogDismissed) },
-        )
+        if (state.isNameFormVisible) {
+            PlaylistNameForm(
+                title = stringResource(CoreUiR.string.core_ui_new_playlist),
+                confirmLabel = stringResource(CoreUiR.string.core_ui_create),
+                onConfirm = { onIntent(AddToPlaylistIntent.NewPlaylistConfirmed(it)) },
+                onCancel = { onIntent(AddToPlaylistIntent.NameFormDismissed) },
+            )
+        } else {
+            AddToPlaylistContent(state = state, onIntent = onIntent)
+        }
     }
 }
 

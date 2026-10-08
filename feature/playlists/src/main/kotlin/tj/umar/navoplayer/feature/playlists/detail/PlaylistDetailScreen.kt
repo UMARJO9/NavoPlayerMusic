@@ -54,7 +54,7 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.PlaylistDetail
 import tj.umar.navoplayer.core.ui.R as CoreUiR
-import tj.umar.navoplayer.core.ui.playlist.PlaylistNameDialog
+import tj.umar.navoplayer.core.ui.playlist.PlaylistNameSheet
 import tj.umar.navoplayer.core.ui.track.TrackListItem
 import tj.umar.navoplayer.feature.playlists.R
 
@@ -305,7 +305,7 @@ private fun EmptyPlaylistNote() {
 private fun PlaylistDialogs(state: PlaylistDetailState, onIntent: (PlaylistDetailIntent) -> Unit) {
     val dismiss = { onIntent(PlaylistDetailIntent.DialogDismissed) }
     when (val dialog = state.dialog) {
-        is PlaylistDetailDialog.Rename -> PlaylistNameDialog(
+        is PlaylistDetailDialog.Rename -> PlaylistNameSheet(
             title = stringResource(R.string.playlists_rename_title),
             confirmLabel = stringResource(CoreUiR.string.core_ui_save),
             initialName = dialog.currentName,

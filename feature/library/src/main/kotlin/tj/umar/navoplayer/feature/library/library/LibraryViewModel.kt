@@ -50,8 +50,8 @@ internal class LibraryViewModel @Inject constructor(
             LibraryIntent.SearchClicked -> sendEffect(LibraryEffect.NavigateToSearch)
             LibraryIntent.ShuffleClicked -> onShuffleClicked()
             is LibraryIntent.PlaylistClicked -> sendEffect(LibraryEffect.NavigateToPlaylist(intent.playlistId))
-            LibraryIntent.CreatePlaylistClicked -> setState { copy(isCreatePlaylistDialogVisible = true) }
-            LibraryIntent.CreatePlaylistDismissed -> setState { copy(isCreatePlaylistDialogVisible = false) }
+            LibraryIntent.CreatePlaylistClicked -> setState { copy(isCreatePlaylistSheetVisible = true) }
+            LibraryIntent.CreatePlaylistDismissed -> setState { copy(isCreatePlaylistSheetVisible = false) }
             is LibraryIntent.CreatePlaylistConfirmed -> onCreatePlaylistConfirmed(intent.name)
             LibraryIntent.RetryLoadPlaylists -> startObservingPlaylists()
             is LibraryIntent.TrackLongPressed -> sendEffect(LibraryEffect.OpenAddToPlaylist(listOf(intent.trackId)))
@@ -117,7 +117,7 @@ internal class LibraryViewModel @Inject constructor(
     private fun onCreatePlaylistConfirmed(name: String) {
         if (isCreatingPlaylist) return
         isCreatingPlaylist = true
-        setState { copy(isCreatePlaylistDialogVisible = false) }
+        setState { copy(isCreatePlaylistSheetVisible = false) }
         viewModelScope.launch {
             createPlaylist(name)
                 .onSuccess { sendEffect(LibraryEffect.NavigateToPlaylist(it.id)) }

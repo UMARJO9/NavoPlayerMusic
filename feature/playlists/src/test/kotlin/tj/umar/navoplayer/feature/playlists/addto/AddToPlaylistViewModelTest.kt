@@ -78,13 +78,13 @@ class AddToPlaylistViewModelTest {
         opened(TestTracks.beta.id)
 
         viewModel.onIntent(AddToPlaylistIntent.NewPlaylistClicked)
-        assertTrue(viewModel.state.value.isNameDialogVisible)
+        assertTrue(viewModel.state.value.isNameFormVisible)
 
         viewModel.effects.test {
             viewModel.onIntent(AddToPlaylistIntent.NewPlaylistConfirmed("  Дорога "))
             assertEquals(AddToPlaylistEffect.Created(1, "Дорога"), awaitItem())
         }
-        assertFalse(viewModel.state.value.isNameDialogVisible)
+        assertFalse(viewModel.state.value.isNameFormVisible)
         assertEquals(listOf(TestTracks.beta.id), playlists.current.single { it.name == "Дорога" }.trackIds)
     }
 
@@ -93,9 +93,9 @@ class AddToPlaylistViewModelTest {
         opened(TestTracks.beta.id)
 
         viewModel.onIntent(AddToPlaylistIntent.NewPlaylistClicked)
-        viewModel.onIntent(AddToPlaylistIntent.NameDialogDismissed)
+        viewModel.onIntent(AddToPlaylistIntent.NameFormDismissed)
 
-        assertFalse(viewModel.state.value.isNameDialogVisible)
+        assertFalse(viewModel.state.value.isNameFormVisible)
     }
 
     @Test
@@ -133,7 +133,7 @@ class AddToPlaylistViewModelTest {
 
         val state = viewModel.state.value
         assertEquals(listOf(TestTracks.longMix.id), state.trackIds)
-        assertFalse(state.isNameDialogVisible)
+        assertFalse(state.isNameFormVisible)
     }
 
     @Test
@@ -154,7 +154,7 @@ class AddToPlaylistViewModelTest {
 
         viewModel.onIntent(AddToPlaylistIntent.Opened(request))
 
-        assertTrue(viewModel.state.value.isNameDialogVisible)
+        assertTrue(viewModel.state.value.isNameFormVisible)
         assertEquals(listOf(TestTracks.beta.id), viewModel.state.value.trackIds)
     }
 

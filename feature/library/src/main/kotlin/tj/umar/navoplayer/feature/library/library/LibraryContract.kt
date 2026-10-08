@@ -34,7 +34,7 @@ internal data class LibraryState(
     val playlists: List<PlaylistSummary> = emptyList(),
     val isLoadingPlaylists: Boolean = true,
     val playlistsLoadFailed: Boolean = false,
-    val isCreatePlaylistDialogVisible: Boolean = false,
+    val isCreatePlaylistSheetVisible: Boolean = false,
     val currentTrackId: Long? = null,
     val currentSource: PlaybackSource? = null,
     val isPlaying: Boolean = false,
