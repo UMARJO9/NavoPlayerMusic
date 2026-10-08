@@ -1,0 +1,12 @@
+<resources>
+    <string name="search_field_hint">Треки, альбомы, исполнители</string>
+    <string name="search_clear">Очистить поиск</string>
+    <string name="search_back">Назад</string>
+    <string name="search_idle_hint">Найдите музыку на устройстве</string>
+    <string name="search_no_results">По запросу «%1$s» ничего не найдено</string>
+    <string name="search_section_tracks">Треки</string>
+    <string name="search_section_albums">Альбомы</string>
+    <string name="search_section_artists">Исполнители</string>
+    <string name="search_error">Не удалось загрузить музыку</string>
+    <string name="search_retry">Повторить</string>
+</resources>

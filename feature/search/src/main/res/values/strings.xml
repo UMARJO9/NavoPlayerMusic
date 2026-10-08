@@ -1,0 +1,13 @@
+<resources>
+    <string name="search_field_hint">Search tracks, albums, artists</string>
+    <string name="search_clear">Clear search</string>
+    <string name="search_back">Back</string>
+    <string name="search_idle_hint">Find music on your device</string>
+    <string name="search_no_results">Nothing found for “%1$s”</string>
+    <string name="search_section_tracks">Tracks</string>
+    <string name="search_section_albums">Albums</string>
+    <string name="search_section_artists">Artists</string>
+    <string name="search_section_count" translatable="false">%1$s · %2$d</string>
+    <string name="search_error">Couldn\'t load your music</string>
+    <string name="search_retry">Try again</string>
+</resources>

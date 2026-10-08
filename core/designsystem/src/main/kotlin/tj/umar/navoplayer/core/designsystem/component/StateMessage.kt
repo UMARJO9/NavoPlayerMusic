@@ -67,8 +67,9 @@ fun StateMessage(
     palette: MedallionPalette,
     actionLabel: String? = null,
     onAction: () -> Unit = {},
+    modifier: Modifier = Modifier,
 ) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
             modifier = Modifier.padding(horizontal = NavoSpacing.ExtraLarge),
             horizontalAlignment = Alignment.CenterHorizontally,
