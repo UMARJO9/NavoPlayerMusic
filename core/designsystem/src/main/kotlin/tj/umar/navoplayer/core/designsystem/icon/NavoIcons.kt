@@ -6,6 +6,9 @@ import androidx.compose.ui.res.vectorResource
 import tj.umar.navoplayer.core.designsystem.R
 
 object NavoIcons {
+    val Plus: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_plus)
+
     val Search: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_search)
 
