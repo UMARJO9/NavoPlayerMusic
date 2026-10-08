@@ -20,6 +20,8 @@ internal data class SearchState(
     val tracks: List<Track> = emptyList(),
     val albums: List<Album> = emptyList(),
     val artists: List<Artist> = emptyList(),
+    val albumCount: Int = 0,
+    val artistCount: Int = 0,
     val currentTrackId: Long? = null,
     val currentSource: PlaybackSource? = null,
     val isPlaying: Boolean = false,

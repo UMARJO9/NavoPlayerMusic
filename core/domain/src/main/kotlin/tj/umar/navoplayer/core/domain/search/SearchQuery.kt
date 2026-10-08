@@ -17,3 +17,5 @@ internal class SearchQuery private constructor(
         }
     }
 }
+
+fun String.isSearchable(): Boolean = toSearchKey().isNotEmpty()

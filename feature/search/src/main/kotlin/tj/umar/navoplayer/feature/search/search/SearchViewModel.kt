@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.SearchResults
+import tj.umar.navoplayer.core.domain.search.isSearchable
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
 import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.SearchLibraryUseCase
@@ -21,6 +22,7 @@ import tj.umar.navoplayer.core.ui.mvi.MviViewModel
 import javax.inject.Inject
 
 private const val QUERY_KEY = "search_query"
+internal const val MAX_QUERY_LENGTH = 200
 
 @HiltViewModel
 internal class SearchViewModel @Inject constructor(
@@ -34,6 +36,7 @@ internal class SearchViewModel @Inject constructor(
     private val queries = MutableStateFlow(currentState.query)
     private var searchJob: Job? = null
     private var playbackJob: Job? = null
+    private var isStarted = false
 
     override fun onIntent(intent: SearchIntent) {
         when (intent) {
@@ -53,20 +56,23 @@ internal class SearchViewModel @Inject constructor(
             sendEffect(SearchEffect.NavigateToWelcome)
             return
         }
+        isStarted = true
         startSearching()
         startObservingPlayback()
     }
 
-    private fun onQueryChanged(query: String) {
+    private fun onQueryChanged(rawQuery: String) {
+        val query = rawQuery.take(MAX_QUERY_LENGTH)
         savedStateHandle[QUERY_KEY] = query
         queries.value = query
         setState {
             when {
-                query.isBlank() -> copy(query = query, phase = SearchPhase.Idle, resultsQuery = "", tracks = emptyList(), albums = emptyList(), artists = emptyList())
-                phase == SearchPhase.Idle -> copy(query = query, phase = SearchPhase.Loading)
+                !query.isSearchable() -> copy(query = query).cleared()
+                phase == SearchPhase.Idle || phase == SearchPhase.Error -> copy(query = query, phase = SearchPhase.Loading)
                 else -> copy(query = query)
             }
         }
+        if (isStarted) startSearching()
     }
 
     private fun onTrackClicked(trackId: Long) {
@@ -85,14 +91,14 @@ internal class SearchViewModel @Inject constructor(
     private fun retry() {
         searchJob?.cancel()
         searchJob = null
-        if (currentState.query.isNotBlank()) setState { copy(phase = SearchPhase.Loading) }
+        if (currentState.query.isSearchable()) setState { copy(phase = SearchPhase.Loading) }
         startSearching()
     }
 
     @OptIn(FlowPreview::class)
     private fun startSearching() {
         if (searchJob?.isActive == true) return
-        searchJob = searchLibrary(queries.debounce { if (it.isBlank()) 0L else SEARCH_DEBOUNCE_MS })
+        searchJob = searchLibrary(queries.debounce { if (it.isSearchable()) SEARCH_DEBOUNCE_MS else 0L })
             .onEach(::onResults)
             .catch { setState { copy(phase = SearchPhase.Error) } }
             .launchIn(viewModelScope)
@@ -100,15 +106,16 @@ internal class SearchViewModel @Inject constructor(
 
     private fun onResults(results: SearchResults) {
         setState {
-            if (results.query.isBlank()) {
-                copy(phase = SearchPhase.Idle, resultsQuery = "", tracks = emptyList(), albums = emptyList(), artists = emptyList())
-            } else {
-                copy(
+            when {
+                !query.isSearchable() || results.query.isBlank() -> cleared()
+                else -> copy(
                     phase = if (results.isEmpty) SearchPhase.NoResults else SearchPhase.Results,
                     resultsQuery = results.query,
                     tracks = results.tracks,
                     albums = results.albums.take(SEARCH_GROUP_LIMIT),
                     artists = results.artists.take(SEARCH_GROUP_LIMIT),
+                    albumCount = results.albums.size,
+                    artistCount = results.artists.size,
                 )
             }
         }
@@ -126,11 +133,12 @@ internal class SearchViewModel @Inject constructor(
                     )
                 }
             }
-            .catch { }
+            .catch { setState { copy(currentTrackId = null, currentSource = null, isPlaying = false) } }
             .launchIn(viewModelScope)
     }
 
     private fun stopObserving() {
+        isStarted = false
         searchJob?.cancel()
         playbackJob?.cancel()
         searchJob = null
@@ -138,5 +146,15 @@ internal class SearchViewModel @Inject constructor(
     }
 }
 
+private fun SearchState.cleared(): SearchState = copy(
+    phase = SearchPhase.Idle,
+    resultsQuery = "",
+    tracks = emptyList(),
+    albums = emptyList(),
+    artists = emptyList(),
+    albumCount = 0,
+    artistCount = 0,
+)
+
 private fun initialState(query: String): SearchState =
-    SearchState(query = query, phase = if (query.isBlank()) SearchPhase.Idle else SearchPhase.Loading)
+    SearchState(query = query, phase = if (query.isSearchable()) SearchPhase.Loading else SearchPhase.Idle)

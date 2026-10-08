@@ -20,6 +20,6 @@ class SearchLibraryUseCase @Inject constructor(
         observeLibrary().map(::LibrarySearchIndex),
         queries.map(SearchQuery::parse).distinctUntilChangedBy { it.text },
     ) { index, query ->
-        if (query.isBlank) SearchResults.empty(query.text) else index.search(query)
+        if (query.isBlank) SearchResults.empty() else index.search(query)
     }.flowOn(defaultDispatcher)
 }

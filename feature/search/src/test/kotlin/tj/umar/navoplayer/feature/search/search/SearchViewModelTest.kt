@@ -240,4 +240,61 @@ class SearchViewModelTest {
         assertEquals("ватан", viewModel.state.value.query)
         assertEquals(SearchPhase.Loading, viewModel.state.value.phase)
     }
+
+    @Test
+    fun `typing after error and clear searches again`() = runTest {
+        repository.error = IllegalStateException("scan failed")
+        val viewModel = viewModel()
+        viewModel.onIntent(SearchIntent.ScreenStarted(hasPermission = true))
+        typed(viewModel, "black")
+        assertEquals(SearchPhase.Error, viewModel.state.value.phase)
+
+        repository.error = null
+        viewModel.onIntent(SearchIntent.ClearQueryClicked)
+        typed(viewModel, "black")
+        repository.emit(TestSearchTracks.library)
+        advanceTimeBy(SEARCH_DEBOUNCE_MS + 1)
+
+        assertEquals(SearchPhase.Results, viewModel.state.value.phase)
+    }
+
+    @Test
+    fun `punctuation only query stays idle`() = runTest {
+        val viewModel = viewModel().started()
+
+        typed(viewModel, "!!!")
+
+        assertEquals(SearchPhase.Idle, viewModel.state.value.phase)
+    }
+
+    @Test
+    fun `query length is capped`() {
+        val viewModel = viewModel()
+
+        viewModel.onIntent(SearchIntent.QueryChanged("a".repeat(MAX_QUERY_LENGTH + 50)))
+
+        assertEquals(MAX_QUERY_LENGTH, viewModel.state.value.query.length)
+    }
+
+    @Test
+    fun `group counts keep total matches`() = runTest {
+        val manyArtists = (1L..6L).map { TestSearchTracks.blackbird.copy(id = 100 + it, artist = "Black $it", artistId = it) }
+        val viewModel = viewModel()
+        viewModel.onIntent(SearchIntent.ScreenStarted(hasPermission = true))
+        repository.emit(manyArtists)
+
+        typed(viewModel, "black")
+
+        assertEquals(6, viewModel.state.value.artistCount)
+    }
+
+    @Test
+    fun `unknown track click does nothing`() = runTest {
+        val viewModel = viewModel().started()
+        typed(viewModel, "black")
+
+        viewModel.onIntent(SearchIntent.TrackClicked(999))
+
+        assertTrue(playback.commands.isEmpty())
+    }
 }

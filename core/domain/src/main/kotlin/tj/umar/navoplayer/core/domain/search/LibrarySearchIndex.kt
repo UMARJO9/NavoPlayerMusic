@@ -33,7 +33,7 @@ internal class LibrarySearchIndex(content: LibraryContent) {
         .map { artist -> SearchEntry(artist, fieldsOf(artist.name to PRIMARY_RANK)) }
 
     fun search(query: SearchQuery): SearchResults {
-        if (query.isBlank) return SearchResults.empty(query.text)
+        if (query.isBlank) return SearchResults.empty()
         return SearchResults(
             query = query.text,
             tracks = tracks.search(query),

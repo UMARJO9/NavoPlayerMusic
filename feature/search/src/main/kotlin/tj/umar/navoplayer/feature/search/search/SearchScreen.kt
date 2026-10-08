@@ -158,8 +158,8 @@ private fun SearchResultsList(state: SearchState, onIntent: (SearchIntent) -> Un
         ),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        groupSection("artists", R.string.search_section_artists, state.artists, onIntent)
-        groupSection("albums", R.string.search_section_albums, state.albums, onIntent)
+        groupSection("artists", R.string.search_section_artists, state.artists, state.artistCount, onIntent)
+        groupSection("albums", R.string.search_section_albums, state.albums, state.albumCount, onIntent)
         if (state.tracks.isNotEmpty()) {
             item(key = "header:tracks", contentType = "header") {
                 SectionHeader(title = stringResource(R.string.search_section_tracks), count = state.tracks.size)
@@ -181,11 +181,12 @@ private fun LazyListScope.groupSection(
     name: String,
     titleRes: Int,
     groups: List<TrackGroup>,
+    totalCount: Int,
     onIntent: (SearchIntent) -> Unit,
 ) {
     if (groups.isEmpty()) return
     item(key = "header:$name", contentType = "header") {
-        SectionHeader(title = stringResource(titleRes), count = groups.size)
+        SectionHeader(title = stringResource(titleRes), count = maxOf(totalCount, groups.size))
     }
     items(groups, key = { "$name:${it.key.stableKey()}" }, contentType = { "group" }) { group ->
         GroupRow(
