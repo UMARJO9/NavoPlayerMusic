@@ -31,6 +31,7 @@ class MediaStoreAudioSourceTest {
     fun tearDown() {
         FakeMediaProvider.rows = emptyList()
         FakeMediaProvider.lastSelection = null
+        FakeMediaProvider.lastProjection = null
     }
 
     @Test
@@ -95,6 +96,17 @@ class MediaStoreAudioSourceTest {
             context.contentResolver.notifyChange(collection, null)
             awaitItem()
         }
+    }
+
+    @Test
+    fun `reads relative path on modern storage`() = runTest {
+        FakeMediaProvider.rows = listOf(fullRow(id = 9) + mapOf("relative_path" to "Music/Rock/"))
+
+        val row = source().queryAudio().single()
+
+        assertEquals("Music/Rock/", row.relativePath)
+        assertEquals(null, row.dataPath)
+        assertEquals(false, FakeMediaProvider.lastProjection.orEmpty().contains("_data"))
     }
 
     private fun TestScope.source() =

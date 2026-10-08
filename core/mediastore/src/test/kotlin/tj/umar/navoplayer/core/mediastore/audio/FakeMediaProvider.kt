@@ -18,6 +18,7 @@ class FakeMediaProvider : ContentProvider() {
         sortOrder: String?,
     ): Cursor {
         lastSelection = selection
+        lastProjection = projection?.toList()
         val columns = projection ?: rows.firstOrNull()?.keys?.toTypedArray() ?: emptyArray()
         return MatrixCursor(columns).apply {
             rows.forEach { row -> addRow(columns.map { row[it] }) }
@@ -40,5 +41,6 @@ class FakeMediaProvider : ContentProvider() {
     companion object {
         var rows: List<Map<String, Any?>> = emptyList()
         var lastSelection: String? = null
+        var lastProjection: List<String>? = null
     }
 }

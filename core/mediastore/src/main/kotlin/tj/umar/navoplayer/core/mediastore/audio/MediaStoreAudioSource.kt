@@ -45,7 +45,7 @@ internal class MediaStoreAudioSource @Inject constructor(
         val cursor = try {
             context.contentResolver.query(
                 collection,
-                PROJECTION,
+                projection(),
                 "${MediaStore.Audio.Media.IS_MUSIC} != 0",
                 null,
                 null,
@@ -79,6 +79,8 @@ internal class MediaStoreAudioSource @Inject constructor(
         private val albumId = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
         private val duration = cursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.DURATION)
         private val track = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)
+        private val relativePath = cursor.getColumnIndex(RELATIVE_PATH_COLUMN)
+        private val dataPath = cursor.getColumnIndex(DATA_COLUMN)
 
         fun read(cursor: Cursor): MediaStoreAudioRow {
             val rowId = cursor.getLong(id)
@@ -93,14 +95,18 @@ internal class MediaStoreAudioSource @Inject constructor(
                 durationMs = cursor.longOrNull(duration),
                 track = cursor.intOrNull(track),
                 contentUri = ContentUris.withAppendedId(collection, rowId).toString(),
+                relativePath = cursor.optionalString(relativePath),
+                dataPath = cursor.optionalString(dataPath),
             )
         }
     }
 
     private companion object {
         const val CANCELLATION_CHECK_INTERVAL = 200
+        const val RELATIVE_PATH_COLUMN = "relative_path"
+        const val DATA_COLUMN = "_data"
 
-        val PROJECTION = arrayOf(
+        val BASE_PROJECTION = arrayOf(
             MediaStore.Audio.Media._ID,
             MediaStore.Audio.Media.TITLE,
             MediaStore.Audio.Media.DISPLAY_NAME,
@@ -111,6 +117,13 @@ internal class MediaStoreAudioSource @Inject constructor(
             MediaStore.Audio.AudioColumns.DURATION,
             MediaStore.Audio.Media.TRACK,
         )
+
+        fun projection(): Array<String> =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                BASE_PROJECTION + RELATIVE_PATH_COLUMN
+            } else {
+                BASE_PROJECTION + DATA_COLUMN
+            }
 
         fun audioCollection(): Uri =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -126,3 +139,5 @@ private fun Cursor.stringOrNull(index: Int): String? = if (isNull(index)) null e
 private fun Cursor.longOrNull(index: Int): Long? = if (isNull(index)) null else getLong(index)
 
 private fun Cursor.intOrNull(index: Int): Int? = if (isNull(index)) null else getInt(index)
+
+private fun Cursor.optionalString(index: Int): String? = if (index < 0) null else stringOrNull(index)
