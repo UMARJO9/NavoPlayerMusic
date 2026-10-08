@@ -36,9 +36,6 @@ internal class RoomPlaylistRepository @Inject constructor(
     override suspend fun addTracks(playlistId: Long, trackIds: List<Long>): Int =
         dao.appendTracks(playlistId, trackIds, clock.nowMillis())
 
-    override suspend fun removeTrack(playlistId: Long, trackId: Long): Boolean {
-        val removed = dao.deleteTrack(playlistId, trackId) > 0
-        if (removed) dao.touch(playlistId, clock.nowMillis())
-        return removed
-    }
+    override suspend fun removeTrack(playlistId: Long, trackId: Long): Boolean =
+        dao.removeTrack(playlistId, trackId, clock.nowMillis())
 }

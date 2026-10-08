@@ -63,4 +63,11 @@ abstract class PlaylistDao {
         if (rows.isNotEmpty()) insertTracks(rows)
         return id
     }
+
+    @Transaction
+    open suspend fun removeTrack(playlistId: Long, trackId: Long, updatedAt: Long): Boolean {
+        val removed = deleteTrack(playlistId, trackId) > 0
+        if (removed) touch(playlistId, updatedAt)
+        return removed
+    }
 }
