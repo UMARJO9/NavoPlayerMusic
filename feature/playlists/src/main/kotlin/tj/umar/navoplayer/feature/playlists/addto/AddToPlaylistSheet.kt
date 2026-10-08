@@ -30,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.component.GroupLeading
 import tj.umar.navoplayer.core.designsystem.component.GroupRow
@@ -100,6 +101,7 @@ internal fun AddToPlaylistContent(state: AddToPlaylistState, onIntent: (AddToPla
                     ),
                     enabled = !state.isSaving && state.isFavorite != null,
                     onClick = { onIntent(AddToPlaylistIntent.FavoriteClicked) },
+                    modifier = Modifier.semantics { selected = isFavorite },
                 )
             }
         }
@@ -129,10 +131,16 @@ internal fun AddToPlaylistContent(state: AddToPlaylistState, onIntent: (AddToPla
 }
 
 @Composable
-private fun ActionRow(icon: ImageVector, label: String, enabled: Boolean, onClick: () -> Unit) {
+private fun ActionRow(
+    icon: ImageVector,
+    label: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val colors = NavoTheme.colors
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 64.dp)
             .clip(NavoShapes.TrackRow)
