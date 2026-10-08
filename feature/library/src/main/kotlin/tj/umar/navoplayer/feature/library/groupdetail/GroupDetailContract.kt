@@ -33,9 +33,11 @@ internal sealed interface GroupDetailIntent {
     data class TrackClicked(val trackId: Long) : GroupDetailIntent
     data object ShuffleClicked : GroupDetailIntent
     data object SortClicked : GroupDetailIntent
+    data class TrackLongPressed(val trackId: Long) : GroupDetailIntent
 }
 
 internal sealed interface GroupDetailEffect {
     data object NavigateBack : GroupDetailEffect
     data object NavigateToWelcome : GroupDetailEffect
+    data class OpenAddToPlaylist(val trackIds: List<Long>) : GroupDetailEffect
 }

@@ -103,6 +103,7 @@ fun NavoNavHost(
                 }
             },
             onAudioPermissionMissing = onAudioPermissionMissing,
+            onAddToPlaylist = onAddToPlaylist,
         )
         playlistDetailScreen(
             onBack = {

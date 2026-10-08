@@ -56,12 +56,14 @@ fun NavGraphBuilder.libraryScreen(
 fun NavGraphBuilder.groupDetailScreen(
     onBack: () -> Unit,
     onAudioPermissionMissing: () -> Unit,
+    onAddToPlaylist: (List<Long>) -> Unit,
 ) {
     composable<GroupDetailDestination> { entry ->
         GroupDetailRoute(
             key = entry.toRoute<GroupDetailDestination>().toKey(),
             onBack = onBack,
             onAudioPermissionMissing = onAudioPermissionMissing,
+            onAddToPlaylist = onAddToPlaylist,
         )
     }
 }
