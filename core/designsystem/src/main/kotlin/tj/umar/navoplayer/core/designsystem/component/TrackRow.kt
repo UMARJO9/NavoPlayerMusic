@@ -3,7 +3,7 @@ package tj.umar.navoplayer.core.designsystem.component
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -46,6 +48,8 @@ fun TrackRow(
     isCurrent: Boolean = false,
     isPlaying: Boolean = false,
     onClick: () -> Unit = {},
+    onLongClick: (() -> Unit)? = null,
+    onLongClickLabel: String? = null,
 ) {
     val colors = NavoTheme.colors
     val typography = NavoTheme.typography
@@ -56,6 +60,7 @@ fun TrackRow(
     )
     val playLabel = stringResource(R.string.designsystem_play_track)
     val nowPlaying = stringResource(R.string.designsystem_now_playing)
+    val haptics = LocalHapticFeedback.current
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -65,7 +70,17 @@ fun TrackRow(
             }
             .clip(NavoShapes.TrackRow)
             .background(background)
-            .clickable(onClickLabel = playLabel, onClick = onClick)
+            .combinedClickable(
+                onClickLabel = playLabel,
+                onLongClickLabel = onLongClickLabel,
+                onLongClick = onLongClick?.let { longClick ->
+                    {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        longClick()
+                    }
+                },
+                onClick = onClick,
+            )
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),

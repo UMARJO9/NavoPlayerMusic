@@ -17,6 +17,8 @@ fun TrackListItem(
     isPlaying: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onLongClick: (() -> Unit)? = null,
+    onLongClickLabel: String? = null,
 ) {
     val palette = remember(track.id) { MedallionPalettes.forKey(track.id) }
     TrackRow(
@@ -27,6 +29,8 @@ fun TrackListItem(
         isCurrent = isCurrent,
         isPlaying = isCurrent && isPlaying,
         onClick = onClick,
+        onLongClick = onLongClick,
+        onLongClickLabel = onLongClickLabel,
         modifier = modifier,
     )
 }
