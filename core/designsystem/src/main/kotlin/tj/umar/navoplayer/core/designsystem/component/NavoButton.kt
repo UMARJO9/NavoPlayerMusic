@@ -87,6 +87,7 @@ fun NavoIconButton(
     containerColor: Color = Color.Transparent,
     size: Dp = 44.dp,
     iconSize: Dp = 24.dp,
+    tint: Color = NavoTheme.colors.content,
 ) {
     val colors = NavoTheme.colors
     val interactionSource = remember { MutableInteractionSource() }
@@ -107,7 +108,7 @@ fun NavoIconButton(
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = colors.content,
+            tint = tint,
             modifier = Modifier.size(iconSize),
         )
     }
