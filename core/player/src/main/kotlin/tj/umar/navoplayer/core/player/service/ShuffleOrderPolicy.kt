@@ -21,19 +21,25 @@ internal class ShuffleOrderListener(
     private val random: Random = Random.Default,
 ) : Player.Listener {
 
+    private var shuffledPlaylistKey: Int? = null
+
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-        if (shuffleModeEnabled) applyShuffleOrder()
+        if (shuffleModeEnabled) applyShuffleOrder(playlistKey())
     }
 
     override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-        if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED && player.shuffleModeEnabled) {
-            applyShuffleOrder()
-        }
+        if (reason != Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED || !player.shuffleModeEnabled) return
+        val key = playlistKey()
+        if (key != shuffledPlaylistKey) applyShuffleOrder(key)
     }
 
-    private fun applyShuffleOrder() {
+    private fun applyShuffleOrder(key: Int) {
         val indices = shuffledIndicesStartingAt(player.mediaItemCount, player.currentMediaItemIndex, random)
         if (indices.isEmpty()) return
+        shuffledPlaylistKey = key
         player.setShuffleOrder(DefaultShuffleOrder(indices, random.nextLong()))
     }
+
+    private fun playlistKey(): Int =
+        (0 until player.mediaItemCount).map { player.getMediaItemAt(it).mediaId }.hashCode()
 }
