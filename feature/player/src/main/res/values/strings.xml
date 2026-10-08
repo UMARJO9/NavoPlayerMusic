@@ -1,0 +1,25 @@
+<resources>
+    <string name="player_collapse">Collapse player</string>
+    <string name="player_playing_from">Playing from</string>
+    <string name="player_source_all_tracks">All tracks</string>
+    <string name="player_more">More</string>
+    <string name="player_play">Play</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_previous">Previous track</string>
+    <string name="player_next">Next track</string>
+    <string name="player_shuffle">Shuffle</string>
+    <string name="player_repeat_off">Repeat off</string>
+    <string name="player_repeat_all">Repeat all tracks</string>
+    <string name="player_repeat_one">Repeat one track</string>
+    <string name="player_favorite_add">Add to favorites</string>
+    <string name="player_favorite_remove">Remove from favorites</string>
+    <string name="player_open_queue">Open queue</string>
+    <string name="player_up_next">Up next</string>
+    <string name="player_up_next_track">%1$s, %2$s</string>
+    <string name="player_up_next_none">End of queue</string>
+    <string name="player_sleep_timer">Sleep timer</string>
+    <string name="player_seek">Position in track</string>
+    <string name="player_seek_state">%1$s of %2$s</string>
+    <string name="player_open_now_playing">Open player</string>
+    <string name="player_repeat_one_badge" translatable="false">1</string>
+</resources>
