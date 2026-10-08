@@ -9,8 +9,8 @@ android {
 
 dependencies {
     implementation(projects.core.common)
-    implementation(projects.core.domain)
-    implementation(projects.core.designsystem)
+    api(projects.core.domain)
+    api(projects.core.designsystem)
 
     api(libs.androidx.lifecycle.viewmodel.ktx)
     api(libs.kotlinx.coroutines.core)
