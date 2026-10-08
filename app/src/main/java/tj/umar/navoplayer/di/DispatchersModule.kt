@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import tj.umar.navoplayer.core.common.dispatchers.DefaultDispatcher
 import tj.umar.navoplayer.core.common.dispatchers.IoDispatcher
+import tj.umar.navoplayer.core.common.dispatchers.MainDispatcher
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -20,4 +21,8 @@ object DispatchersModule {
     @Provides
     @DefaultDispatcher
     fun provideDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
+
+    @Provides
+    @MainDispatcher
+    fun provideMainDispatcher(): CoroutineDispatcher = Dispatchers.Main.immediate
 }
