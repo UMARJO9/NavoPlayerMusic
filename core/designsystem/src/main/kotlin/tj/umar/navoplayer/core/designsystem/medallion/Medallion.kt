@@ -62,10 +62,15 @@ fun Medallion(
 }
 
 @Composable
-fun rememberMedallionRotation(running: Boolean, periodMillis: Int = 40_000): () -> Float {
+fun rememberMedallionRotation(
+    running: Boolean,
+    periodMillis: Int = 40_000,
+    clockwise: Boolean = true,
+): () -> Float {
     val elapsed = rememberPausableElapsedMillis(running)
-    return remember(elapsed, periodMillis) {
-        { (elapsed() % periodMillis).toFloat() / periodMillis * 360f }
+    val direction = if (clockwise) 1f else -1f
+    return remember(elapsed, periodMillis, direction) {
+        { direction * (elapsed() % periodMillis).toFloat() / periodMillis * 360f }
     }
 }
 

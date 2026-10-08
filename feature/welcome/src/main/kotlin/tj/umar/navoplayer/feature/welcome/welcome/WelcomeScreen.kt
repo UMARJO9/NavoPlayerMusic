@@ -191,7 +191,7 @@ private fun MedallionComposition(modifier: Modifier = Modifier) {
                 palette = palettes[1],
                 variant = MedallionVariant.Simple,
                 modifier = Modifier.fillMaxSize(),
-                rotationDegrees = rememberMedallionRotation(running = true, periodMillis = 60_000).reversed(),
+                rotationDegrees = rememberMedallionRotation(running = true, periodMillis = 60_000, clockwise = false),
             )
         }
         Box(
@@ -211,7 +211,6 @@ private fun MedallionComposition(modifier: Modifier = Modifier) {
     }
 }
 
-private fun (() -> Float).reversed(): () -> Float = { -this() }
 
 @Composable
 private fun StaggeredEnter(index: Int, content: @Composable () -> Unit) {
