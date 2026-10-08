@@ -19,6 +19,10 @@ import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
 import tj.umar.navoplayer.core.domain.usecase.ToggleShuffleUseCase
 import tj.umar.navoplayer.core.ui.mvi.MviViewModel
 import javax.inject.Inject
+import kotlin.math.abs
+
+private const val SEEK_TOLERANCE_MILLIS = 1_500L
+private const val MAX_STALE_TICKS = 4
 
 @HiltViewModel
 internal class NowPlayingViewModel @Inject constructor(
@@ -35,6 +39,8 @@ internal class NowPlayingViewModel @Inject constructor(
     private var stateJob: Job? = null
     private var progressJob: Job? = null
     private var collapseRequested = false
+    private var pendingSeekTarget: Long? = null
+    private var staleTicksAfterSeek = 0
     private val favoriteTrackIds = mutableSetOf<Long>()
 
     override fun onIntent(intent: NowPlayingIntent) {
@@ -93,11 +99,23 @@ internal class NowPlayingViewModel @Inject constructor(
     }
 
     private fun onProgress(progress: PlaybackProgress) {
+        val target = pendingSeekTarget
+        if (target != null) {
+            staleTicksAfterSeek++
+            val stale = abs(progress.positionMs - target) > SEEK_TOLERANCE_MILLIS
+            if (stale && staleTicksAfterSeek <= MAX_STALE_TICKS) {
+                setState { copy(durationMs = progress.durationMs) }
+                return
+            }
+            pendingSeekTarget = null
+        }
         setState { copy(positionMs = progress.positionMs, durationMs = progress.durationMs) }
     }
 
     private fun finishSeek() {
         val target = currentState.seekPreviewMs ?: return
+        pendingSeekTarget = target
+        staleTicksAfterSeek = 0
         setState { copy(positionMs = target, seekPreviewMs = null) }
         launchCommand { seekTo(target) }
     }

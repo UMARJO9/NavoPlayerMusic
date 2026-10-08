@@ -183,4 +183,30 @@ class NowPlayingViewModelTest {
         assertEquals(before, viewModel.state.value)
         assertTrue(controller.commands.isEmpty())
     }
+
+    @Test
+    fun `stale tick after seek does not jump back`() = runTest {
+        startWith()
+        viewModel.onIntent(NowPlayingIntent.SeekChanged(90_000))
+        viewModel.onIntent(NowPlayingIntent.SeekFinished)
+
+        controller.progress.emit(PlaybackProgress(positionMs = 31_000, durationMs = 185_000))
+        assertEquals(90_000L, viewModel.state.value.positionMs)
+
+        controller.progress.emit(PlaybackProgress(positionMs = 90_400, durationMs = 185_000))
+        assertEquals(90_400L, viewModel.state.value.positionMs)
+    }
+
+    @Test
+    fun `progress resumes after too many stale ticks`() = runTest {
+        startWith()
+        viewModel.onIntent(NowPlayingIntent.SeekChanged(90_000))
+        viewModel.onIntent(NowPlayingIntent.SeekFinished)
+
+        (1..5).forEach { tick ->
+            controller.progress.emit(PlaybackProgress(positionMs = 31_000L + tick, durationMs = 185_000))
+        }
+
+        assertEquals(31_005L, viewModel.state.value.positionMs)
+    }
 }
