@@ -79,4 +79,14 @@ class ObserveTracksUseCaseTest {
             expectNoEvents()
         }
     }
+
+    @Test
+    fun `settings error still emits tracks`() = runTest {
+        settings.observeError = IllegalStateException("broken")
+        repository.emit(TestTracks.tracks)
+
+        observeTracks().test {
+            assertEquals(TestTracks.tracks, awaitItem())
+        }
+    }
 }

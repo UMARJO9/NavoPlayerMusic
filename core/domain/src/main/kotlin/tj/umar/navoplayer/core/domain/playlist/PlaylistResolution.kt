@@ -4,11 +4,12 @@ import tj.umar.navoplayer.core.domain.model.Playlist
 import tj.umar.navoplayer.core.domain.model.PlaylistDetail
 import tj.umar.navoplayer.core.domain.model.PlaylistSummary
 import tj.umar.navoplayer.core.domain.model.Track
+import tj.umar.navoplayer.core.domain.settings.TrackCatalog
 
 fun List<Track>.indexById(): Map<Long, Track> = associateBy { it.id }
 
-fun Playlist.toSummary(library: Map<Long, Track>): PlaylistSummary {
-    val tracks = trackIds.mapNotNull(library::get)
+fun Playlist.toSummary(catalog: TrackCatalog): PlaylistSummary {
+    val tracks = catalog.visibleTracks(trackIds)
     return PlaylistSummary(
         id = id,
         name = name,
@@ -17,12 +18,9 @@ fun Playlist.toSummary(library: Map<Long, Track>): PlaylistSummary {
     )
 }
 
-fun Playlist.toDetail(library: Map<Long, Track>): PlaylistDetail {
-    val tracks = trackIds.mapNotNull(library::get)
-    return PlaylistDetail(
-        id = id,
-        name = name,
-        tracks = tracks,
-        missingTrackCount = trackIds.size - tracks.size,
-    )
-}
+fun Playlist.toDetail(catalog: TrackCatalog): PlaylistDetail = PlaylistDetail(
+    id = id,
+    name = name,
+    tracks = catalog.visibleTracks(trackIds),
+    missingTrackCount = catalog.missingCount(trackIds),
+)

@@ -3,11 +3,12 @@ package tj.umar.navoplayer.core.domain.playlist
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import tj.umar.navoplayer.core.domain.model.Playlist
+import tj.umar.navoplayer.core.domain.settings.TrackCatalog
 import tj.umar.navoplayer.core.testing.data.TestTracks
 
 class PlaylistResolutionTest {
 
-    private val library = TestTracks.tracks.indexById()
+    private val library = TrackCatalog(TestTracks.tracks.indexById())
 
     private fun playlist(vararg ids: Long) = Playlist(
         id = 7,

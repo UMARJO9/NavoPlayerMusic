@@ -10,6 +10,10 @@ data class LibraryFilter(
     val minDurationMs: Long,
     val excludedFolders: Set<String>,
 ) {
+    companion object {
+        val None = LibraryFilter(minDurationMs = 0, excludedFolders = emptySet())
+    }
+
     val isNoOp: Boolean
         get() = minDurationMs <= 0 && excludedFolders.isEmpty()
 
@@ -39,3 +43,12 @@ fun List<Track>.toLibraryFolders(excluded: Set<String>, collator: Collator = nam
             )
         }
         .sortedWith(compareBy(collator) { it.name })
+
+data class TrackCatalog(
+    val tracksById: Map<Long, Track>,
+    val filter: LibraryFilter = LibraryFilter.None,
+) {
+    fun visibleTracks(ids: List<Long>): List<Track> = ids.mapNotNull(tracksById::get).filter(filter::accepts)
+
+    fun missingCount(ids: List<Long>): Int = ids.count { it !in tracksById }
+}

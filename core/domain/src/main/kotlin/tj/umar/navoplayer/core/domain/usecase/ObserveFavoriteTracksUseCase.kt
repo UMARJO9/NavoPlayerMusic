@@ -5,11 +5,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import tj.umar.navoplayer.core.common.dispatchers.DefaultDispatcher
 import tj.umar.navoplayer.core.domain.favorite.toFavoriteTracks
 import tj.umar.navoplayer.core.domain.model.FavoriteTracks
-import tj.umar.navoplayer.core.domain.playlist.indexById
 import tj.umar.navoplayer.core.domain.repository.FavoritesRepository
 import javax.inject.Inject
 
@@ -21,7 +19,7 @@ class ObserveFavoriteTracksUseCase @Inject constructor(
     operator fun invoke(): Flow<FavoriteTracks> =
         combine(
             favoritesRepository.observeFavoriteIds(),
-            observeTracks().map { it.indexById() },
+            observeTracks.catalog(),
         ) { ids, library -> ids.toFavoriteTracks(library) }
             .flowOn(defaultDispatcher)
             .distinctUntilChanged()

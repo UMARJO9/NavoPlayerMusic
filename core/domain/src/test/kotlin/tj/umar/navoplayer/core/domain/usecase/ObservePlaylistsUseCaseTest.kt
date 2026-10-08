@@ -6,6 +6,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import tj.umar.navoplayer.core.domain.model.UserSettings
 import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
 import tj.umar.navoplayer.core.testing.data.TestPlaylists
 import tj.umar.navoplayer.core.testing.data.TestTracks
@@ -74,6 +75,19 @@ class ObservePlaylistsUseCaseTest {
 
         observe().test {
             assertEquals("scan failed", awaitError().message)
+        }
+    }
+
+    @Test
+    fun `hidden tracks are not reported missing`() = runTest {
+        val settings = FakeSettingsRepository(UserSettings(excludedFolders = setOf(TestTracks.alpha.folderPath!!)))
+        val observe = ObservePlaylistUseCase(playlists, ObserveTracksUseCase(tracks, settings), UnconfinedTestDispatcher(testScheduler))
+
+        observe(TestPlaylists.morning.id).test {
+            tracks.emit(TestTracks.tracks)
+            val detail = awaitItem()!!
+            assertEquals(listOf(TestTracks.longMix), detail.tracks)
+            assertEquals(1, detail.missingTrackCount)
         }
     }
 }
