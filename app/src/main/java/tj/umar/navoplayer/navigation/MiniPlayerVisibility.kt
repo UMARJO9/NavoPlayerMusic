@@ -4,7 +4,11 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import tj.umar.navoplayer.feature.library.navigation.GroupDetailDestination
 import tj.umar.navoplayer.feature.library.navigation.LibraryDestination
+import tj.umar.navoplayer.feature.playlists.navigation.PlaylistDetailDestination
 import tj.umar.navoplayer.feature.search.navigation.SearchDestination
 
 internal fun NavDestination.showsMiniPlayer(): Boolean =
-    hasRoute<LibraryDestination>() || hasRoute<GroupDetailDestination>() || hasRoute<SearchDestination>()
+    hasRoute<LibraryDestination>() ||
+        hasRoute<GroupDetailDestination>() ||
+        hasRoute<SearchDestination>() ||
+        hasRoute<PlaylistDetailDestination>()

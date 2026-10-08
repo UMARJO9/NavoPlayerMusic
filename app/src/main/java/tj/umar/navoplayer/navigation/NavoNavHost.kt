@@ -15,11 +15,13 @@ import androidx.navigation.navOptions
 import tj.umar.navoplayer.feature.library.navigation.GroupDetailDestination
 import tj.umar.navoplayer.feature.library.navigation.LibraryDestination
 import tj.umar.navoplayer.feature.library.navigation.groupDetailScreen
+import tj.umar.navoplayer.feature.library.navigation.libraryScreen
 import tj.umar.navoplayer.feature.library.navigation.navigateToGroupDetail
 import tj.umar.navoplayer.feature.library.navigation.navigateToLibrary
-import tj.umar.navoplayer.feature.library.navigation.libraryScreen
 import tj.umar.navoplayer.feature.player.navigation.NowPlayingDestination
 import tj.umar.navoplayer.feature.player.navigation.nowPlayingScreen
+import tj.umar.navoplayer.feature.playlists.navigation.PlaylistDetailDestination
+import tj.umar.navoplayer.feature.playlists.navigation.playlistDetailScreen
 import tj.umar.navoplayer.feature.search.navigation.SearchDestination
 import tj.umar.navoplayer.feature.search.navigation.navigateToSearch
 import tj.umar.navoplayer.feature.search.navigation.searchScreen
@@ -36,6 +38,15 @@ fun NavoNavHost(
     startDestination: Any,
     modifier: Modifier = Modifier,
 ) {
+    val isResumed = { navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED }
+    val onAudioPermissionMissing = {
+        navController.navigateToWelcome(
+            navOptions {
+                popUpTo<LibraryDestination> { inclusive = true }
+                launchSingleTop = true
+            },
+        )
+    }
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -68,24 +79,9 @@ fun NavoNavHost(
             },
         )
         libraryScreen(
-            onAudioPermissionMissing = {
-                navController.navigateToWelcome(
-                    navOptions {
-                        popUpTo<LibraryDestination> { inclusive = true }
-                        launchSingleTop = true
-                    },
-                )
-            },
-            onGroupClick = { key ->
-                if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
-                    navController.navigateToGroupDetail(key)
-                }
-            },
-            onSearchClick = {
-                if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
-                    navController.navigateToSearch()
-                }
-            },
+            onAudioPermissionMissing = onAudioPermissionMissing,
+            onGroupClick = { key -> if (isResumed()) navController.navigateToGroupDetail(key) },
+            onSearchClick = { if (isResumed()) navController.navigateToSearch() },
         )
         searchScreen(
             onBack = {
@@ -93,19 +89,8 @@ fun NavoNavHost(
                     navController.popBackStack()
                 }
             },
-            onGroupClick = { key ->
-                if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
-                    navController.navigateToGroupDetail(key)
-                }
-            },
-            onAudioPermissionMissing = {
-                navController.navigateToWelcome(
-                    navOptions {
-                        popUpTo<LibraryDestination> { inclusive = true }
-                        launchSingleTop = true
-                    },
-                )
-            },
+            onGroupClick = { key -> if (isResumed()) navController.navigateToGroupDetail(key) },
+            onAudioPermissionMissing = onAudioPermissionMissing,
         )
         groupDetailScreen(
             onBack = {
@@ -113,14 +98,15 @@ fun NavoNavHost(
                     navController.popBackStack()
                 }
             },
-            onAudioPermissionMissing = {
-                navController.navigateToWelcome(
-                    navOptions {
-                        popUpTo<LibraryDestination> { inclusive = true }
-                        launchSingleTop = true
-                    },
-                )
+            onAudioPermissionMissing = onAudioPermissionMissing,
+        )
+        playlistDetailScreen(
+            onBack = {
+                if (navController.currentDestination?.hasRoute<PlaylistDetailDestination>() == true) {
+                    navController.popBackStack()
+                }
             },
+            onAudioPermissionMissing = onAudioPermissionMissing,
         )
         nowPlayingScreen(
             onCollapse = {
