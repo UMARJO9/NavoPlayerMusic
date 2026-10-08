@@ -1,0 +1,21 @@
+<resources>
+    <string name="settings_license_apache" translatable="false">Apache License 2.0</string>
+    <string name="settings_license_ofl" translatable="false">SIL Open Font License 1.1</string>
+    <string name="settings_library_kotlin" translatable="false">Kotlin</string>
+    <string name="settings_library_coroutines" translatable="false">Kotlin Coroutines</string>
+    <string name="settings_library_serialization" translatable="false">Kotlin Serialization</string>
+    <string name="settings_library_androidx_core" translatable="false">AndroidX Core</string>
+    <string name="settings_library_activity" translatable="false">AndroidX Activity</string>
+    <string name="settings_library_lifecycle" translatable="false">AndroidX Lifecycle</string>
+    <string name="settings_library_navigation" translatable="false">AndroidX Navigation</string>
+    <string name="settings_library_compose" translatable="false">Jetpack Compose</string>
+    <string name="settings_library_material3" translatable="false">Compose Material 3</string>
+    <string name="settings_library_media3" translatable="false">AndroidX Media3</string>
+    <string name="settings_library_room" translatable="false">AndroidX Room</string>
+    <string name="settings_library_datastore" translatable="false">AndroidX DataStore</string>
+    <string name="settings_library_hilt" translatable="false">Dagger Hilt</string>
+    <string name="settings_library_guava" translatable="false">Guava</string>
+    <string name="settings_library_javax_inject" translatable="false">javax.inject</string>
+    <string name="settings_library_unbounded" translatable="false">Unbounded</string>
+    <string name="settings_library_golos" translatable="false">Golos Text</string>
+</resources>
