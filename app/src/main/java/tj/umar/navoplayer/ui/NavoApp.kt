@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -14,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -41,6 +43,10 @@ fun NavoApp(
     val showMiniPlayer = currentEntry?.destination?.showsMiniPlayer() == true && !imeVisible
     var addToPlaylistRequest by rememberSaveable(stateSaver = AddToPlaylistRequest.Saver) {
         mutableStateOf<AddToPlaylistRequest?>(null)
+    }
+    val isOnWelcome = currentEntry?.destination?.hasRoute<WelcomeDestination>() == true
+    LaunchedEffect(isOnWelcome) {
+        if (isOnWelcome) addToPlaylistRequest = null
     }
     Box(
         modifier = modifier
