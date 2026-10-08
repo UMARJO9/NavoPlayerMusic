@@ -1,0 +1,84 @@
+package tj.umar.navoplayer.feature.playlists.addto
+
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import tj.umar.navoplayer.core.common.result.onError
+import tj.umar.navoplayer.core.common.result.onSuccess
+import tj.umar.navoplayer.core.domain.playlist.normalizePlaylistName
+import tj.umar.navoplayer.core.domain.usecase.AddTracksToPlaylistUseCase
+import tj.umar.navoplayer.core.domain.usecase.CreatePlaylistUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObservePlaylistsUseCase
+import tj.umar.navoplayer.core.ui.mvi.MviViewModel
+import javax.inject.Inject
+
+@HiltViewModel
+internal class AddToPlaylistViewModel @Inject constructor(
+    private val observePlaylists: ObservePlaylistsUseCase,
+    private val addTracksToPlaylist: AddTracksToPlaylistUseCase,
+    private val createPlaylist: CreatePlaylistUseCase,
+) : MviViewModel<AddToPlaylistState, AddToPlaylistIntent, AddToPlaylistEffect>(AddToPlaylistState()) {
+
+    private var playlistsJob: Job? = null
+
+    override fun onIntent(intent: AddToPlaylistIntent) {
+        when (intent) {
+            is AddToPlaylistIntent.Opened -> onOpened(intent.trackIds)
+            is AddToPlaylistIntent.PlaylistClicked -> onPlaylistClicked(intent.playlistId)
+            AddToPlaylistIntent.NewPlaylistClicked -> setState { copy(isNameDialogVisible = true) }
+            AddToPlaylistIntent.NameDialogDismissed -> setState { copy(isNameDialogVisible = false) }
+            is AddToPlaylistIntent.NewPlaylistConfirmed -> onNewPlaylistConfirmed(intent.name)
+            AddToPlaylistIntent.RetryLoad -> startObserving()
+            AddToPlaylistIntent.Dismissed -> stopObserving()
+        }
+    }
+
+    private fun onOpened(trackIds: List<Long>) {
+        stopObserving()
+        setState { AddToPlaylistState(trackIds = trackIds) }
+        startObserving()
+    }
+
+    private fun onPlaylistClicked(playlistId: Long) {
+        val state = currentState
+        if (state.isSaving || state.trackIds.isEmpty()) return
+        val playlist = state.playlists.firstOrNull { it.id == playlistId } ?: return
+        setState { copy(isSaving = true) }
+        viewModelScope.launch {
+            addTracksToPlaylist(playlistId, state.trackIds)
+                .onSuccess { sendEffect(AddToPlaylistEffect.Added(playlist.name, it)) }
+                .onError { sendEffect(AddToPlaylistEffect.Failed) }
+            setState { copy(isSaving = false) }
+        }
+    }
+
+    private fun onNewPlaylistConfirmed(name: String) {
+        val state = currentState
+        if (state.isSaving) return
+        setState { copy(isSaving = true, isNameDialogVisible = false) }
+        viewModelScope.launch {
+            createPlaylist(name, state.trackIds)
+                .onSuccess { sendEffect(AddToPlaylistEffect.Created(normalizePlaylistName(name) ?: name)) }
+                .onError { sendEffect(AddToPlaylistEffect.Failed) }
+            setState { copy(isSaving = false) }
+        }
+    }
+
+    private fun startObserving() {
+        if (playlistsJob?.isActive == true) return
+        setState { copy(isLoading = playlists.isEmpty(), loadFailed = false) }
+        playlistsJob = observePlaylists()
+            .onEach { playlists -> setState { copy(playlists = playlists, isLoading = false) } }
+            .catch { setState { copy(isLoading = false, loadFailed = true) } }
+            .launchIn(viewModelScope)
+    }
+
+    private fun stopObserving() {
+        playlistsJob?.cancel()
+        playlistsJob = null
+    }
+}
