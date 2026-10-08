@@ -37,6 +37,7 @@ dependencies {
     implementation(projects.feature.player)
     implementation(projects.feature.playlists)
     implementation(projects.feature.search)
+    implementation(projects.feature.settings)
     implementation(projects.feature.welcome)
 
     implementation(libs.androidx.activity.compose)

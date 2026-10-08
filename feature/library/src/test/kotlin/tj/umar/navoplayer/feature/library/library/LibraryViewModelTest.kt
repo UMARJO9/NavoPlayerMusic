@@ -190,11 +190,10 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `header and sort clicks change nothing yet`() = runTest {
+    fun `sort click changes nothing yet`() = runTest {
         val before = viewModel.state.value
 
         viewModel.effects.test {
-            viewModel.onIntent(LibraryIntent.SettingsClicked)
             viewModel.onIntent(LibraryIntent.SortClicked)
 
             expectNoEvents()
@@ -452,5 +451,13 @@ class LibraryViewModelTest {
         viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
 
         assertFalse(viewModel.state.value.isLoadingPlaylists)
+    }
+
+    @Test
+    fun `settings click navigates to settings`() = runTest {
+        viewModel.effects.test {
+            viewModel.onIntent(LibraryIntent.SettingsClicked)
+            assertEquals(LibraryEffect.NavigateToSettings, awaitItem())
+        }
     }
 }

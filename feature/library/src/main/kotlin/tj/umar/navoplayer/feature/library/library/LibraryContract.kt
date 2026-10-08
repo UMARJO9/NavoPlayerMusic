@@ -71,6 +71,7 @@ internal sealed interface LibraryEffect {
     data class NavigateToGroup(val key: TrackGroupKey) : LibraryEffect
     data class NavigateToPlaylist(val playlistId: Long) : LibraryEffect
     data object NavigateToFavorites : LibraryEffect
+    data object NavigateToSettings : LibraryEffect
     data object ShowCreatePlaylistFailed : LibraryEffect
     data class OpenAddToPlaylist(val trackIds: List<Long>) : LibraryEffect
 }

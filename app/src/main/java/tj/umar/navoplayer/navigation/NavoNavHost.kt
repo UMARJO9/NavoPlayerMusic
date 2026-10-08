@@ -29,6 +29,15 @@ import tj.umar.navoplayer.feature.playlists.navigation.playlistDetailScreen
 import tj.umar.navoplayer.feature.search.navigation.SearchDestination
 import tj.umar.navoplayer.feature.search.navigation.navigateToSearch
 import tj.umar.navoplayer.feature.search.navigation.searchScreen
+import tj.umar.navoplayer.feature.settings.navigation.HiddenFoldersDestination
+import tj.umar.navoplayer.feature.settings.navigation.LicensesDestination
+import tj.umar.navoplayer.feature.settings.navigation.SettingsDestination
+import tj.umar.navoplayer.feature.settings.navigation.hiddenFoldersScreen
+import tj.umar.navoplayer.feature.settings.navigation.licensesScreen
+import tj.umar.navoplayer.feature.settings.navigation.navigateToHiddenFolders
+import tj.umar.navoplayer.feature.settings.navigation.navigateToLicenses
+import tj.umar.navoplayer.feature.settings.navigation.navigateToSettings
+import tj.umar.navoplayer.feature.settings.navigation.settingsScreen
 import tj.umar.navoplayer.feature.welcome.navigation.WelcomeDestination
 import tj.umar.navoplayer.feature.welcome.navigation.navigateToWelcome
 import tj.umar.navoplayer.feature.welcome.navigation.welcomeScreen
@@ -89,6 +98,7 @@ fun NavoNavHost(
             onSearchClick = { if (isResumed()) navController.navigateToSearch() },
             onPlaylistClick = { id -> if (isResumed()) navController.navigateToPlaylistDetail(id) },
             onFavoritesClick = { if (isResumed()) navController.navigateToFavorites() },
+            onSettingsClick = { if (isResumed()) navController.navigateToSettings() },
             onAddToPlaylist = onAddToPlaylist,
         )
         searchScreen(
@@ -125,6 +135,30 @@ fun NavoNavHost(
                 }
             },
             onAudioPermissionMissing = onAudioPermissionMissing,
+        )
+        settingsScreen(
+            onBack = {
+                if (navController.currentDestination?.hasRoute<SettingsDestination>() == true) {
+                    navController.popBackStack()
+                }
+            },
+            onHiddenFoldersClick = { if (isResumed()) navController.navigateToHiddenFolders() },
+            onLicensesClick = { if (isResumed()) navController.navigateToLicenses() },
+        )
+        hiddenFoldersScreen(
+            onBack = {
+                if (navController.currentDestination?.hasRoute<HiddenFoldersDestination>() == true) {
+                    navController.popBackStack()
+                }
+            },
+            onAudioPermissionMissing = onAudioPermissionMissing,
+        )
+        licensesScreen(
+            onBack = {
+                if (navController.currentDestination?.hasRoute<LicensesDestination>() == true) {
+                    navController.popBackStack()
+                }
+            },
         )
         nowPlayingScreen(
             onCollapse = {

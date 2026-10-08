@@ -41,6 +41,7 @@ fun NavGraphBuilder.libraryScreen(
     onSearchClick: () -> Unit,
     onPlaylistClick: (Long) -> Unit,
     onFavoritesClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     onAddToPlaylist: (List<Long>) -> Unit,
 ) {
     composable<LibraryDestination> {
@@ -50,6 +51,7 @@ fun NavGraphBuilder.libraryScreen(
             onSearchClick = onSearchClick,
             onPlaylistClick = onPlaylistClick,
             onFavoritesClick = onFavoritesClick,
+            onSettingsClick = onSettingsClick,
             onAddToPlaylist = onAddToPlaylist,
         )
     }
