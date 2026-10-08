@@ -52,6 +52,7 @@ internal class NowPlayingViewModel @Inject constructor(
     private var pendingSeekTarget: Long? = null
     private var staleTicksAfterSeek = 0
     private var favoriteJob: Job? = null
+    private var favoriteWriteJob: Job? = null
     private var lastFavorite: Pair<Long, Boolean>? = null
     private val currentTrackIds = MutableStateFlow<Long?>(null)
 
@@ -91,6 +92,7 @@ internal class NowPlayingViewModel @Inject constructor(
         stateJob = null
         progressJob = null
         favoriteJob = null
+        lastFavorite = null
     }
 
     private fun onPlaybackState(playback: PlaybackState) {
@@ -137,11 +139,17 @@ internal class NowPlayingViewModel @Inject constructor(
     }
 
     private fun toggleFavorite() {
+        if (favoriteWriteJob?.isActive == true) return
         val trackId = currentState.track?.id ?: return
         val target = !currentState.isFavorite
-        viewModelScope.launch {
-            setFavorite(trackId, target)
-                .onError { sendEffect(NowPlayingEffect.ShowMessage(NowPlayingMessage.FavoriteFailed)) }
+        lastFavorite = trackId to target
+        setState { copy(isFavorite = target) }
+        favoriteWriteJob = viewModelScope.launch {
+            setFavorite(trackId, target).onError {
+                lastFavorite = trackId to !target
+                if (currentState.track?.id == trackId) setState { copy(isFavorite = !target) }
+                sendEffect(NowPlayingEffect.ShowMessage(NowPlayingMessage.FavoriteFailed))
+            }
         }
     }
 
@@ -167,7 +175,7 @@ internal class NowPlayingViewModel @Inject constructor(
                     setState { copy(isFavorite = favorite.second) }
                 }
             }
-            .catch { }
+            .catch { lastFavorite = null }
             .launchIn(viewModelScope)
     }
 

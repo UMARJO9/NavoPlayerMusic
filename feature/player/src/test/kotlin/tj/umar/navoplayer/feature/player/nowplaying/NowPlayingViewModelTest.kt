@@ -1,6 +1,7 @@
 package tj.umar.navoplayer.feature.player.nowplaying
 
 import app.cash.turbine.test
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -267,5 +268,46 @@ class NowPlayingViewModelTest {
         favorites.addFavorite(TestTracks.alpha.id)
 
         assertFalse(viewModel.state.value.isFavorite)
+    }
+
+    @Test
+    fun `restart does not show stale favorite`() = runTest {
+        startWith()
+        viewModel.onIntent(NowPlayingIntent.FavoriteClicked)
+        viewModel.onIntent(NowPlayingIntent.ScreenStopped)
+
+        favorites.removeFavorite(TestTracks.alpha.id)
+        viewModel.onIntent(NowPlayingIntent.ScreenStarted)
+
+        assertFalse(viewModel.state.value.isFavorite)
+    }
+
+    @Test
+    fun `second tap while saving is ignored`() = runTest {
+        startWith()
+        val gate = CompletableDeferred<Unit>()
+        favorites.writeGate = gate
+
+        viewModel.onIntent(NowPlayingIntent.FavoriteClicked)
+        assertTrue(viewModel.state.value.isFavorite)
+        viewModel.onIntent(NowPlayingIntent.FavoriteClicked)
+        gate.complete(Unit)
+
+        assertEquals(1, favorites.writeCalls)
+        assertEquals(listOf(TestTracks.alpha.id), favorites.current)
+        assertTrue(viewModel.state.value.isFavorite)
+    }
+
+    @Test
+    fun `favorite observe error recovers after restart`() = runTest {
+        favorites.observeError = IllegalStateException("db closed")
+        startWith()
+
+        favorites.observeError = null
+        favorites.addFavorite(TestTracks.alpha.id)
+        viewModel.onIntent(NowPlayingIntent.ScreenStopped)
+        viewModel.onIntent(NowPlayingIntent.ScreenStarted)
+
+        assertTrue(viewModel.state.value.isFavorite)
     }
 }
