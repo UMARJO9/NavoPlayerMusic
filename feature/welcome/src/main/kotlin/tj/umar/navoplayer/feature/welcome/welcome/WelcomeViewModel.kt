@@ -20,9 +20,19 @@ internal class WelcomeViewModel @Inject constructor(
 
     override fun onIntent(intent: WelcomeIntent) {
         when (intent) {
-            is WelcomeIntent.ScreenStarted -> if (intent.granted) sendEffect(WelcomeEffect.NavigateToLibrary)
+            is WelcomeIntent.ScreenStarted -> onScreenStarted(intent)
             WelcomeIntent.GrantAccessClicked -> onGrantAccessClicked()
             is WelcomeIntent.PermissionResult -> onPermissionResult(intent)
+        }
+    }
+
+    private fun onScreenStarted(started: WelcomeIntent.ScreenStarted) {
+        when {
+            started.granted -> sendEffect(WelcomeEffect.NavigateToLibrary)
+            started.rationaleShown && currentState.permission == WelcomePermissionStatus.PermanentlyDenied -> {
+                deniedWithoutRationale = false
+                updatePermission(WelcomePermissionStatus.Denied)
+            }
         }
     }
 

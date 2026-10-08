@@ -28,7 +28,7 @@ class WelcomeViewModelTest {
     @Test
     fun `started with permission navigates to library`() = runTest {
         viewModel.effects.test {
-            viewModel.onIntent(WelcomeIntent.ScreenStarted(granted = true))
+            viewModel.onIntent(WelcomeIntent.ScreenStarted(granted = true, rationaleShown = false))
             assertEquals(WelcomeEffect.NavigateToLibrary, awaitItem())
         }
     }
@@ -36,7 +36,7 @@ class WelcomeViewModelTest {
     @Test
     fun `started without permission does nothing`() = runTest {
         viewModel.effects.test {
-            viewModel.onIntent(WelcomeIntent.ScreenStarted(granted = false))
+            viewModel.onIntent(WelcomeIntent.ScreenStarted(granted = false, rationaleShown = false))
             expectNoEvents()
         }
     }
@@ -114,5 +114,24 @@ class WelcomeViewModelTest {
         restored.onIntent(dismissedResult)
 
         assertEquals(WelcomePermissionStatus.PermanentlyDenied, restored.state.value.permission)
+    }
+
+    @Test
+    fun `rationale on start resets wrongly permanent denial`() {
+        viewModel.onIntent(dismissedResult)
+        viewModel.onIntent(dismissedResult)
+
+        viewModel.onIntent(WelcomeIntent.ScreenStarted(granted = false, rationaleShown = true))
+
+        assertEquals(WelcomePermissionStatus.Denied, viewModel.state.value.permission)
+    }
+
+    @Test
+    fun `no rationale on start keeps permanent denial`() {
+        viewModel.onIntent(WelcomeIntent.PermissionResult(granted = false, rationaleBefore = true, rationaleAfter = false))
+
+        viewModel.onIntent(WelcomeIntent.ScreenStarted(granted = false, rationaleShown = false))
+
+        assertEquals(WelcomePermissionStatus.PermanentlyDenied, viewModel.state.value.permission)
     }
 }

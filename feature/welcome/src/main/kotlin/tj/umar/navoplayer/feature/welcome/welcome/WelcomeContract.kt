@@ -10,7 +10,7 @@ internal data class WelcomeState(
 )
 
 internal sealed interface WelcomeIntent {
-    data class ScreenStarted(val granted: Boolean) : WelcomeIntent
+    data class ScreenStarted(val granted: Boolean, val rationaleShown: Boolean) : WelcomeIntent
     data object GrantAccessClicked : WelcomeIntent
     data class PermissionResult(
         val granted: Boolean,

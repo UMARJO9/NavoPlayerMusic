@@ -1,7 +1,6 @@
 package tj.umar.navoplayer.feature.welcome.welcome
 
 import android.app.Activity
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -12,8 +11,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -34,7 +33,7 @@ internal fun WelcomeRoute(
     val activity = LocalActivity.current
     val currentOnPermissionGranted by rememberUpdatedState(onPermissionGranted)
 
-    val rationaleBeforeRequest = remember { mutableStateOf(false) }
+    val rationaleBeforeRequest = rememberSaveable { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
@@ -48,7 +47,12 @@ internal fun WelcomeRoute(
     }
 
     LifecycleStartEffect(Unit) {
-        viewModel.onIntent(WelcomeIntent.ScreenStarted(context.hasAudioReadPermission()))
+        viewModel.onIntent(
+            WelcomeIntent.ScreenStarted(
+                granted = context.hasAudioReadPermission(),
+                rationaleShown = activity.shouldShowAudioRationale(),
+            ),
+        )
         onStopOrDispose { }
     }
 
@@ -78,9 +82,6 @@ private fun Context.openAppSettings() {
         Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
         Uri.fromParts("package", packageName, null),
     )
-    try {
-        startActivity(appDetails)
-    } catch (e: ActivityNotFoundException) {
-        runCatching { startActivity(Intent(Settings.ACTION_SETTINGS)) }
-    }
+    runCatching { startActivity(appDetails) }
+        .onFailure { runCatching { startActivity(Intent(Settings.ACTION_SETTINGS)) } }
 }
