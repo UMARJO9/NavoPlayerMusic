@@ -13,4 +13,5 @@
     <string name="library_tracks_error">Couldn\'t load your music</string>
     <string name="library_back">Back</string>
     <string name="library_group_missing">This collection is no longer on your device</string>
+    <string name="library_create_playlist_failed">Couldn’t create the playlist</string>
 </resources>

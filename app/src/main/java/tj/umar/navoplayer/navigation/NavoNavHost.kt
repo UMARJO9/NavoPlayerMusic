@@ -21,6 +21,7 @@ import tj.umar.navoplayer.feature.library.navigation.navigateToLibrary
 import tj.umar.navoplayer.feature.player.navigation.NowPlayingDestination
 import tj.umar.navoplayer.feature.player.navigation.nowPlayingScreen
 import tj.umar.navoplayer.feature.playlists.navigation.PlaylistDetailDestination
+import tj.umar.navoplayer.feature.playlists.navigation.navigateToPlaylistDetail
 import tj.umar.navoplayer.feature.playlists.navigation.playlistDetailScreen
 import tj.umar.navoplayer.feature.search.navigation.SearchDestination
 import tj.umar.navoplayer.feature.search.navigation.navigateToSearch
@@ -82,6 +83,7 @@ fun NavoNavHost(
             onAudioPermissionMissing = onAudioPermissionMissing,
             onGroupClick = { key -> if (isResumed()) navController.navigateToGroupDetail(key) },
             onSearchClick = { if (isResumed()) navController.navigateToSearch() },
+            onPlaylistClick = { id -> if (isResumed()) navController.navigateToPlaylistDetail(id) },
         )
         searchScreen(
             onBack = {

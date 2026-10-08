@@ -1,5 +1,6 @@
 package tj.umar.navoplayer.feature.library.library
 
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
@@ -11,12 +12,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import tj.umar.navoplayer.core.domain.model.TrackGroupKey
 import tj.umar.navoplayer.core.ui.mvi.CollectEffects
 import tj.umar.navoplayer.core.ui.permission.hasAudioReadPermission
+import tj.umar.navoplayer.feature.library.R
 
 @Composable
 internal fun LibraryRoute(
     onAudioPermissionMissing: () -> Unit,
     onGroupClick: (TrackGroupKey) -> Unit,
     onSearchClick: () -> Unit,
+    onPlaylistClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
@@ -25,6 +28,7 @@ internal fun LibraryRoute(
     val currentOnAudioPermissionMissing by rememberUpdatedState(onAudioPermissionMissing)
     val currentOnGroupClick by rememberUpdatedState(onGroupClick)
     val currentOnSearchClick by rememberUpdatedState(onSearchClick)
+    val currentOnPlaylistClick by rememberUpdatedState(onPlaylistClick)
 
     LifecycleStartEffect(Unit) {
         viewModel.onIntent(LibraryIntent.ScreenStarted(context.hasAudioReadPermission()))
@@ -36,6 +40,9 @@ internal fun LibraryRoute(
             LibraryEffect.NavigateToWelcome -> currentOnAudioPermissionMissing()
             is LibraryEffect.NavigateToGroup -> currentOnGroupClick(effect.key)
             LibraryEffect.NavigateToSearch -> currentOnSearchClick()
+            is LibraryEffect.NavigateToPlaylist -> currentOnPlaylistClick(effect.playlistId)
+            LibraryEffect.ShowCreatePlaylistFailed ->
+                Toast.makeText(context, R.string.library_create_playlist_failed, Toast.LENGTH_SHORT).show()
         }
     }
 

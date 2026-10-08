@@ -13,4 +13,5 @@
     <string name="library_tracks_error">Не удалось загрузить музыку</string>
     <string name="library_back">Назад</string>
     <string name="library_group_missing">Этой подборки больше нет на телефоне</string>
+    <string name="library_create_playlist_failed">Не удалось создать плейлист</string>
 </resources>

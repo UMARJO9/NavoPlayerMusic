@@ -7,9 +7,13 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import tj.umar.navoplayer.core.common.result.onError
+import tj.umar.navoplayer.core.common.result.onSuccess
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.totalDurationMinutes
+import tj.umar.navoplayer.core.domain.usecase.CreatePlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObservePlaylistsUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveLibraryUseCase
 import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
@@ -24,10 +28,14 @@ internal class LibraryViewModel @Inject constructor(
     private val playTracks: PlayTracksUseCase,
     private val shufflePlayTracks: ShufflePlayTracksUseCase,
     private val togglePlayPause: TogglePlayPauseUseCase,
+    private val observePlaylists: ObservePlaylistsUseCase,
+    private val createPlaylist: CreatePlaylistUseCase,
 ) : MviViewModel<LibraryState, LibraryIntent, LibraryEffect>(LibraryState()) {
 
     private var tracksJob: Job? = null
     private var playbackJob: Job? = null
+    private var playlistsJob: Job? = null
+    private var isCreatingPlaylist = false
 
     private var hasLoadedTracks = false
 
@@ -41,6 +49,11 @@ internal class LibraryViewModel @Inject constructor(
             is LibraryIntent.GroupClicked -> sendEffect(LibraryEffect.NavigateToGroup(intent.key))
             LibraryIntent.SearchClicked -> sendEffect(LibraryEffect.NavigateToSearch)
             LibraryIntent.ShuffleClicked -> onShuffleClicked()
+            is LibraryIntent.PlaylistClicked -> sendEffect(LibraryEffect.NavigateToPlaylist(intent.playlistId))
+            LibraryIntent.CreatePlaylistClicked -> setState { copy(isCreatePlaylistDialogVisible = true) }
+            LibraryIntent.CreatePlaylistDismissed -> setState { copy(isCreatePlaylistDialogVisible = false) }
+            is LibraryIntent.CreatePlaylistConfirmed -> onCreatePlaylistConfirmed(intent.name)
+            LibraryIntent.RetryLoadPlaylists -> startObservingPlaylists()
             LibraryIntent.SettingsClicked,
             LibraryIntent.SortClicked -> Unit
         }
@@ -54,6 +67,7 @@ internal class LibraryViewModel @Inject constructor(
     private fun onScreenStarted(hasPermission: Boolean) {
         if (hasPermission) {
             startObservingTracks()
+            startObservingPlaylists()
             startObservingPlayback()
         } else {
             sendEffect(LibraryEffect.NavigateToWelcome)
@@ -99,6 +113,27 @@ internal class LibraryViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
+    private fun onCreatePlaylistConfirmed(name: String) {
+        if (isCreatingPlaylist) return
+        isCreatingPlaylist = true
+        setState { copy(isCreatePlaylistDialogVisible = false) }
+        viewModelScope.launch {
+            createPlaylist(name)
+                .onSuccess { sendEffect(LibraryEffect.NavigateToPlaylist(it)) }
+                .onError { sendEffect(LibraryEffect.ShowCreatePlaylistFailed) }
+            isCreatingPlaylist = false
+        }
+    }
+
+    private fun startObservingPlaylists() {
+        if (playlistsJob?.isActive == true) return
+        setState { copy(isLoadingPlaylists = playlists.isEmpty(), playlistsLoadFailed = false) }
+        playlistsJob = observePlaylists()
+            .onEach { playlists -> setState { copy(playlists = playlists, isLoadingPlaylists = false) } }
+            .catch { setState { copy(isLoadingPlaylists = false, playlistsLoadFailed = true) } }
+            .launchIn(viewModelScope)
+    }
+
     private fun startObservingPlayback() {
         if (playbackJob?.isActive == true) return
         playbackJob = observePlaybackState()
@@ -118,7 +153,9 @@ internal class LibraryViewModel @Inject constructor(
     private fun stopObserving() {
         tracksJob?.cancel()
         playbackJob?.cancel()
+        playlistsJob?.cancel()
         tracksJob = null
         playbackJob = null
+        playlistsJob = null
     }
 }

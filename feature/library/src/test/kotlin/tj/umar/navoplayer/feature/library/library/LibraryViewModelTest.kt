@@ -10,7 +10,9 @@ import org.junit.Test
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.TrackGroupKey
 import tj.umar.navoplayer.core.domain.model.TrackGroupType
+import tj.umar.navoplayer.core.domain.usecase.CreatePlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObservePlaylistsUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveLibraryUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
@@ -18,9 +20,11 @@ import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
 import tj.umar.navoplayer.core.testing.MainDispatcherRule
 import tj.umar.navoplayer.core.testing.data.TestPlaybackStates
+import tj.umar.navoplayer.core.testing.data.TestPlaylists
 import tj.umar.navoplayer.core.testing.data.TestTracks
 import tj.umar.navoplayer.core.testing.playback.FakePlaybackController
 import tj.umar.navoplayer.core.testing.playback.PlaybackCommand
+import tj.umar.navoplayer.core.testing.repository.FakePlaylistRepository
 import tj.umar.navoplayer.core.testing.repository.FakeTrackRepository
 
 class LibraryViewModelTest {
@@ -30,12 +34,16 @@ class LibraryViewModelTest {
 
     private val repository = FakeTrackRepository()
     private val playback = FakePlaybackController()
+    private val playlists = FakePlaylistRepository(TestPlaylists.all)
+    private val playlistTracks = FakeTrackRepository()
     private val viewModel = LibraryViewModel(
         observeLibrary = ObserveLibraryUseCase(ObserveTracksUseCase(repository), mainDispatcherRule.testDispatcher),
         observePlaybackState = ObservePlaybackStateUseCase(playback),
         playTracks = PlayTracksUseCase(playback),
         shufflePlayTracks = ShufflePlayTracksUseCase(playback),
         togglePlayPause = TogglePlayPauseUseCase(playback),
+        observePlaylists = ObservePlaylistsUseCase(playlists, ObserveTracksUseCase(playlistTracks), mainDispatcherRule.testDispatcher),
+        createPlaylist = CreatePlaylistUseCase(playlists),
     )
 
     @Test
@@ -321,6 +329,69 @@ class LibraryViewModelTest {
         viewModel.effects.test {
             viewModel.onIntent(LibraryIntent.SearchClicked)
             assertEquals(LibraryEffect.NavigateToSearch, awaitItem())
+        }
+    }
+
+    @Test
+    fun `start loads playlist summaries`() = runTest {
+        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
+        playlistTracks.emit(TestTracks.tracks)
+
+        val state = viewModel.state.value
+        assertFalse(state.isLoadingPlaylists)
+        assertEquals(listOf(TestPlaylists.empty.id, TestPlaylists.morning.id), state.playlists.map { it.id })
+    }
+
+    @Test
+    fun `playlist load failure can be retried`() = runTest {
+        playlists.observeError = IllegalStateException("db closed")
+        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
+        playlistTracks.emit(TestTracks.tracks)
+        assertTrue(viewModel.state.value.playlistsLoadFailed)
+
+        playlists.observeError = null
+        viewModel.onIntent(LibraryIntent.RetryLoadPlaylists)
+
+        assertFalse(viewModel.state.value.playlistsLoadFailed)
+        assertEquals(2, viewModel.state.value.playlists.size)
+    }
+
+    @Test
+    fun `playlist click navigates to playlist`() = runTest {
+        viewModel.effects.test {
+            viewModel.onIntent(LibraryIntent.PlaylistClicked(TestPlaylists.morning.id))
+            assertEquals(LibraryEffect.NavigateToPlaylist(TestPlaylists.morning.id), awaitItem())
+        }
+    }
+
+    @Test
+    fun `create playlist dialog opens and dismisses`() {
+        viewModel.onIntent(LibraryIntent.CreatePlaylistClicked)
+        assertTrue(viewModel.state.value.isCreatePlaylistDialogVisible)
+
+        viewModel.onIntent(LibraryIntent.CreatePlaylistDismissed)
+        assertFalse(viewModel.state.value.isCreatePlaylistDialogVisible)
+    }
+
+    @Test
+    fun `confirmed playlist is created and opened`() = runTest {
+        viewModel.onIntent(LibraryIntent.CreatePlaylistClicked)
+
+        viewModel.effects.test {
+            viewModel.onIntent(LibraryIntent.CreatePlaylistConfirmed("Дорога"))
+            val effect = awaitItem() as LibraryEffect.NavigateToPlaylist
+            assertEquals("Дорога", playlists.current.single { it.id == effect.playlistId }.name)
+        }
+        assertFalse(viewModel.state.value.isCreatePlaylistDialogVisible)
+    }
+
+    @Test
+    fun `failed playlist creation shows error`() = runTest {
+        playlists.writeError = IllegalStateException("disk full")
+
+        viewModel.effects.test {
+            viewModel.onIntent(LibraryIntent.CreatePlaylistConfirmed("Дорога"))
+            assertEquals(LibraryEffect.ShowCreatePlaylistFailed, awaitItem())
         }
     }
 }

@@ -39,12 +39,14 @@ fun NavGraphBuilder.libraryScreen(
     onAudioPermissionMissing: () -> Unit,
     onGroupClick: (TrackGroupKey) -> Unit,
     onSearchClick: () -> Unit,
+    onPlaylistClick: (Long) -> Unit,
 ) {
     composable<LibraryDestination> {
         LibraryRoute(
             onAudioPermissionMissing = onAudioPermissionMissing,
             onGroupClick = onGroupClick,
             onSearchClick = onSearchClick,
+            onPlaylistClick = onPlaylistClick,
         )
     }
 }

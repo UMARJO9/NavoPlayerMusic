@@ -6,6 +6,7 @@ import tj.umar.navoplayer.core.domain.model.Album
 import tj.umar.navoplayer.core.domain.model.Artist
 import tj.umar.navoplayer.core.domain.model.Folder
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
+import tj.umar.navoplayer.core.domain.model.PlaylistSummary
 import tj.umar.navoplayer.core.domain.model.Track
 import tj.umar.navoplayer.core.domain.model.TrackGroupKey
 import tj.umar.navoplayer.feature.library.R
@@ -29,6 +30,10 @@ internal data class LibraryState(
     val albums: List<Album> = emptyList(),
     val artists: List<Artist> = emptyList(),
     val folders: List<Folder> = emptyList(),
+    val playlists: List<PlaylistSummary> = emptyList(),
+    val isLoadingPlaylists: Boolean = true,
+    val playlistsLoadFailed: Boolean = false,
+    val isCreatePlaylistDialogVisible: Boolean = false,
     val currentTrackId: Long? = null,
     val currentSource: PlaybackSource? = null,
     val isPlaying: Boolean = false,
@@ -48,10 +53,17 @@ internal sealed interface LibraryIntent {
     data object SettingsClicked : LibraryIntent
     data object SortClicked : LibraryIntent
     data object ShuffleClicked : LibraryIntent
+    data class PlaylistClicked(val playlistId: Long) : LibraryIntent
+    data object CreatePlaylistClicked : LibraryIntent
+    data object CreatePlaylistDismissed : LibraryIntent
+    data class CreatePlaylistConfirmed(val name: String) : LibraryIntent
+    data object RetryLoadPlaylists : LibraryIntent
 }
 
 internal sealed interface LibraryEffect {
     data object NavigateToWelcome : LibraryEffect
     data object NavigateToSearch : LibraryEffect
     data class NavigateToGroup(val key: TrackGroupKey) : LibraryEffect
+    data class NavigateToPlaylist(val playlistId: Long) : LibraryEffect
+    data object ShowCreatePlaylistFailed : LibraryEffect
 }
