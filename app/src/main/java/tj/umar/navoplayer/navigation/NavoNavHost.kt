@@ -48,6 +48,7 @@ fun NavoNavHost(
                 navController.navigateToWelcome(
                     navOptions {
                         popUpTo<LibraryDestination> { inclusive = true }
+                        launchSingleTop = true
                     },
                 )
             },
