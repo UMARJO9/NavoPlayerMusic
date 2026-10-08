@@ -14,8 +14,8 @@ fun NavController.navigateToLibrary(navOptions: NavOptions? = null) {
     navigate(LibraryDestination, navOptions)
 }
 
-fun NavGraphBuilder.libraryScreen() {
+fun NavGraphBuilder.libraryScreen(onAudioPermissionMissing: () -> Unit) {
     composable<LibraryDestination> {
-        LibraryRoute()
+        LibraryRoute(onAudioPermissionMissing = onAudioPermissionMissing)
     }
 }

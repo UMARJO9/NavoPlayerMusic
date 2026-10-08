@@ -72,7 +72,6 @@ private fun LibraryScreenPreview() {
     NavoTheme {
         LibraryScreen(
             state = LibraryState(
-                audioPermission = AudioPermissionStatus.Granted,
                 tracks = previewTracks,
             ),
             onIntent = {},

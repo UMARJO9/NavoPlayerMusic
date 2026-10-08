@@ -33,24 +33,11 @@ internal fun TracksTabContent(
     onIntent: (LibraryIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    when (state.audioPermission) {
-        AudioPermissionStatus.Unknown -> Box(modifier)
-        AudioPermissionStatus.Denied -> PermissionRequestContent(
-            permanentlyDenied = false,
-            onGrantClick = { onIntent(LibraryIntent.GrantPermissionClicked) },
-            modifier = modifier,
-        )
-        AudioPermissionStatus.PermanentlyDenied -> PermissionRequestContent(
-            permanentlyDenied = true,
-            onGrantClick = { onIntent(LibraryIntent.GrantPermissionClicked) },
-            modifier = modifier,
-        )
-        AudioPermissionStatus.Granted -> GrantedTracksContent(
-            state = state,
-            onRetryClick = { onIntent(LibraryIntent.RetryLoadTracks) },
-            modifier = modifier,
-        )
-    }
+    GrantedTracksContent(
+        state = state,
+        onRetryClick = { onIntent(LibraryIntent.RetryLoadTracks) },
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -121,25 +108,6 @@ private fun TrackRow(
 }
 
 @Composable
-private fun PermissionRequestContent(
-    permanentlyDenied: Boolean,
-    onGrantClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val label = if (permanentlyDenied) {
-        R.string.library_permission_open_settings
-    } else {
-        R.string.library_permission_grant
-    }
-    MessageWithAction(
-        message = stringResource(R.string.library_permission_rationale),
-        actionLabel = stringResource(label),
-        onActionClick = onGrantClick,
-        modifier = modifier,
-    )
-}
-
-@Composable
 private fun MessageWithAction(
     message: String,
     actionLabel: String,
@@ -192,7 +160,7 @@ internal val previewTracks = listOf(
 private fun TracksListPreview() {
     NavoTheme {
         TracksTabContent(
-            state = LibraryState(audioPermission = AudioPermissionStatus.Granted, tracks = previewTracks),
+            state = LibraryState(tracks = previewTracks),
             onIntent = {},
             modifier = Modifier.fillMaxSize(),
         )
@@ -204,7 +172,7 @@ private fun TracksListPreview() {
 private fun TracksLoadingPreview() {
     NavoTheme {
         TracksTabContent(
-            state = LibraryState(audioPermission = AudioPermissionStatus.Granted, isLoadingTracks = true),
+            state = LibraryState(isLoadingTracks = true),
             onIntent = {},
             modifier = Modifier.fillMaxSize(),
         )
@@ -216,31 +184,7 @@ private fun TracksLoadingPreview() {
 private fun TracksEmptyPreview() {
     NavoTheme {
         TracksTabContent(
-            state = LibraryState(audioPermission = AudioPermissionStatus.Granted),
-            onIntent = {},
-            modifier = Modifier.fillMaxSize(),
-        )
-    }
-}
-
-@PreviewLightDark
-@Composable
-private fun TracksPermissionDeniedPreview() {
-    NavoTheme {
-        TracksTabContent(
-            state = LibraryState(audioPermission = AudioPermissionStatus.Denied),
-            onIntent = {},
-            modifier = Modifier.fillMaxSize(),
-        )
-    }
-}
-
-@PreviewLightDark
-@Composable
-private fun TracksPermissionPermanentlyDeniedPreview() {
-    NavoTheme {
-        TracksTabContent(
-            state = LibraryState(audioPermission = AudioPermissionStatus.PermanentlyDenied),
+            state = LibraryState(isLoadingTracks = false),
             onIntent = {},
             modifier = Modifier.fillMaxSize(),
         )
@@ -252,7 +196,7 @@ private fun TracksPermissionPermanentlyDeniedPreview() {
 private fun TracksErrorPreview() {
     NavoTheme {
         TracksTabContent(
-            state = LibraryState(audioPermission = AudioPermissionStatus.Granted, tracksLoadFailed = true),
+            state = LibraryState(tracksLoadFailed = true),
             onIntent = {},
             modifier = Modifier.fillMaxSize(),
         )

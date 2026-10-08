@@ -8,9 +8,11 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.navOptions
+import tj.umar.navoplayer.feature.library.navigation.LibraryDestination
 import tj.umar.navoplayer.feature.library.navigation.navigateToLibrary
 import tj.umar.navoplayer.feature.library.navigation.libraryScreen
 import tj.umar.navoplayer.feature.welcome.navigation.WelcomeDestination
+import tj.umar.navoplayer.feature.welcome.navigation.navigateToWelcome
 import tj.umar.navoplayer.feature.welcome.navigation.welcomeScreen
 
 private const val ENTER_FADE_MILLIS = 300
@@ -41,6 +43,14 @@ fun NavoNavHost(
                 )
             },
         )
-        libraryScreen()
+        libraryScreen(
+            onAudioPermissionMissing = {
+                navController.navigateToWelcome(
+                    navOptions {
+                        popUpTo<LibraryDestination> { inclusive = true }
+                    },
+                )
+            },
+        )
     }
 }
