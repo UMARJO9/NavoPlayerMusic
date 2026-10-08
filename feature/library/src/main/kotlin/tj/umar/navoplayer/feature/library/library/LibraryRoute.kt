@@ -16,6 +16,7 @@ import tj.umar.navoplayer.core.ui.permission.hasAudioReadPermission
 internal fun LibraryRoute(
     onAudioPermissionMissing: () -> Unit,
     onGroupClick: (TrackGroupKey) -> Unit,
+    onSearchClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
@@ -23,6 +24,7 @@ internal fun LibraryRoute(
     val context = LocalContext.current
     val currentOnAudioPermissionMissing by rememberUpdatedState(onAudioPermissionMissing)
     val currentOnGroupClick by rememberUpdatedState(onGroupClick)
+    val currentOnSearchClick by rememberUpdatedState(onSearchClick)
 
     LifecycleStartEffect(Unit) {
         viewModel.onIntent(LibraryIntent.ScreenStarted(context.hasAudioReadPermission()))
@@ -33,6 +35,7 @@ internal fun LibraryRoute(
         when (effect) {
             LibraryEffect.NavigateToWelcome -> currentOnAudioPermissionMissing()
             is LibraryEffect.NavigateToGroup -> currentOnGroupClick(effect.key)
+            LibraryEffect.NavigateToSearch -> currentOnSearchClick()
         }
     }
 

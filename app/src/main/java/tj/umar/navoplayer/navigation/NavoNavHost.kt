@@ -20,6 +20,9 @@ import tj.umar.navoplayer.feature.library.navigation.navigateToLibrary
 import tj.umar.navoplayer.feature.library.navigation.libraryScreen
 import tj.umar.navoplayer.feature.player.navigation.NowPlayingDestination
 import tj.umar.navoplayer.feature.player.navigation.nowPlayingScreen
+import tj.umar.navoplayer.feature.search.navigation.SearchDestination
+import tj.umar.navoplayer.feature.search.navigation.navigateToSearch
+import tj.umar.navoplayer.feature.search.navigation.searchScreen
 import tj.umar.navoplayer.feature.welcome.navigation.WelcomeDestination
 import tj.umar.navoplayer.feature.welcome.navigation.navigateToWelcome
 import tj.umar.navoplayer.feature.welcome.navigation.welcomeScreen
@@ -77,6 +80,31 @@ fun NavoNavHost(
                 if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
                     navController.navigateToGroupDetail(key)
                 }
+            },
+            onSearchClick = {
+                if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                    navController.navigateToSearch()
+                }
+            },
+        )
+        searchScreen(
+            onBack = {
+                if (navController.currentDestination?.hasRoute<SearchDestination>() == true) {
+                    navController.popBackStack()
+                }
+            },
+            onGroupClick = { key ->
+                if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                    navController.navigateToGroupDetail(key)
+                }
+            },
+            onAudioPermissionMissing = {
+                navController.navigateToWelcome(
+                    navOptions {
+                        popUpTo<LibraryDestination> { inclusive = true }
+                        launchSingleTop = true
+                    },
+                )
             },
         )
         groupDetailScreen(

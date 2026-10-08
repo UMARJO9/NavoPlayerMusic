@@ -38,9 +38,14 @@ fun NavController.navigateToGroupDetail(key: TrackGroupKey) {
 fun NavGraphBuilder.libraryScreen(
     onAudioPermissionMissing: () -> Unit,
     onGroupClick: (TrackGroupKey) -> Unit,
+    onSearchClick: () -> Unit,
 ) {
     composable<LibraryDestination> {
-        LibraryRoute(onAudioPermissionMissing = onAudioPermissionMissing, onGroupClick = onGroupClick)
+        LibraryRoute(
+            onAudioPermissionMissing = onAudioPermissionMissing,
+            onGroupClick = onGroupClick,
+            onSearchClick = onSearchClick,
+        )
     }
 }
 

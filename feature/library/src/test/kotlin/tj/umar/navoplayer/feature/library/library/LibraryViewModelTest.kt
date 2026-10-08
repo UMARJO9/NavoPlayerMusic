@@ -177,7 +177,6 @@ class LibraryViewModelTest {
         val before = viewModel.state.value
 
         viewModel.effects.test {
-            viewModel.onIntent(LibraryIntent.SearchClicked)
             viewModel.onIntent(LibraryIntent.SettingsClicked)
             viewModel.onIntent(LibraryIntent.SortClicked)
 
@@ -315,5 +314,13 @@ class LibraryViewModelTest {
             listOf(PlaybackCommand.Play(TestTracks.tracks, 0, PlaybackSource.AllTracks)),
             playback.commands,
         )
+    }
+
+    @Test
+    fun `search click navigates to search`() = runTest {
+        viewModel.effects.test {
+            viewModel.onIntent(LibraryIntent.SearchClicked)
+            assertEquals(LibraryEffect.NavigateToSearch, awaitItem())
+        }
     }
 }

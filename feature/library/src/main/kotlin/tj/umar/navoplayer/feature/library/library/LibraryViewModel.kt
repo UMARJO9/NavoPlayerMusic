@@ -39,8 +39,8 @@ internal class LibraryViewModel @Inject constructor(
             LibraryIntent.RetryLoadTracks -> startObservingTracks()
             is LibraryIntent.TrackClicked -> onTrackClicked(intent.trackId)
             is LibraryIntent.GroupClicked -> sendEffect(LibraryEffect.NavigateToGroup(intent.key))
+            LibraryIntent.SearchClicked -> sendEffect(LibraryEffect.NavigateToSearch)
             LibraryIntent.ShuffleClicked -> onShuffleClicked()
-            LibraryIntent.SearchClicked,
             LibraryIntent.SettingsClicked,
             LibraryIntent.SortClicked -> Unit
         }

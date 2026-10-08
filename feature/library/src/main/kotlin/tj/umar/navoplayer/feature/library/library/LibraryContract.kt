@@ -52,5 +52,6 @@ internal sealed interface LibraryIntent {
 
 internal sealed interface LibraryEffect {
     data object NavigateToWelcome : LibraryEffect
+    data object NavigateToSearch : LibraryEffect
     data class NavigateToGroup(val key: TrackGroupKey) : LibraryEffect
 }
