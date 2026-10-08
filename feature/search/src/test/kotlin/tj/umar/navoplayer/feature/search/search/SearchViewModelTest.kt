@@ -231,6 +231,9 @@ class SearchViewModelTest {
 
         assertEquals("black", viewModel.state.value.query)
         assertEquals(2, repository.observeCalls)
+        repository.emit(listOf(TestSearchTracks.blackbird))
+        advanceTimeBy(SEARCH_DEBOUNCE_MS + 1)
+        assertEquals(listOf("Blackbird"), viewModel.state.value.tracks.map { it.title })
     }
 
     @Test
