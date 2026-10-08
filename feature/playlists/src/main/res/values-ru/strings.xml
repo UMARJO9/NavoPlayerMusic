@@ -1,0 +1,24 @@
+<resources>
+    <string name="playlists_back">Назад</string>
+    <string name="playlists_more">Ещё</string>
+    <string name="playlists_play">Слушать</string>
+    <string name="playlists_pause">Пауза</string>
+    <string name="playlists_shuffle">Перемешать</string>
+    <string name="playlists_rename">Переименовать</string>
+    <string name="playlists_rename_title">Переименовать плейлист</string>
+    <string name="playlists_delete">Удалить</string>
+    <string name="playlists_delete_title">Удалить плейлист?</string>
+    <string name="playlists_delete_message">Плейлист «%1$s» будет удалён. Треки останутся на телефоне.</string>
+    <string name="playlists_remove">Убрать</string>
+    <string name="playlists_remove_track_title">Убрать из плейлиста?</string>
+    <string name="playlists_remove_track_message">«%1$s» будет убран из плейлиста.</string>
+    <string name="playlists_remove_track_label">Убрать из плейлиста</string>
+    <string name="playlists_empty">В плейлисте пока нет треков</string>
+    <string name="playlists_empty_hint">Удерживайте трек в медиатеке, чтобы добавить его сюда</string>
+    <string name="playlists_missing">Плейлист не найден</string>
+    <string name="playlists_error">Не удалось загрузить плейлист</string>
+    <string name="playlists_retry">Повторить</string>
+    <string name="playlists_rename_failed">Не удалось переименовать плейлист</string>
+    <string name="playlists_delete_failed">Не удалось удалить плейлист</string>
+    <string name="playlists_remove_failed">Не удалось убрать трек</string>
+</resources>

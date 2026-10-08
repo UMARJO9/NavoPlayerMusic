@@ -1,0 +1,6 @@
+<resources>
+    <plurals name="playlists_unavailable_count">
+        <item quantity="one">%d track is not on this phone</item>
+        <item quantity="other">%d tracks are not on this phone</item>
+    </plurals>
+</resources>

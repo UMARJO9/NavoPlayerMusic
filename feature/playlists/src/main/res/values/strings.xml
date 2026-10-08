@@ -1,0 +1,24 @@
+<resources>
+    <string name="playlists_back">Back</string>
+    <string name="playlists_more">More</string>
+    <string name="playlists_play">Play</string>
+    <string name="playlists_pause">Pause</string>
+    <string name="playlists_shuffle">Shuffle</string>
+    <string name="playlists_rename">Rename</string>
+    <string name="playlists_rename_title">Rename playlist</string>
+    <string name="playlists_delete">Delete</string>
+    <string name="playlists_delete_title">Delete playlist?</string>
+    <string name="playlists_delete_message">Playlist “%1$s” will be deleted. Tracks stay on the phone.</string>
+    <string name="playlists_remove">Remove</string>
+    <string name="playlists_remove_track_title">Remove from playlist?</string>
+    <string name="playlists_remove_track_message">“%1$s” will be removed from this playlist.</string>
+    <string name="playlists_remove_track_label">Remove from playlist</string>
+    <string name="playlists_empty">No tracks in this playlist yet</string>
+    <string name="playlists_empty_hint">Long-press a track in the library to add it here</string>
+    <string name="playlists_missing">Playlist not found</string>
+    <string name="playlists_error">Couldn’t load the playlist</string>
+    <string name="playlists_retry">Retry</string>
+    <string name="playlists_rename_failed">Couldn’t rename the playlist</string>
+    <string name="playlists_delete_failed">Couldn’t delete the playlist</string>
+    <string name="playlists_remove_failed">Couldn’t remove the track</string>
+</resources>

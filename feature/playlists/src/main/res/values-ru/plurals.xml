@@ -1,0 +1,8 @@
+<resources>
+    <plurals name="playlists_unavailable_count">
+        <item quantity="one">%d трек недоступен на телефоне</item>
+        <item quantity="few">%d трека недоступны на телефоне</item>
+        <item quantity="many">%d треков недоступно на телефоне</item>
+        <item quantity="other">%d трека недоступны на телефоне</item>
+    </plurals>
+</resources>
