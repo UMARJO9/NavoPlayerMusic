@@ -51,6 +51,7 @@ class MediaStoreAudioSourceTest {
             durationMs = 180_000,
             track = 1003,
             contentUri = "$collection/5",
+            dateAddedSeconds = 1_700_000_000,
         )
         assertEquals(listOf(expected), rows)
     }
@@ -65,6 +66,7 @@ class MediaStoreAudioSourceTest {
                 MediaStore.Audio.Media.ALBUM_ID to null,
                 MediaStore.Audio.AudioColumns.DURATION to null,
                 MediaStore.Audio.Media.TRACK to null,
+                MediaStore.Audio.Media.DATE_ADDED to null,
             ),
         )
 
@@ -73,6 +75,7 @@ class MediaStoreAudioSourceTest {
         assertEquals(null, row.title)
         assertEquals(null, row.artist)
         assertEquals(null, row.artistId)
+        assertEquals(null, row.dateAddedSeconds)
         assertEquals(null, row.albumId)
         assertEquals(null, row.durationMs)
         assertEquals(null, row.track)
@@ -122,5 +125,6 @@ class MediaStoreAudioSourceTest {
         MediaStore.Audio.Media.ALBUM_ID to 500L,
         MediaStore.Audio.AudioColumns.DURATION to 180_000L,
         MediaStore.Audio.Media.TRACK to 1003,
+        MediaStore.Audio.Media.DATE_ADDED to 1_700_000_000L,
     )
 }

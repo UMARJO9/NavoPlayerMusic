@@ -14,4 +14,5 @@ data class MediaStoreAudioRow(
     val relativePath: String? = null,
     val dataPath: String? = null,
     val albumArtist: String? = null,
+    val dateAddedSeconds: Long? = null,
 )

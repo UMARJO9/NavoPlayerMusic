@@ -79,6 +79,7 @@ internal class MediaStoreAudioSource @Inject constructor(
         private val albumId = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
         private val duration = cursor.getColumnIndexOrThrow(MediaStore.Audio.AudioColumns.DURATION)
         private val track = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)
+        private val dateAdded = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED)
         private val relativePath = cursor.getColumnIndex(RELATIVE_PATH_COLUMN)
         private val dataPath = cursor.getColumnIndex(DATA_COLUMN)
         private val albumArtist = cursor.getColumnIndex(ALBUM_ARTIST_COLUMN)
@@ -99,6 +100,7 @@ internal class MediaStoreAudioSource @Inject constructor(
                 relativePath = cursor.optionalString(relativePath),
                 dataPath = cursor.optionalString(dataPath),
                 albumArtist = cursor.optionalString(albumArtist),
+                dateAddedSeconds = cursor.longOrNull(dateAdded),
             )
         }
     }
@@ -119,6 +121,7 @@ internal class MediaStoreAudioSource @Inject constructor(
             MediaStore.Audio.Media.ALBUM_ID,
             MediaStore.Audio.AudioColumns.DURATION,
             MediaStore.Audio.Media.TRACK,
+            MediaStore.Audio.Media.DATE_ADDED,
         )
 
         fun projection(): Array<String> {
