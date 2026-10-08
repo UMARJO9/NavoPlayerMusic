@@ -25,7 +25,7 @@ import tj.umar.navoplayer.core.designsystem.component.NavoButton
 import tj.umar.navoplayer.core.designsystem.component.NavoSummaryHorizontalPadding
 import tj.umar.navoplayer.core.designsystem.component.PhasedContent
 import tj.umar.navoplayer.core.designsystem.component.StateMessage
-import tj.umar.navoplayer.core.designsystem.component.contentPhase
+import tj.umar.navoplayer.core.designsystem.component.ContentPhase
 import tj.umar.navoplayer.core.designsystem.component.navoListPadding
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
@@ -40,13 +40,12 @@ import tj.umar.navoplayer.feature.library.R
 @Composable
 internal fun PlaylistsTabContent(state: LibraryState, onIntent: (LibraryIntent) -> Unit, modifier: Modifier = Modifier) {
     PhasedContent(
-        phase = contentPhase(
-            hasContent = !state.isLoadingPlaylists && !state.playlistsLoadFailed,
-            isLoading = state.isLoadingPlaylists,
-            loadFailed = state.playlistsLoadFailed,
-        ),
+        phase = when {
+            state.isLoadingPlaylists -> ContentPhase.Loading
+            state.playlistsLoadFailed -> ContentPhase.Error
+            else -> ContentPhase.Content
+        },
         modifier = modifier,
-        empty = {},
         error = {
             StateMessage(
                 message = stringResource(R.string.library_playlists_error),

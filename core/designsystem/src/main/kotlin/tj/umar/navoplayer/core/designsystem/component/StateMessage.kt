@@ -39,9 +39,9 @@ fun contentPhase(hasContent: Boolean, isLoading: Boolean, loadFailed: Boolean): 
 @Composable
 fun PhasedContent(
     phase: ContentPhase,
-    modifier: Modifier = Modifier,
-    empty: @Composable () -> Unit,
     error: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    empty: @Composable () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     AnimatedContent(

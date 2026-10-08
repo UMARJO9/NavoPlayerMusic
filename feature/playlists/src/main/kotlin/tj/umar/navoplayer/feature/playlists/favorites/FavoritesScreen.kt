@@ -65,7 +65,6 @@ internal fun FavoritesScreen(
                 loadFailed = state.loadFailed,
             ),
             modifier = Modifier.fillMaxSize(),
-            empty = {},
             error = {
                 StateMessage(
                     message = stringResource(R.string.playlists_favorites_error),
