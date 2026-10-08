@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -89,8 +90,23 @@ internal fun AddToPlaylistContent(state: AddToPlaylistState, onIntent: (AddToPla
                     .semantics { heading() },
             )
         }
-        item(key = "new", contentType = "new") {
-            NewPlaylistRow(
+        if (state.favoriteTrackId != null) {
+            item(key = "favorite", contentType = "action") {
+                val isFavorite = state.isFavorite == true
+                ActionRow(
+                    icon = if (isFavorite) NavoIcons.HeartFilled else NavoIcons.Heart,
+                    label = stringResource(
+                        if (isFavorite) R.string.playlists_sheet_favorite_remove else R.string.playlists_sheet_favorite_add,
+                    ),
+                    enabled = !state.isSaving && state.isFavorite != null,
+                    onClick = { onIntent(AddToPlaylistIntent.FavoriteClicked) },
+                )
+            }
+        }
+        item(key = "new", contentType = "action") {
+            ActionRow(
+                icon = NavoIcons.Plus,
+                label = stringResource(CoreUiR.string.core_ui_new_playlist),
                 enabled = !state.isSaving,
                 onClick = { onIntent(AddToPlaylistIntent.NewPlaylistClicked) },
             )
@@ -113,7 +129,7 @@ internal fun AddToPlaylistContent(state: AddToPlaylistState, onIntent: (AddToPla
 }
 
 @Composable
-private fun NewPlaylistRow(enabled: Boolean, onClick: () -> Unit) {
+private fun ActionRow(icon: ImageVector, label: String, enabled: Boolean, onClick: () -> Unit) {
     val colors = NavoTheme.colors
     Row(
         modifier = Modifier
@@ -132,10 +148,10 @@ private fun NewPlaylistRow(enabled: Boolean, onClick: () -> Unit) {
                 .background(colors.accent),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(imageVector = NavoIcons.Plus, contentDescription = null, tint = colors.onAccent)
+            Icon(imageVector = icon, contentDescription = null, tint = colors.onAccent)
         }
         Text(
-            text = stringResource(CoreUiR.string.core_ui_new_playlist),
+            text = label,
             style = NavoTheme.typography.itemTitle,
             color = colors.content,
         )

@@ -5,16 +5,20 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import tj.umar.navoplayer.core.domain.usecase.AddTracksToPlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.CreatePlaylistUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObserveIsFavoriteUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaylistsUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveTracksUseCase
+import tj.umar.navoplayer.core.domain.usecase.SetFavoriteUseCase
 import tj.umar.navoplayer.core.testing.MainDispatcherRule
 import tj.umar.navoplayer.core.testing.data.TestPlaylists
 import tj.umar.navoplayer.core.testing.data.TestTracks
+import tj.umar.navoplayer.core.testing.repository.FakeFavoritesRepository
 import tj.umar.navoplayer.core.testing.repository.FakePlaylistRepository
 import tj.umar.navoplayer.core.testing.repository.FakeTrackRepository
 
@@ -25,11 +29,14 @@ class AddToPlaylistViewModelTest {
 
     private val tracks = FakeTrackRepository()
     private val playlists = FakePlaylistRepository(TestPlaylists.all)
+    private val favorites = FakeFavoritesRepository(listOf(TestTracks.alpha.id))
 
     private val viewModel = AddToPlaylistViewModel(
         observePlaylists = ObservePlaylistsUseCase(playlists, ObserveTracksUseCase(tracks), mainDispatcherRule.testDispatcher),
         addTracksToPlaylist = AddTracksToPlaylistUseCase(playlists),
         createPlaylist = CreatePlaylistUseCase(playlists),
+        observeIsFavorite = ObserveIsFavoriteUseCase(favorites),
+        setFavorite = SetFavoriteUseCase(favorites),
     )
 
     private var nextToken = 1L
@@ -189,5 +196,63 @@ class AddToPlaylistViewModelTest {
             expectNoEvents()
         }
         assertFalse(viewModel.state.value.isSaving)
+    }
+
+    @Test
+    fun `single track request loads favorite state`() = runTest {
+        opened(TestTracks.alpha.id)
+
+        assertEquals(true, viewModel.state.value.isFavorite)
+    }
+
+    @Test
+    fun `multi track request has no favorite state`() = runTest {
+        opened(TestTracks.alpha.id, TestTracks.beta.id)
+
+        assertNull(viewModel.state.value.isFavorite)
+        assertNull(viewModel.state.value.favoriteTrackId)
+    }
+
+    @Test
+    fun `favorite click toggles favorite`() = runTest {
+        opened(TestTracks.beta.id)
+
+        viewModel.effects.test {
+            viewModel.onIntent(AddToPlaylistIntent.FavoriteClicked)
+            assertEquals(AddToPlaylistEffect.FavoriteChanged(1, true), awaitItem())
+        }
+        assertTrue(TestTracks.beta.id in favorites.current)
+        assertEquals(true, viewModel.state.value.isFavorite)
+    }
+
+    @Test
+    fun `favorite click removes existing favorite`() = runTest {
+        opened(TestTracks.alpha.id)
+
+        viewModel.effects.test {
+            viewModel.onIntent(AddToPlaylistIntent.FavoriteClicked)
+            assertEquals(AddToPlaylistEffect.FavoriteChanged(1, false), awaitItem())
+        }
+        assertFalse(TestTracks.alpha.id in favorites.current)
+    }
+
+    @Test
+    fun `favorite failure is reported`() = runTest {
+        opened(TestTracks.beta.id)
+        favorites.writeError = IllegalStateException("locked")
+
+        viewModel.effects.test {
+            viewModel.onIntent(AddToPlaylistIntent.FavoriteClicked)
+            assertEquals(AddToPlaylistEffect.FavoriteFailed(1), awaitItem())
+        }
+    }
+
+    @Test
+    fun `new request resets favorite state`() = runTest {
+        opened(TestTracks.alpha.id)
+
+        opened(TestTracks.beta.id)
+
+        assertEquals(false, viewModel.state.value.isFavorite)
     }
 }

@@ -12,11 +12,16 @@ internal data class AddToPlaylistState(
     val loadFailed: Boolean = false,
     val isNameFormVisible: Boolean = false,
     val isSaving: Boolean = false,
-)
+    val isFavorite: Boolean? = null,
+) {
+    val favoriteTrackId: Long?
+        get() = trackIds.singleOrNull()
+}
 
 internal sealed interface AddToPlaylistIntent {
     data class Opened(val request: AddToPlaylistRequest) : AddToPlaylistIntent
     data class PlaylistClicked(val playlistId: Long) : AddToPlaylistIntent
+    data object FavoriteClicked : AddToPlaylistIntent
     data object NewPlaylistClicked : AddToPlaylistIntent
     data object NameFormDismissed : AddToPlaylistIntent
     data class NewPlaylistConfirmed(val name: String) : AddToPlaylistIntent
@@ -30,4 +35,6 @@ internal sealed interface AddToPlaylistEffect {
     data class Added(override val token: Long, val playlistName: String, val addedCount: Int) : AddToPlaylistEffect
     data class Created(override val token: Long, val playlistName: String) : AddToPlaylistEffect
     data class Failed(override val token: Long) : AddToPlaylistEffect
+    data class FavoriteChanged(override val token: Long, val isFavorite: Boolean) : AddToPlaylistEffect
+    data class FavoriteFailed(override val token: Long) : AddToPlaylistEffect
 }

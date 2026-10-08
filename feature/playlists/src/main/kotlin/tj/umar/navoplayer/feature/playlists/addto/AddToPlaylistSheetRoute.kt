@@ -78,6 +78,10 @@ private fun AddToPlaylistEffect.message(context: Context): String = when (this) 
     )
     is AddToPlaylistEffect.Created -> context.getString(R.string.playlists_sheet_created, playlistName)
     is AddToPlaylistEffect.Failed -> context.getString(R.string.playlists_sheet_failed)
+    is AddToPlaylistEffect.FavoriteChanged -> context.getString(
+        if (isFavorite) R.string.playlists_sheet_favorite_added else R.string.playlists_sheet_favorite_removed,
+    )
+    is AddToPlaylistEffect.FavoriteFailed -> context.getString(R.string.playlists_sheet_favorite_failed)
 }
 
 @Preview(widthDp = 390)
@@ -88,6 +92,7 @@ private fun AddToPlaylistContentPreview() {
             AddToPlaylistContent(
                 state = AddToPlaylistState(
                     token = 1,
+                    isFavorite = true,
                     trackIds = listOf(1),
                     isLoading = false,
                     playlists = listOf(
