@@ -15,6 +15,7 @@ internal enum class LibraryTab(
     @param:StringRes val titleRes: Int,
 ) {
     Tracks(R.string.library_tab_tracks),
+    Playlists(R.string.library_tab_playlists),
     Albums(R.string.library_tab_albums),
     Artists(R.string.library_tab_artists),
     Folders(R.string.library_tab_folders),

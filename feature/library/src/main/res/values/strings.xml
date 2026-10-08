@@ -14,4 +14,8 @@
     <string name="library_back">Back</string>
     <string name="library_group_missing">This collection is no longer on your device</string>
     <string name="library_create_playlist_failed">Couldn’t create the playlist</string>
+    <string name="library_tab_playlists">Playlists</string>
+    <string name="library_playlists_empty">No playlists yet</string>
+    <string name="library_playlists_error">Couldn’t load playlists</string>
+    <string name="library_create_playlist">Create playlist</string>
 </resources>

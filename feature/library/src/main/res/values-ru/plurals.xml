@@ -11,4 +11,10 @@
         <item quantity="many">%d папок</item>
         <item quantity="other">%d папки</item>
     </plurals>
+    <plurals name="library_playlist_count">
+        <item quantity="one">%d плейлист</item>
+        <item quantity="few">%d плейлиста</item>
+        <item quantity="many">%d плейлистов</item>
+        <item quantity="other">%d плейлиста</item>
+    </plurals>
 </resources>

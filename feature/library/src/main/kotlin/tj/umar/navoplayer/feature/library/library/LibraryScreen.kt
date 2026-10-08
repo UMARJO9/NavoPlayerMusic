@@ -66,6 +66,7 @@ internal fun LibraryScreen(
                     onIntent = onIntent,
                     modifier = Modifier.fillMaxSize(),
                 )
+                LibraryTab.Playlists -> PlaylistsTabContent(state, onIntent, Modifier.fillMaxSize())
                 LibraryTab.Albums -> AlbumsTabContent(state, onIntent, Modifier.fillMaxSize())
                 LibraryTab.Artists -> ArtistsTabContent(state, onIntent, Modifier.fillMaxSize())
                 LibraryTab.Folders -> FoldersTabContent(state, onIntent, Modifier.fillMaxSize())
