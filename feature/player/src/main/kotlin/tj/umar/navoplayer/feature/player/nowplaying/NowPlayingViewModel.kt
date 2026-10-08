@@ -2,17 +2,25 @@ package tj.umar.navoplayer.feature.player.nowplaying
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import tj.umar.navoplayer.core.common.result.onError
 import tj.umar.navoplayer.core.domain.model.PlaybackProgress
 import tj.umar.navoplayer.core.domain.model.PlaybackState
 import tj.umar.navoplayer.core.domain.usecase.CycleRepeatModeUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObserveIsFavoriteUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackProgressUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
 import tj.umar.navoplayer.core.domain.usecase.SeekToUseCase
+import tj.umar.navoplayer.core.domain.usecase.SetFavoriteUseCase
 import tj.umar.navoplayer.core.domain.usecase.SkipToNextUseCase
 import tj.umar.navoplayer.core.domain.usecase.SkipToPreviousUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
@@ -34,6 +42,8 @@ internal class NowPlayingViewModel @Inject constructor(
     private val seekTo: SeekToUseCase,
     private val toggleShuffle: ToggleShuffleUseCase,
     private val cycleRepeatMode: CycleRepeatModeUseCase,
+    private val observeIsFavorite: ObserveIsFavoriteUseCase,
+    private val setFavorite: SetFavoriteUseCase,
 ) : MviViewModel<NowPlayingState, NowPlayingIntent, NowPlayingEffect>(NowPlayingState()) {
 
     private var stateJob: Job? = null
@@ -41,7 +51,9 @@ internal class NowPlayingViewModel @Inject constructor(
     private var collapseRequested = false
     private var pendingSeekTarget: Long? = null
     private var staleTicksAfterSeek = 0
-    private val favoriteTrackIds = mutableSetOf<Long>()
+    private var favoriteJob: Job? = null
+    private var lastFavorite: Pair<Long, Boolean>? = null
+    private val currentTrackIds = MutableStateFlow<Long?>(null)
 
     override fun onIntent(intent: NowPlayingIntent) {
         when (intent) {
@@ -69,13 +81,16 @@ internal class NowPlayingViewModel @Inject constructor(
         if (progressJob?.isActive != true) {
             progressJob = observePlaybackProgress().onEach(::onProgress).catch { }.launchIn(viewModelScope)
         }
+        startObservingFavorite()
     }
 
     private fun stopObserving() {
         stateJob?.cancel()
         progressJob?.cancel()
+        favoriteJob?.cancel()
         stateJob = null
         progressJob = null
+        favoriteJob = null
     }
 
     private fun onPlaybackState(playback: PlaybackState) {
@@ -93,9 +108,10 @@ internal class NowPlayingViewModel @Inject constructor(
                 isPlaying = playback.isPlaying,
                 shuffleEnabled = playback.shuffleEnabled,
                 repeatMode = playback.repeatMode,
-                isFavorite = track.id in favoriteTrackIds,
+                isFavorite = favoriteFor(track.id),
             )
         }
+        currentTrackIds.value = track.id
     }
 
     private fun onProgress(progress: PlaybackProgress) {
@@ -122,14 +138,37 @@ internal class NowPlayingViewModel @Inject constructor(
 
     private fun toggleFavorite() {
         val trackId = currentState.track?.id ?: return
-        val favorite = if (trackId in favoriteTrackIds) {
-            favoriteTrackIds.remove(trackId)
-            false
-        } else {
-            favoriteTrackIds.add(trackId)
-            true
+        val target = !currentState.isFavorite
+        viewModelScope.launch {
+            setFavorite(trackId, target)
+                .onError { sendEffect(NowPlayingEffect.ShowMessage(NowPlayingMessage.FavoriteFailed)) }
         }
-        setState { copy(isFavorite = favorite) }
+    }
+
+    private fun NowPlayingState.favoriteFor(trackId: Long): Boolean {
+        val known = lastFavorite
+        return when {
+            known != null && known.first == trackId -> known.second
+            trackId == track?.id -> isFavorite
+            else -> false
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun startObservingFavorite() {
+        if (favoriteJob?.isActive == true) return
+        favoriteJob = currentTrackIds
+            .flatMapLatest { trackId ->
+                if (trackId == null) flowOf(null) else observeIsFavorite(trackId).map { trackId to it }
+            }
+            .onEach { favorite ->
+                lastFavorite = favorite
+                if (favorite != null && favorite.first == currentState.track?.id) {
+                    setState { copy(isFavorite = favorite.second) }
+                }
+            }
+            .catch { }
+            .launchIn(viewModelScope)
     }
 
     private fun requestCollapse() {

@@ -13,9 +13,11 @@ import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.PlaybackState
 import tj.umar.navoplayer.core.domain.model.RepeatMode
 import tj.umar.navoplayer.core.domain.usecase.CycleRepeatModeUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObserveIsFavoriteUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackProgressUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
 import tj.umar.navoplayer.core.domain.usecase.SeekToUseCase
+import tj.umar.navoplayer.core.domain.usecase.SetFavoriteUseCase
 import tj.umar.navoplayer.core.domain.usecase.SkipToNextUseCase
 import tj.umar.navoplayer.core.domain.usecase.SkipToPreviousUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
@@ -25,6 +27,7 @@ import tj.umar.navoplayer.core.testing.data.TestPlaybackStates
 import tj.umar.navoplayer.core.testing.data.TestTracks
 import tj.umar.navoplayer.core.testing.playback.FakePlaybackController
 import tj.umar.navoplayer.core.testing.playback.PlaybackCommand
+import tj.umar.navoplayer.core.testing.repository.FakeFavoritesRepository
 
 class NowPlayingViewModelTest {
 
@@ -32,6 +35,7 @@ class NowPlayingViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val controller = FakePlaybackController()
+    private val favorites = FakeFavoritesRepository()
     private val viewModel = NowPlayingViewModel(
         observePlaybackState = ObservePlaybackStateUseCase(controller),
         observePlaybackProgress = ObservePlaybackProgressUseCase(controller),
@@ -41,6 +45,8 @@ class NowPlayingViewModelTest {
         seekTo = SeekToUseCase(controller),
         toggleShuffle = ToggleShuffleUseCase(controller),
         cycleRepeatMode = CycleRepeatModeUseCase(controller),
+        observeIsFavorite = ObserveIsFavoriteUseCase(favorites),
+        setFavorite = SetFavoriteUseCase(favorites),
     )
 
     private suspend fun startWith(state: PlaybackState = TestPlaybackStates.playingAlpha) {
@@ -140,16 +146,6 @@ class NowPlayingViewModelTest {
         )
     }
 
-    @Test
-    fun `favorite toggles for current track`() = runTest {
-        startWith()
-
-        viewModel.onIntent(NowPlayingIntent.FavoriteClicked)
-        assertTrue(viewModel.state.value.isFavorite)
-
-        viewModel.onIntent(NowPlayingIntent.FavoriteClicked)
-        assertFalse(viewModel.state.value.isFavorite)
-    }
 
     @Test
     fun `collapse click sends collapse`() = runTest {
@@ -215,5 +211,61 @@ class NowPlayingViewModelTest {
         startWith(TestPlaybackStates.playingAlpha.copy(source = PlaybackSource.Album("First")))
 
         assertEquals(PlaybackSource.Album("First"), viewModel.state.value.source)
+    }
+
+    @Test
+    fun `heart shows saved state of current track`() = runTest {
+        favorites.addFavorite(TestTracks.alpha.id)
+
+        startWith()
+
+        assertTrue(viewModel.state.value.isFavorite)
+    }
+
+    @Test
+    fun `heart follows track changes`() = runTest {
+        favorites.addFavorite(TestTracks.alpha.id)
+        startWith()
+
+        controller.state.emit(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.beta))
+        assertFalse(viewModel.state.value.isFavorite)
+
+        controller.state.emit(TestPlaybackStates.playingAlpha)
+        assertTrue(viewModel.state.value.isFavorite)
+    }
+
+    @Test
+    fun `favorite click saves and removes`() = runTest {
+        startWith()
+
+        viewModel.onIntent(NowPlayingIntent.FavoriteClicked)
+        assertEquals(listOf(TestTracks.alpha.id), favorites.current)
+        assertTrue(viewModel.state.value.isFavorite)
+
+        viewModel.onIntent(NowPlayingIntent.FavoriteClicked)
+        assertTrue(favorites.current.isEmpty())
+        assertFalse(viewModel.state.value.isFavorite)
+    }
+
+    @Test
+    fun `favorite failure shows message`() = runTest {
+        startWith()
+        favorites.writeError = IllegalStateException("locked")
+
+        viewModel.effects.test {
+            viewModel.onIntent(NowPlayingIntent.FavoriteClicked)
+            assertEquals(NowPlayingEffect.ShowMessage(NowPlayingMessage.FavoriteFailed), awaitItem())
+        }
+        assertFalse(viewModel.state.value.isFavorite)
+    }
+
+    @Test
+    fun `stopped screen ignores favorite changes`() = runTest {
+        startWith()
+        viewModel.onIntent(NowPlayingIntent.ScreenStopped)
+
+        favorites.addFavorite(TestTracks.alpha.id)
+
+        assertFalse(viewModel.state.value.isFavorite)
     }
 }

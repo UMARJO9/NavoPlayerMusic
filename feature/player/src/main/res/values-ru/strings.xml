@@ -12,8 +12,8 @@
     <string name="player_repeat_off">Повтор выключен</string>
     <string name="player_repeat_all">Повтор всех треков</string>
     <string name="player_repeat_one">Повтор одного трека</string>
-    <string name="player_favorite_add">Добавить в любимые</string>
-    <string name="player_favorite_remove">Убрать из любимых</string>
+    <string name="player_favorite_add">Добавить в избранное</string>
+    <string name="player_favorite_remove">Убрать из избранного</string>
     <string name="player_open_queue">Открыть очередь</string>
     <string name="player_up_next">Далее</string>
     <string name="player_up_next_track">%1$s, %2$s</string>
@@ -22,4 +22,5 @@
     <string name="player_seek">Позиция в треке</string>
     <string name="player_seek_state">%1$s из %2$s</string>
     <string name="player_open_now_playing">Открыть плеер</string>
+    <string name="player_favorite_failed">Не удалось обновить избранное</string>
 </resources>

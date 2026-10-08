@@ -23,4 +23,5 @@
     <string name="player_seek_state">%1$s of %2$s</string>
     <string name="player_open_now_playing">Open player</string>
     <string name="player_repeat_one_badge" translatable="false">1</string>
+    <string name="player_favorite_failed">Couldn’t update favorites</string>
 </resources>

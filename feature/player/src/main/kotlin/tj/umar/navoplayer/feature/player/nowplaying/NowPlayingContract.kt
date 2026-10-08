@@ -42,4 +42,7 @@ internal sealed interface NowPlayingIntent {
 
 internal sealed interface NowPlayingEffect {
     data object Collapse : NowPlayingEffect
+    data class ShowMessage(val message: NowPlayingMessage) : NowPlayingEffect
 }
+
+internal enum class NowPlayingMessage { FavoriteFailed }
