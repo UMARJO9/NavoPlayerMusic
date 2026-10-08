@@ -28,7 +28,7 @@ private val BarCorner = 1.5.dp
 private val BarHeights = listOf(18.dp, 13.dp, 16.dp)
 private val BarPhasesMillis = listOf(0L, 300L, 600L)
 private const val HALF_CYCLE_MILLIS = 900L
-private const val MIN_SCALE = 0.35f
+internal const val MIN_SCALE = 0.35f
 private val BarEasing = CubicBezierEasing(0.42f, 0f, 0.58f, 1f)
 
 @Composable
@@ -59,7 +59,7 @@ fun EqualizerBars(
     }
 }
 
-private fun barScale(timeMillis: Long): Float {
+internal fun barScale(timeMillis: Long): Float {
     val cycle = timeMillis % (HALF_CYCLE_MILLIS * 2)
     val progress = cycle.toFloat() / HALF_CYCLE_MILLIS
     val pingPong = if (progress > 1f) 2f - progress else progress

@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -25,6 +24,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.animation.rememberPausableElapsedMillis
+import tj.umar.navoplayer.core.designsystem.theme.Ivory
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 
 enum class MedallionVariant { Simple, Detailed }
@@ -33,7 +33,6 @@ private val DetailedMinSize = 120.dp
 private const val PETAL_COUNT = 8
 private const val PETAL_STEP_DEGREES = 45f
 private const val PETAL_OFFSET_DEGREES = 22.5f
-private val DotColor = Color(0xFFF3EEDF)
 
 @Composable
 fun Medallion(
@@ -125,7 +124,7 @@ private fun DrawScope.drawDetailedMedallion(palette: MedallionPalette) {
     }
     repeat(PETAL_COUNT) { index ->
         rotate(PETAL_OFFSET_DEGREES + index * PETAL_STEP_DEGREES, pivot = center) {
-            drawCircle(DotColor, radius = 4f * scale, center = center + Offset(0f, -83f * scale))
+            drawCircle(Ivory, radius = 4f * scale, center = center + Offset(0f, -83f * scale))
         }
     }
     drawCircle(palette.center, radius = 32f * scale, center = center)
