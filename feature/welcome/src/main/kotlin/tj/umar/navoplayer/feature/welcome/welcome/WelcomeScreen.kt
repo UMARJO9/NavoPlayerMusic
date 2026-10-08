@@ -45,6 +45,7 @@ import tj.umar.navoplayer.core.designsystem.component.NavoButton
 import tj.umar.navoplayer.core.designsystem.component.Wordmark
 import tj.umar.navoplayer.core.designsystem.medallion.Medallion
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
+import tj.umar.navoplayer.core.designsystem.medallion.MedallionVariant
 import tj.umar.navoplayer.core.designsystem.medallion.rememberMedallionRotation
 import tj.umar.navoplayer.core.designsystem.theme.NavoShadows
 import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
@@ -188,6 +189,7 @@ private fun MedallionComposition(modifier: Modifier = Modifier) {
         ) {
             Medallion(
                 palette = palettes[1],
+                variant = MedallionVariant.Simple,
                 modifier = Modifier.fillMaxSize(),
                 rotationDegrees = rememberMedallionRotation(running = true, periodMillis = 60_000).reversed(),
             )
@@ -200,7 +202,11 @@ private fun MedallionComposition(modifier: Modifier = Modifier) {
                 .background(background, CircleShape)
                 .padding(6.dp),
         ) {
-            Medallion(palette = palettes[3], modifier = Modifier.fillMaxSize())
+            Medallion(
+                palette = palettes[3],
+                modifier = Modifier.fillMaxSize(),
+                variant = MedallionVariant.Simple,
+            )
         }
     }
 }
