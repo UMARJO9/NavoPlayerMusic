@@ -8,8 +8,6 @@
     <string name="library_settings">Настройки</string>
     <string name="library_sort">Сортировка</string>
     <string name="library_shuffle">Перемешать</string>
-    <string name="library_unknown_artist">Неизвестный исполнитель</string>
-    <string name="library_unknown_title">Без названия</string>
     <string name="library_tracks_empty">На телефоне не найдено музыки</string>
     <string name="library_albums_placeholder">Альбомы скоро появятся здесь</string>
     <string name="library_artists_placeholder">Исполнители скоро появятся здесь</string>

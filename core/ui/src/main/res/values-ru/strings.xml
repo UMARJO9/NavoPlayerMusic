@@ -1,0 +1,4 @@
+<resources>
+    <string name="core_ui_unknown_title">Без названия</string>
+    <string name="core_ui_unknown_artist">Неизвестный исполнитель</string>
+</resources>

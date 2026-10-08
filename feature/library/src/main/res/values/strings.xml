@@ -8,8 +8,6 @@
     <string name="library_settings">Settings</string>
     <string name="library_sort">Sort</string>
     <string name="library_shuffle">Shuffle</string>
-    <string name="library_unknown_artist">Unknown artist</string>
-    <string name="library_unknown_title">Unknown title</string>
     <string name="library_tracks_empty">No music found on this device</string>
     <string name="library_albums_placeholder">Albums will appear here soon</string>
     <string name="library_artists_placeholder">Artists will appear here soon</string>

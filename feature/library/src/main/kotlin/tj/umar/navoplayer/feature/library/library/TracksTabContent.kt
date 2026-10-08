@@ -49,6 +49,7 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.ui.format.formatDuration
+import tj.umar.navoplayer.core.ui.R as CoreUiR
 import tj.umar.navoplayer.feature.library.R
 
 private const val PHASE_ENTER_MILLIS = 260
@@ -120,8 +121,8 @@ private fun TrackList(state: LibraryState, onIntent: (LibraryIntent) -> Unit) {
         items(state.tracks, key = { it.id }, contentType = { "track" }) { track ->
             val palette = remember(track.id) { MedallionPalettes.forKey(track.id) }
             TrackRow(
-                title = track.title.ifBlank { stringResource(R.string.library_unknown_title) },
-                artist = track.artist ?: stringResource(R.string.library_unknown_artist),
+                title = track.title.ifBlank { stringResource(CoreUiR.string.core_ui_unknown_title) },
+                artist = track.artist ?: stringResource(CoreUiR.string.core_ui_unknown_artist),
                 duration = formatDuration(track.durationMs),
                 palette = palette,
                 modifier = Modifier.animateItem(),

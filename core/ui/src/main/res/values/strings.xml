@@ -1,0 +1,4 @@
+<resources>
+    <string name="core_ui_unknown_title">Unknown title</string>
+    <string name="core_ui_unknown_artist">Unknown artist</string>
+</resources>
