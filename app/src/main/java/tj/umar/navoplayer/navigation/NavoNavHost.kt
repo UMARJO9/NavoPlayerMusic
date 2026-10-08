@@ -20,6 +20,8 @@ import tj.umar.navoplayer.feature.library.navigation.navigateToGroupDetail
 import tj.umar.navoplayer.feature.library.navigation.navigateToLibrary
 import tj.umar.navoplayer.feature.player.navigation.NowPlayingDestination
 import tj.umar.navoplayer.feature.player.navigation.nowPlayingScreen
+import tj.umar.navoplayer.feature.playlists.navigation.FavoritesDestination
+import tj.umar.navoplayer.feature.playlists.navigation.favoritesScreen
 import tj.umar.navoplayer.feature.playlists.navigation.PlaylistDetailDestination
 import tj.umar.navoplayer.feature.playlists.navigation.navigateToPlaylistDetail
 import tj.umar.navoplayer.feature.playlists.navigation.playlistDetailScreen
@@ -109,6 +111,14 @@ fun NavoNavHost(
         playlistDetailScreen(
             onBack = {
                 if (navController.currentDestination?.hasRoute<PlaylistDetailDestination>() == true) {
+                    navController.popBackStack()
+                }
+            },
+            onAudioPermissionMissing = onAudioPermissionMissing,
+        )
+        favoritesScreen(
+            onBack = {
+                if (navController.currentDestination?.hasRoute<FavoritesDestination>() == true) {
                     navController.popBackStack()
                 }
             },
