@@ -11,9 +11,13 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -41,12 +45,15 @@ internal fun MiniPlayerRoute(
     modifier: Modifier,
     viewModel: MiniPlayerViewModel,
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val stateHolder = viewModel.state.collectAsStateWithLifecycle()
+    val track by remember { derivedStateOf { stateHolder.value.track } }
+    val isPlaying by remember { derivedStateOf { stateHolder.value.isPlaying } }
     val currentOnOpenNowPlaying by rememberUpdatedState(onOpenNowPlaying)
+    var lastTrack by remember { mutableStateOf<Track?>(null) }
 
-    LifecycleStartEffect(Unit) {
-        viewModel.onIntent(MiniPlayerIntent.ScreenStarted)
-        onStopOrDispose { viewModel.onIntent(MiniPlayerIntent.ScreenStopped) }
+    LifecycleStartEffect(visible) {
+        if (visible) viewModel.onIntent(MiniPlayerIntent.ScreenStarted)
+        onStopOrDispose { if (visible) viewModel.onIntent(MiniPlayerIntent.ScreenStopped) }
     }
 
     viewModel.effects.CollectEffects { effect ->
@@ -55,29 +62,26 @@ internal fun MiniPlayerRoute(
         }
     }
 
-    val track = state.track
-    val lastTrack = remember { LastTrackHolder() }
-    if (track != null) lastTrack.value = track
+    val currentTrack = track
+    SideEffect {
+        if (currentTrack != null) lastTrack = currentTrack
+    }
+
     AnimatedVisibility(
-        visible = visible && track != null,
+        visible = visible && currentTrack != null,
         modifier = modifier,
         enter = slideInVertically(tween(ENTER_MILLIS)) { it } + fadeIn(tween(ENTER_MILLIS)),
         exit = slideOutVertically(tween(EXIT_MILLIS)) { it } + fadeOut(tween(EXIT_MILLIS)),
     ) {
-        val shownTrack = track ?: lastTrack.value ?: return@AnimatedVisibility
-        val progress by rememberUpdatedState(state.progress)
+        val shownTrack = currentTrack ?: lastTrack ?: return@AnimatedVisibility
         MiniPlayer(
             track = shownTrack,
-            isPlaying = state.isPlaying,
-            progress = { progress },
+            isPlaying = isPlaying,
+            progress = { stateHolder.value.progress },
             onIntent = viewModel::onIntent,
             modifier = Modifier
                 .windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(start = 12.dp, end = 12.dp, bottom = 16.dp),
         )
     }
-}
-
-private class LastTrackHolder {
-    var value: Track? = null
 }
