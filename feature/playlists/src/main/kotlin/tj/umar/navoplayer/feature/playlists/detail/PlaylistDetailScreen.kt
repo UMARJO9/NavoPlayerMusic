@@ -181,7 +181,7 @@ private fun PlaylistTrackList(
                 modifier = Modifier.animateItem(),
             )
         }
-        if (playlist.tracks.isEmpty()) {
+        if (playlist.tracks.isEmpty() && playlist.missingTrackCount == 0) {
             item(key = "empty", contentType = "note") {
                 EmptyPlaylistNote()
             }
