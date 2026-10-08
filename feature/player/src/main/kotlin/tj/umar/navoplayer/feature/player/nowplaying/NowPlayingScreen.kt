@@ -40,6 +40,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -224,6 +225,7 @@ private fun TrackInfo(track: Track, isFavorite: Boolean, onIntent: (NowPlayingIn
             onClick = { onIntent(NowPlayingIntent.FavoriteClicked) },
             size = 48.dp,
             iconSize = 26.dp,
+            modifier = Modifier.semantics { selected = isFavorite },
             tint = if (isFavorite) colors.accent else colors.content,
         )
     }
