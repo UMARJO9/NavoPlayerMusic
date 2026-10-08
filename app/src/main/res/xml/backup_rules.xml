@@ -2,4 +2,5 @@
     <exclude domain="database" path="navo.db" />
     <exclude domain="database" path="navo.db-wal" />
     <exclude domain="database" path="navo.db-shm" />
+    <exclude domain="file" path="datastore/navo_settings.preferences_pb" />
 </full-backup-content>
