@@ -53,4 +53,15 @@ class ObserveAllFoldersUseCaseTest {
             assertEquals("scan failed", awaitError().message)
         }
     }
+
+    @Test
+    fun `folder with only short tracks is still listed with raw count`() = runTest {
+        val clip = TestTracks.alpha.copy(id = 70, durationMs = 5_000, folderPath = "Recordings")
+        val observe = ObserveAllFoldersUseCase(tracks, settings, UnconfinedTestDispatcher(testScheduler))
+
+        observe().test {
+            tracks.emit(listOf(clip))
+            assertEquals(listOf("Music/Navo", "Recordings"), awaitItem().map { it.path })
+        }
+    }
 }
