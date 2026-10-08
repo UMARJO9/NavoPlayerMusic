@@ -114,4 +114,11 @@ class TrackMapperTest {
         assertEquals("Navo Band", row.copy(albumArtist = " Navo Band ").toTrack().albumArtist)
         assertNull(row.copy(albumArtist = "<unknown>").toTrack().albumArtist)
     }
+
+    @Test
+    fun `other legacy storage roots are stripped`() {
+        assertEquals("Music", folderPathOf(null, "/storage/self/primary/Music/a.mp3"))
+        assertEquals("Music", folderPathOf(null, "/mnt/sdcard/Music/a.mp3"))
+        assertEquals("sdcard2/Music", folderPathOf(null, "/sdcard2/Music/a.mp3"))
+    }
 }

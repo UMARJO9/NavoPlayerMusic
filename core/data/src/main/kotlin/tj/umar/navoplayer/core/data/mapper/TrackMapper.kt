@@ -27,10 +27,10 @@ private fun cleanTag(value: String?): String? =
 private fun titleFromFileName(displayName: String?): String =
     displayName?.substringBeforeLast('.')?.trim().orEmpty()
 
-private val StorageRootPrefix = Regex("""^/storage/(emulated/\d+|[^/]+)/?|^/sdcard/?""")
+private val StorageRootPrefix = Regex("""^(/storage/emulated/\d+|/storage/self/primary|/storage/[^/]+|(/mnt)?/sdcard)(/|$)""")
 
 internal fun folderPathOf(relativePath: String?, dataPath: String?): String? {
     if (relativePath != null) return relativePath.trim().trimEnd('/').ifBlank { null }
     val directory = dataPath?.trim()?.substringBeforeLast('/', missingDelimiterValue = "") ?: return null
-    return directory.replaceFirst(StorageRootPrefix, "").trimEnd('/').ifBlank { null }
+    return directory.replaceFirst(StorageRootPrefix, "").trim('/').ifBlank { null }
 }
