@@ -13,12 +13,11 @@
     <string name="settings_pause_on_disconnect_subtitle">Wired and Bluetooth</string>
     <string name="settings_section_about">About</string>
     <string name="settings_about_app_name" translatable="false">Navo</string>
-    <string name="settings_about_version">Version %1$s</string>
-    <string name="settings_about_description">Offline player, no internet</string>
     <string name="settings_licenses_title">Open-source licenses</string>
     <string name="settings_save_failed">Couldn’t save the setting</string>
     <string name="settings_folders_hint">Turn a folder off to hide its tracks everywhere</string>
     <string name="settings_folders_empty">No music folders found</string>
     <string name="settings_folders_error">Couldn’t load folders</string>
     <string name="settings_folders_retry">Try again</string>
+    <string name="settings_about_subtitle">Version %1$s\nOffline player, no internet</string>
 </resources>

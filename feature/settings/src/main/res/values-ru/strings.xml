@@ -12,12 +12,11 @@
     <string name="settings_pause_on_disconnect_title">Пауза при отключении наушников</string>
     <string name="settings_pause_on_disconnect_subtitle">Проводных и Bluetooth</string>
     <string name="settings_section_about">О приложении</string>
-    <string name="settings_about_version">Версия %1$s</string>
-    <string name="settings_about_description">Офлайн-плеер, без интернета</string>
     <string name="settings_licenses_title">Лицензии открытого ПО</string>
     <string name="settings_save_failed">Не удалось сохранить настройку</string>
     <string name="settings_folders_hint">Отключите папку, чтобы скрыть её треки везде</string>
     <string name="settings_folders_empty">Папки с музыкой не найдены</string>
     <string name="settings_folders_error">Не удалось загрузить папки</string>
     <string name="settings_folders_retry">Повторить</string>
+    <string name="settings_about_subtitle">Версия %1$s\nОфлайн-плеер, без интернета</string>
 </resources>

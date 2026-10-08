@@ -85,8 +85,7 @@ internal fun SettingsScreen(
             item(key = "app") {
                 SettingsInfoRow(
                     title = stringResource(R.string.settings_about_app_name),
-                    subtitle = stringResource(R.string.settings_about_version, state.versionName) + "\n" +
-                        stringResource(R.string.settings_about_description),
+                    subtitle = stringResource(R.string.settings_about_subtitle, state.versionName),
                 )
             }
             item(key = "licenses") {
