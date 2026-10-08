@@ -21,4 +21,9 @@
     <string name="playlists_rename_failed">Couldn’t rename the playlist</string>
     <string name="playlists_delete_failed">Couldn’t delete the playlist</string>
     <string name="playlists_remove_failed">Couldn’t remove the track</string>
+    <string name="playlists_sheet_added">Added to “%1$s”</string>
+    <string name="playlists_sheet_already_added">Already in “%1$s”</string>
+    <string name="playlists_sheet_created">Playlist “%1$s” created</string>
+    <string name="playlists_sheet_failed">Couldn’t save to the playlist</string>
+    <string name="playlists_sheet_error">Couldn’t load playlists</string>
 </resources>

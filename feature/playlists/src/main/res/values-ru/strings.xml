@@ -21,4 +21,9 @@
     <string name="playlists_rename_failed">Не удалось переименовать плейлист</string>
     <string name="playlists_delete_failed">Не удалось удалить плейлист</string>
     <string name="playlists_remove_failed">Не удалось убрать трек</string>
+    <string name="playlists_sheet_added">Добавлено в «%1$s»</string>
+    <string name="playlists_sheet_already_added">Уже в «%1$s»</string>
+    <string name="playlists_sheet_created">Плейлист «%1$s» создан</string>
+    <string name="playlists_sheet_failed">Не удалось сохранить в плейлист</string>
+    <string name="playlists_sheet_error">Не удалось загрузить плейлисты</string>
 </resources>

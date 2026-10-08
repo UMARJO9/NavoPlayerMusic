@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -18,9 +20,9 @@ import androidx.navigation.compose.rememberNavController
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.ui.permission.hasAudioReadPermission
 import tj.umar.navoplayer.feature.library.navigation.LibraryDestination
-
 import tj.umar.navoplayer.feature.player.miniplayer.MiniPlayerRoute
 import tj.umar.navoplayer.feature.player.navigation.navigateToNowPlaying
+import tj.umar.navoplayer.feature.playlists.addto.AddToPlaylistSheetRoute
 import tj.umar.navoplayer.feature.welcome.navigation.WelcomeDestination
 import tj.umar.navoplayer.navigation.NavoNavHost
 import tj.umar.navoplayer.navigation.showsMiniPlayer
@@ -36,6 +38,7 @@ fun NavoApp(
     val currentEntry by navController.currentBackStackEntryAsState()
     val imeVisible = WindowInsets.isImeVisible
     val showMiniPlayer = currentEntry?.destination?.showsMiniPlayer() == true && !imeVisible
+    var addToPlaylistIds by rememberSaveable { mutableStateOf<List<Long>?>(null) }
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -51,5 +54,11 @@ fun NavoApp(
             onOpenNowPlaying = navController::navigateToNowPlaying,
             modifier = Modifier.align(Alignment.BottomCenter),
         )
+        addToPlaylistIds?.let { trackIds ->
+            AddToPlaylistSheetRoute(
+                trackIds = trackIds,
+                onDismiss = { addToPlaylistIds = null },
+            )
+        }
     }
 }
