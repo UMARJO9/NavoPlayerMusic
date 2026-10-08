@@ -12,7 +12,9 @@ import kotlinx.coroutines.flow.onStart
 import tj.umar.navoplayer.core.common.dispatchers.IoDispatcher
 import tj.umar.navoplayer.core.data.mapper.toTrack
 import tj.umar.navoplayer.core.domain.model.Track
+import tj.umar.navoplayer.core.domain.model.TrackSort
 import tj.umar.navoplayer.core.domain.repository.TrackRepository
+import tj.umar.navoplayer.core.domain.sorting.sortedFor
 import tj.umar.navoplayer.core.mediastore.audio.AudioMediaSource
 import javax.inject.Inject
 
@@ -32,7 +34,7 @@ internal class MediaStoreTrackRepository @Inject constructor(
             .map {
                 audioSource.queryAudio()
                     .map { it.toTrack() }
-                    .sortedWith(trackTitleComparator())
+                    .sortedFor(TrackSort.Default)
             }
             .distinctUntilChanged()
             .flowOn(ioDispatcher)
