@@ -151,12 +151,11 @@ private fun ToggleControl(
         modifier = Modifier
             .pressScale(interactionSource, pressedScale = 0.9f)
             .size(48.dp)
-            .clip(CircleShape)
             .semantics { contentDescription = description }
             .toggleable(
                 value = active,
                 interactionSource = interactionSource,
-                indication = ripple(color = colors.content),
+                indication = ripple(bounded = false, radius = 24.dp, color = colors.content),
                 role = Role.Switch,
                 onValueChange = { onClick() },
             ),
