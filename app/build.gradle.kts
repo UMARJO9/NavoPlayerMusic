@@ -27,7 +27,9 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.designsystem)
     implementation(projects.core.domain)
+    implementation(projects.core.ui)
     implementation(projects.feature.library)
+    implementation(projects.feature.welcome)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
