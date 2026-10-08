@@ -18,6 +18,8 @@ internal class LibraryViewModel @Inject constructor(
 
     private var tracksJob: Job? = null
 
+    private var hasLoadedTracks = false
+
     override fun onIntent(intent: LibraryIntent) {
         when (intent) {
             is LibraryIntent.TabSelected -> selectTab(intent.tab)
@@ -46,9 +48,10 @@ internal class LibraryViewModel @Inject constructor(
 
     private fun startObservingTracks() {
         if (tracksJob?.isActive == true) return
-        setState { copy(isLoadingTracks = true, tracksLoadFailed = false) }
+        setState { copy(isLoadingTracks = !hasLoadedTracks, tracksLoadFailed = false) }
         tracksJob = observeTracks()
             .onEach { tracks ->
+                hasLoadedTracks = true
                 setState {
                     copy(tracks = tracks, totalMinutes = tracks.totalDurationMinutes(), isLoadingTracks = false)
                 }

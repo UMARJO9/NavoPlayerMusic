@@ -167,4 +167,15 @@ class LibraryViewModelTest {
         }
         assertEquals(before, viewModel.state.value)
     }
+
+    @Test
+    fun `restart after loading does not show spinner again`() = runTest {
+        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
+        repository.emit(emptyList())
+        viewModel.onIntent(LibraryIntent.ScreenStopped)
+
+        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
+
+        assertFalse(viewModel.state.value.isLoadingTracks)
+    }
 }
