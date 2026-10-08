@@ -25,7 +25,8 @@ enum class GroupDetailType { Album, Artist, Folder }
 data class GroupDetailDestination(
     val type: GroupDetailType,
     val id: Long = NO_ID,
-    val name: String? = null,
+    val name: String = "",
+    val hasName: Boolean = false,
 )
 
 fun NavController.navigateToLibrary(navOptions: NavOptions? = null) {
@@ -68,7 +69,7 @@ internal fun GroupDetailDestination.toKey(): TrackGroupKey = TrackGroupKey(
         GroupDetailType.Folder -> TrackGroupType.Folder
     },
     id = id.takeIf { it != NO_ID },
-    name = name,
+    name = name.takeIf { hasName },
 )
 
 internal fun TrackGroupKey.toDestination(): GroupDetailDestination = GroupDetailDestination(
@@ -78,5 +79,6 @@ internal fun TrackGroupKey.toDestination(): GroupDetailDestination = GroupDetail
         TrackGroupType.Folder -> GroupDetailType.Folder
     },
     id = id ?: NO_ID,
-    name = name,
+    name = name.orEmpty(),
+    hasName = name != null,
 )

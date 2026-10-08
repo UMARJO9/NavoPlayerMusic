@@ -16,6 +16,8 @@ class GroupDetailDestinationTest {
             TrackGroupKey(TrackGroupType.Artist, null, null),
             TrackGroupKey(TrackGroupType.Folder, null, "Music/Navo"),
             TrackGroupKey(TrackGroupType.Folder, null, null),
+            TrackGroupKey(TrackGroupType.Artist, null, "null"),
+            TrackGroupKey(TrackGroupType.Album, null, ""),
         )
 
         keys.forEach { key -> assertEquals(key, key.toDestination().toKey()) }
