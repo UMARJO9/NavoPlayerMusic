@@ -117,7 +117,7 @@ private fun MiniPlayerPreview() {
                 .padding(12.dp),
         ) {
             MiniPlayer(
-                track = Track(2, "Ҷавонӣ", "Daler Nazarov", null, 11, 101, 252_000, 2, "content://media/2", "Music/Navo"),
+                track = Track(2, "Ҷавонӣ", "Daler Nazarov", null, 11, 101, 252_000, 2, "content://media/2", "Music/Navo", null),
                 isPlaying = true,
                 progress = { 0.38f },
                 onIntent = {},

@@ -93,11 +93,13 @@ private fun titleTrackOrder(collator: Collator): Comparator<Track> =
         .thenBy { it.id }
 
 private fun albumTrackOrder(collator: Collator): Comparator<Track> =
-    compareBy<Track, Int?>(nullsLast()) { it.trackNumber }
+    compareBy<Track> { it.discNumber ?: 0 }
+        .thenBy(nullsLast()) { it.trackNumber }
         .then(titleTrackOrder(collator))
 
 private fun artistTrackOrder(collator: Collator): Comparator<Track> =
     compareBy<Track> { it.album == null }
         .then(Comparator { first, second -> collator.compare(first.album.orEmpty(), second.album.orEmpty()) })
+        .thenBy { it.discNumber ?: 0 }
         .thenComparator { first, second -> compareValues(first.trackNumber ?: Int.MAX_VALUE, second.trackNumber ?: Int.MAX_VALUE) }
         .then(titleTrackOrder(collator))

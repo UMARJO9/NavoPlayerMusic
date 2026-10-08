@@ -17,6 +17,7 @@ internal fun MediaStoreAudioRow.toTrack(): Track = Track(
     trackNumber = track?.takeIf { it > 0 }?.rem(DISC_TRACK_DIVIDER)?.takeIf { it > 0 },
     contentUri = contentUri,
     folderPath = folderPathOf(relativePath, dataPath),
+    discNumber = track?.takeIf { it >= DISC_TRACK_DIVIDER }?.div(DISC_TRACK_DIVIDER),
 )
 
 private fun cleanTag(value: String?): String? =

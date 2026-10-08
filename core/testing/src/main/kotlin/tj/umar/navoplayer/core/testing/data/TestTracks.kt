@@ -15,6 +15,7 @@ object TestTracks {
         trackNumber = 1,
         contentUri = "content://media/external/audio/media/1",
         folderPath = "Music/Navo",
+        discNumber = null,
     )
 
     val beta = Track(
@@ -28,6 +29,7 @@ object TestTracks {
         trackNumber = null,
         contentUri = "content://media/external/audio/media/2",
         folderPath = null,
+        discNumber = null,
     )
 
     val longMix = Track(
@@ -41,6 +43,7 @@ object TestTracks {
         trackNumber = 2,
         contentUri = "content://media/external/audio/media/3",
         folderPath = "Music/Mixes",
+        discNumber = null,
     )
 
     val tracks: List<Track> = listOf(alpha, beta, longMix)
@@ -56,6 +59,7 @@ object TestTracks {
         trackNumber = 2,
         contentUri = "content://media/external/audio/media/4",
         folderPath = "Music/Navo",
+        discNumber = null,
     )
 
     val namedOnly = Track(
@@ -69,6 +73,7 @@ object TestTracks {
         trackNumber = null,
         contentUri = "content://media/external/audio/media/5",
         folderPath = "Download",
+        discNumber = null,
     )
 
     val library: List<Track> = listOf(alpha, beta, longMix, alphaTwo, namedOnly)

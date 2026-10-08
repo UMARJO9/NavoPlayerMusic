@@ -11,4 +11,5 @@ data class Track(
     val trackNumber: Int?,
     val contentUri: String,
     val folderPath: String?,
+    val discNumber: Int?,
 )

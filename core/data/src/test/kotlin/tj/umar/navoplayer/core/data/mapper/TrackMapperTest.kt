@@ -35,6 +35,7 @@ class TrackMapperTest {
             trackNumber = 3,
             contentUri = "content://media/external/audio/media/7",
             folderPath = "Music/Navo",
+            discNumber = null,
         )
         assertEquals(expected, row.toTrack())
     }
@@ -75,6 +76,9 @@ class TrackMapperTest {
     @Test
     fun `track number drops disc prefix`() {
         assertEquals(5, row.copy(track = 1005).toTrack().trackNumber)
+        assertEquals(1, row.copy(track = 1005).toTrack().discNumber)
+        assertEquals(2, row.copy(track = 2003).toTrack().discNumber)
+        assertNull(row.copy(track = 7).toTrack().discNumber)
         assertNull(row.copy(track = 0).toTrack().trackNumber)
         assertNull(row.copy(track = 2000).toTrack().trackNumber)
         assertNull(row.copy(track = null).toTrack().trackNumber)

@@ -132,4 +132,16 @@ class TrackGroupingTest {
         assertNull(library.groupFor(TrackGroupKey(TrackGroupType.Album, 999, null), collator))
         assertTrue(library.groupFor(TrackGroupKey(TrackGroupType.Album, 11, null), collator) is Album)
     }
+
+    @Test
+    fun `multi disc album plays disc by disc`() {
+        val disc = { id: Long, discNumber: Int, number: Int ->
+            TestTracks.alpha.copy(id = id, title = "T$id", discNumber = discNumber, trackNumber = number)
+        }
+        val tracks = listOf(disc(1, 2, 1), disc(2, 1, 2), disc(3, 2, 2), disc(4, 1, 1))
+
+        val album = tracks.toAlbums(collator).single()
+
+        assertEquals(listOf(4L, 2L, 1L, 3L), album.tracks.map { it.id })
+    }
 }
