@@ -7,6 +7,7 @@ sealed interface PlaybackSource {
     data class Folder(val name: String?) : PlaybackSource
     data class Search(val query: String) : PlaybackSource
     data class Playlist(val id: Long, val name: String) : PlaybackSource
+    data object Favorites : PlaybackSource
 }
 
 fun TrackGroup.toPlaybackSource(): PlaybackSource = when (this) {
@@ -16,3 +17,5 @@ fun TrackGroup.toPlaybackSource(): PlaybackSource = when (this) {
 }
 
 fun PlaybackSource?.isPlaylist(id: Long): Boolean = this is PlaybackSource.Playlist && this.id == id
+
+fun PlaybackSource?.isFavorites(): Boolean = this == PlaybackSource.Favorites

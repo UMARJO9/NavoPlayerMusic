@@ -19,4 +19,11 @@ class PlaybackSourceTest {
         assertFalse(PlaybackSource.AllTracks.isPlaylist(4))
         assertFalse((null as PlaybackSource?).isPlaylist(4))
     }
+
+    @Test
+    fun `favorites source is detected`() {
+        assertTrue(PlaybackSource.Favorites.isFavorites())
+        assertFalse(PlaybackSource.AllTracks.isFavorites())
+        assertFalse((null as PlaybackSource?).isFavorites())
+    }
 }
