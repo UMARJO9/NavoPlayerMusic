@@ -22,6 +22,7 @@ dependencies {
     compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.compose.gradlePlugin)
     compileOnly(libs.ksp.gradlePlugin)
+    compileOnly(libs.room.gradlePlugin)
 }
 
 gradlePlugin {
@@ -49,6 +50,10 @@ gradlePlugin {
         register("androidFeature") {
             id = libs.plugins.navo.android.feature.get().pluginId
             implementationClass = "tj.umar.navoplayer.buildlogic.AndroidFeatureConventionPlugin"
+        }
+        register("androidRoom") {
+            id = libs.plugins.navo.android.room.get().pluginId
+            implementationClass = "tj.umar.navoplayer.buildlogic.AndroidRoomConventionPlugin"
         }
     }
 }
