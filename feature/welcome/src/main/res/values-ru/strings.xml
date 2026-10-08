@@ -1,0 +1,8 @@
+<resources>
+    <string name="welcome_title">Найдём вашу музыку</string>
+    <string name="welcome_body">Navo играет файлы, которые уже есть на телефоне. Ничего не скачивает и никуда не отправляет, нужен только доступ к аудио.</string>
+    <string name="welcome_grant_access">Разрешить доступ к музыке</string>
+    <string name="welcome_open_settings">Открыть настройки</string>
+    <string name="welcome_denied_hint">Без доступа к аудио Navo не найдёт вашу музыку.</string>
+    <string name="welcome_permanently_denied_hint">Доступ запрещён. Разрешите его в настройках приложения.</string>
+</resources>
