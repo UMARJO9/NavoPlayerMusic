@@ -7,8 +7,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import tj.umar.navoplayer.core.common.result.onError
-import tj.umar.navoplayer.core.common.result.onSuccess
+import tj.umar.navoplayer.core.common.result.NavoResult
 import tj.umar.navoplayer.core.domain.playlist.normalizePlaylistName
 import tj.umar.navoplayer.core.domain.usecase.AddTracksToPlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.CreatePlaylistUseCase
@@ -27,7 +26,7 @@ internal class AddToPlaylistViewModel @Inject constructor(
 
     override fun onIntent(intent: AddToPlaylistIntent) {
         when (intent) {
-            is AddToPlaylistIntent.Opened -> onOpened(intent.trackIds)
+            is AddToPlaylistIntent.Opened -> onOpened(intent.request)
             is AddToPlaylistIntent.PlaylistClicked -> onPlaylistClicked(intent.playlistId)
             AddToPlaylistIntent.NewPlaylistClicked -> setState { copy(isNameDialogVisible = true) }
             AddToPlaylistIntent.NameDialogDismissed -> setState { copy(isNameDialogVisible = false) }
@@ -37,35 +36,47 @@ internal class AddToPlaylistViewModel @Inject constructor(
         }
     }
 
-    private fun onOpened(trackIds: List<Long>) {
-        stopObserving()
-        setState { AddToPlaylistState(trackIds = trackIds) }
+    private fun onOpened(request: AddToPlaylistRequest) {
+        if (request.token != currentState.token) {
+            stopObserving()
+            setState { AddToPlaylistState(token = request.token, trackIds = request.trackIds) }
+        }
         startObserving()
     }
 
     private fun onPlaylistClicked(playlistId: Long) {
         val state = currentState
+        val token = state.token ?: return
         if (state.isSaving || state.trackIds.isEmpty()) return
         val playlist = state.playlists.firstOrNull { it.id == playlistId } ?: return
         setState { copy(isSaving = true) }
         viewModelScope.launch {
-            addTracksToPlaylist(playlistId, state.trackIds)
-                .onSuccess { sendEffect(AddToPlaylistEffect.Added(playlist.name, it)) }
-                .onError { sendEffect(AddToPlaylistEffect.Failed) }
-            setState { copy(isSaving = false) }
+            val effect = when (val result = addTracksToPlaylist(playlistId, state.trackIds)) {
+                is NavoResult.Success -> AddToPlaylistEffect.Added(token, playlist.name, result.data)
+                is NavoResult.Error -> AddToPlaylistEffect.Failed(token)
+            }
+            finishSaving(effect)
         }
     }
 
     private fun onNewPlaylistConfirmed(name: String) {
         val state = currentState
+        val token = state.token ?: return
         if (state.isSaving) return
         setState { copy(isSaving = true, isNameDialogVisible = false) }
         viewModelScope.launch {
-            createPlaylist(name, state.trackIds)
-                .onSuccess { sendEffect(AddToPlaylistEffect.Created(normalizePlaylistName(name) ?: name)) }
-                .onError { sendEffect(AddToPlaylistEffect.Failed) }
-            setState { copy(isSaving = false) }
+            val effect = when (createPlaylist(name, state.trackIds)) {
+                is NavoResult.Success -> AddToPlaylistEffect.Created(token, normalizePlaylistName(name) ?: name)
+                is NavoResult.Error -> AddToPlaylistEffect.Failed(token)
+            }
+            finishSaving(effect)
         }
+    }
+
+    private fun finishSaving(effect: AddToPlaylistEffect) {
+        if (effect.token != currentState.token) return
+        setState { copy(isSaving = false) }
+        sendEffect(effect)
     }
 
     private fun startObserving() {

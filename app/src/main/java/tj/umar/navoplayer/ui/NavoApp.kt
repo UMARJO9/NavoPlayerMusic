@@ -22,6 +22,7 @@ import tj.umar.navoplayer.core.ui.permission.hasAudioReadPermission
 import tj.umar.navoplayer.feature.library.navigation.LibraryDestination
 import tj.umar.navoplayer.feature.player.miniplayer.MiniPlayerRoute
 import tj.umar.navoplayer.feature.player.navigation.navigateToNowPlaying
+import tj.umar.navoplayer.feature.playlists.addto.AddToPlaylistRequest
 import tj.umar.navoplayer.feature.playlists.addto.AddToPlaylistSheetRoute
 import tj.umar.navoplayer.feature.welcome.navigation.WelcomeDestination
 import tj.umar.navoplayer.navigation.NavoNavHost
@@ -38,7 +39,9 @@ fun NavoApp(
     val currentEntry by navController.currentBackStackEntryAsState()
     val imeVisible = WindowInsets.isImeVisible
     val showMiniPlayer = currentEntry?.destination?.showsMiniPlayer() == true && !imeVisible
-    var addToPlaylistIds by rememberSaveable { mutableStateOf<List<Long>?>(null) }
+    var addToPlaylistRequest by rememberSaveable(stateSaver = AddToPlaylistRequest.Saver) {
+        mutableStateOf<AddToPlaylistRequest?>(null)
+    }
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -47,7 +50,7 @@ fun NavoApp(
         NavoNavHost(
             navController = navController,
             startDestination = if (startOnWelcome) WelcomeDestination else LibraryDestination,
-            onAddToPlaylist = { trackIds -> addToPlaylistIds = trackIds },
+            onAddToPlaylist = { trackIds -> addToPlaylistRequest = AddToPlaylistRequest.of(trackIds) },
             modifier = Modifier.fillMaxSize(),
         )
         MiniPlayerRoute(
@@ -55,10 +58,10 @@ fun NavoApp(
             onOpenNowPlaying = navController::navigateToNowPlaying,
             modifier = Modifier.align(Alignment.BottomCenter),
         )
-        addToPlaylistIds?.let { trackIds ->
+        addToPlaylistRequest?.let { request ->
             AddToPlaylistSheetRoute(
-                trackIds = trackIds,
-                onDismiss = { addToPlaylistIds = null },
+                request = request,
+                onDismiss = { addToPlaylistRequest = null },
             )
         }
     }

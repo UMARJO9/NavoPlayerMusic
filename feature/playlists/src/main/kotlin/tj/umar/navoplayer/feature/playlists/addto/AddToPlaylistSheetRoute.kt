@@ -26,17 +26,17 @@ import tj.umar.navoplayer.feature.playlists.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddToPlaylistSheetRoute(
-    trackIds: List<Long>,
+    request: AddToPlaylistRequest,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    AddToPlaylistSheetRoute(trackIds = trackIds, onDismiss = onDismiss, modifier = modifier, viewModel = hiltViewModel())
+    AddToPlaylistSheetRoute(request = request, onDismiss = onDismiss, modifier = modifier, viewModel = hiltViewModel())
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AddToPlaylistSheetRoute(
-    trackIds: List<Long>,
+    request: AddToPlaylistRequest,
     onDismiss: () -> Unit,
     modifier: Modifier,
     viewModel: AddToPlaylistViewModel,
@@ -46,9 +46,10 @@ internal fun AddToPlaylistSheetRoute(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     val currentOnDismiss by rememberUpdatedState(onDismiss)
+    val currentRequest by rememberUpdatedState(request)
 
-    LaunchedEffect(trackIds) {
-        viewModel.onIntent(AddToPlaylistIntent.Opened(trackIds))
+    LaunchedEffect(request) {
+        viewModel.onIntent(AddToPlaylistIntent.Opened(request))
     }
     DisposableEffect(viewModel) {
         onDispose { viewModel.onIntent(AddToPlaylistIntent.Dismissed) }
@@ -56,7 +57,9 @@ internal fun AddToPlaylistSheetRoute(
 
     viewModel.effects.CollectEffects { effect ->
         Toast.makeText(context, effect.message(context), Toast.LENGTH_SHORT).show()
-        scope.launch { sheetState.hide() }.invokeOnCompletion { currentOnDismiss() }
+        if (effect.token == currentRequest.token) {
+            scope.launch { sheetState.hide() }.invokeOnCompletion { currentOnDismiss() }
+        }
     }
 
     AddToPlaylistSheet(
@@ -74,7 +77,7 @@ private fun AddToPlaylistEffect.message(context: Context): String = when (this) 
         playlistName,
     )
     is AddToPlaylistEffect.Created -> context.getString(R.string.playlists_sheet_created, playlistName)
-    AddToPlaylistEffect.Failed -> context.getString(R.string.playlists_sheet_failed)
+    is AddToPlaylistEffect.Failed -> context.getString(R.string.playlists_sheet_failed)
 }
 
 @Preview(widthDp = 390)
@@ -84,6 +87,7 @@ private fun AddToPlaylistContentPreview() {
         Box(modifier = Modifier.background(NavoTheme.colors.raised)) {
             AddToPlaylistContent(
                 state = AddToPlaylistState(
+                    token = 1,
                     trackIds = listOf(1),
                     isLoading = false,
                     playlists = listOf(

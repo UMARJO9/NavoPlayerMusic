@@ -1,6 +1,7 @@
 package tj.umar.navoplayer.feature.playlists.addto
 
 import app.cash.turbine.test
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -31,9 +32,13 @@ class AddToPlaylistViewModelTest {
         createPlaylist = CreatePlaylistUseCase(playlists),
     )
 
-    private suspend fun opened(vararg trackIds: Long) {
-        viewModel.onIntent(AddToPlaylistIntent.Opened(trackIds.toList()))
+    private var nextToken = 1L
+
+    private suspend fun opened(vararg trackIds: Long): AddToPlaylistRequest {
+        val request = AddToPlaylistRequest(nextToken++, trackIds.toList())
+        viewModel.onIntent(AddToPlaylistIntent.Opened(request))
         tracks.emit(TestTracks.tracks)
+        return request
     }
 
     @Test
@@ -52,7 +57,7 @@ class AddToPlaylistViewModelTest {
 
         viewModel.effects.test {
             viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
-            assertEquals(AddToPlaylistEffect.Added(TestPlaylists.morning.name, 1), awaitItem())
+            assertEquals(AddToPlaylistEffect.Added(1, TestPlaylists.morning.name, 1), awaitItem())
         }
         assertTrue(TestTracks.beta.id in playlists.current.single { it.id == TestPlaylists.morning.id }.trackIds)
         assertFalse(viewModel.state.value.isSaving)
@@ -64,7 +69,7 @@ class AddToPlaylistViewModelTest {
 
         viewModel.effects.test {
             viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
-            assertEquals(AddToPlaylistEffect.Added(TestPlaylists.morning.name, 0), awaitItem())
+            assertEquals(AddToPlaylistEffect.Added(1, TestPlaylists.morning.name, 0), awaitItem())
         }
     }
 
@@ -77,7 +82,7 @@ class AddToPlaylistViewModelTest {
 
         viewModel.effects.test {
             viewModel.onIntent(AddToPlaylistIntent.NewPlaylistConfirmed("  Дорога "))
-            assertEquals(AddToPlaylistEffect.Created("Дорога"), awaitItem())
+            assertEquals(AddToPlaylistEffect.Created(1, "Дорога"), awaitItem())
         }
         assertFalse(viewModel.state.value.isNameDialogVisible)
         assertEquals(listOf(TestTracks.beta.id), playlists.current.single { it.name == "Дорога" }.trackIds)
@@ -100,9 +105,9 @@ class AddToPlaylistViewModelTest {
 
         viewModel.effects.test {
             viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
-            assertEquals(AddToPlaylistEffect.Failed, awaitItem())
+            assertEquals(AddToPlaylistEffect.Failed(1), awaitItem())
             viewModel.onIntent(AddToPlaylistIntent.NewPlaylistConfirmed("Дорога"))
-            assertEquals(AddToPlaylistEffect.Failed, awaitItem())
+            assertEquals(AddToPlaylistEffect.Failed(1), awaitItem())
         }
     }
 
@@ -139,5 +144,50 @@ class AddToPlaylistViewModelTest {
         playlists.createPlaylist("Новый", emptyList())
 
         assertEquals(2, viewModel.state.value.playlists.size)
+    }
+
+    @Test
+    fun `reopening same request keeps dialog and saving state`() = runTest {
+        val request = opened(TestTracks.beta.id)
+        viewModel.onIntent(AddToPlaylistIntent.NewPlaylistClicked)
+        viewModel.onIntent(AddToPlaylistIntent.Dismissed)
+
+        viewModel.onIntent(AddToPlaylistIntent.Opened(request))
+
+        assertTrue(viewModel.state.value.isNameDialogVisible)
+        assertEquals(listOf(TestTracks.beta.id), viewModel.state.value.trackIds)
+    }
+
+    @Test
+    fun `second tap while saving writes once`() = runTest {
+        opened(TestTracks.beta.id)
+        val gate = CompletableDeferred<Unit>()
+        playlists.writeGate = gate
+
+        viewModel.effects.test {
+            viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
+            viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
+            viewModel.onIntent(AddToPlaylistIntent.NewPlaylistConfirmed("Дорога"))
+            gate.complete(Unit)
+            assertEquals(AddToPlaylistEffect.Added(1, TestPlaylists.morning.name, 1), awaitItem())
+            expectNoEvents()
+        }
+        assertEquals(1, playlists.writeCalls)
+    }
+
+    @Test
+    fun `result of previous opening is dropped`() = runTest {
+        opened(TestTracks.beta.id)
+        val gate = CompletableDeferred<Unit>()
+        playlists.writeGate = gate
+        viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
+
+        opened(TestTracks.longMix.id)
+
+        viewModel.effects.test {
+            gate.complete(Unit)
+            expectNoEvents()
+        }
+        assertFalse(viewModel.state.value.isSaving)
     }
 }

@@ -1,5 +1,6 @@
 package tj.umar.navoplayer.core.testing.repository
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -22,6 +23,11 @@ class FakePlaylistRepository(initial: List<Playlist> = emptyList()) : PlaylistRe
     var observeError: Throwable? = null
 
     var writeError: Throwable? = null
+
+    var writeGate: CompletableDeferred<Unit>? = null
+
+    var writeCalls: Int = 0
+        private set
 
     val current: List<Playlist>
         get() = playlists.value
@@ -80,7 +86,9 @@ class FakePlaylistRepository(initial: List<Playlist> = emptyList()) : PlaylistRe
         return true
     }
 
-    private fun failIfNeeded() {
+    private suspend fun failIfNeeded() {
+        writeCalls++
+        writeGate?.await()
         writeError?.let { throw it }
     }
 }
