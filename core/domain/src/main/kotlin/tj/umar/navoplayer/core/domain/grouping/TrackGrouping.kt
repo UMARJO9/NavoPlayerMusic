@@ -22,12 +22,13 @@ fun List<Track>.toAlbums(collator: Collator = nameCollator()): List<Album> {
     val trackOrder = albumTrackOrder(CollationKeys(collator))
     return groupBy { it.groupKey(TrackGroupType.Album) }
         .map { (key, tracks) ->
+            val taggedArtist = tracks.firstNotNullOfOrNull { it.albumArtist }
             val artists = tracks.mapNotNull { it.artist }.distinct()
             Album(
                 key = key,
                 title = tracks.firstNotNullOfOrNull { it.album },
-                artist = artists.singleOrNull(),
-                hasVariousArtists = artists.size > 1,
+                artist = taggedArtist ?: artists.singleOrNull(),
+                hasVariousArtists = taggedArtist == null && artists.size > 1,
                 tracks = tracks.sortedWith(trackOrder),
             )
         }

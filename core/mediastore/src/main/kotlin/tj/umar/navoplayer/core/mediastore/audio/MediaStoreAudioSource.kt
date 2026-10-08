@@ -81,6 +81,7 @@ internal class MediaStoreAudioSource @Inject constructor(
         private val track = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TRACK)
         private val relativePath = cursor.getColumnIndex(RELATIVE_PATH_COLUMN)
         private val dataPath = cursor.getColumnIndex(DATA_COLUMN)
+        private val albumArtist = cursor.getColumnIndex(ALBUM_ARTIST_COLUMN)
 
         fun read(cursor: Cursor): MediaStoreAudioRow {
             val rowId = cursor.getLong(id)
@@ -97,6 +98,7 @@ internal class MediaStoreAudioSource @Inject constructor(
                 contentUri = ContentUris.withAppendedId(collection, rowId).toString(),
                 relativePath = cursor.optionalString(relativePath),
                 dataPath = cursor.optionalString(dataPath),
+                albumArtist = cursor.optionalString(albumArtist),
             )
         }
     }
@@ -105,6 +107,7 @@ internal class MediaStoreAudioSource @Inject constructor(
         const val CANCELLATION_CHECK_INTERVAL = 200
         const val RELATIVE_PATH_COLUMN = "relative_path"
         const val DATA_COLUMN = "_data"
+        const val ALBUM_ARTIST_COLUMN = "album_artist"
 
         val BASE_PROJECTION = arrayOf(
             MediaStore.Audio.Media._ID,
@@ -118,12 +121,11 @@ internal class MediaStoreAudioSource @Inject constructor(
             MediaStore.Audio.Media.TRACK,
         )
 
-        fun projection(): Array<String> =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                BASE_PROJECTION + RELATIVE_PATH_COLUMN
-            } else {
-                BASE_PROJECTION + DATA_COLUMN
-            }
+        fun projection(): Array<String> {
+            val location = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) RELATIVE_PATH_COLUMN else DATA_COLUMN
+            val withLocation = BASE_PROJECTION + location
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) withLocation + ALBUM_ARTIST_COLUMN else withLocation
+        }
 
         fun audioCollection(): Uri =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

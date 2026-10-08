@@ -165,4 +165,14 @@ class TrackGroupingTest {
 
         assertEquals(listOf("Download/Rock", "Music/Rock"), folders.map { it.path })
     }
+
+    @Test
+    fun `album artist tag wins over track artists`() {
+        val tagged = listOf(TestTracks.alpha, TestTracks.alphaTwo).map { it.copy(albumArtist = "Navo Band") }
+
+        val album = tagged.toAlbums(collator).single()
+
+        assertEquals("Navo Band", album.artist)
+        assertFalse(album.hasVariousArtists)
+    }
 }

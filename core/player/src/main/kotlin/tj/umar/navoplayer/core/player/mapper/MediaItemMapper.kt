@@ -21,6 +21,7 @@ internal fun Track.toMediaItem(): MediaItem {
         .setTitle(title)
         .setArtist(artist)
         .setAlbumTitle(album)
+        .setAlbumArtist(albumArtist)
         .setTrackNumber(trackNumber)
         .setDiscNumber(discNumber)
         .setDurationMs(durationMs)
@@ -49,6 +50,7 @@ internal fun MediaItem.toTrack(): Track {
         contentUri = uri?.toString().orEmpty(),
         folderPath = extras?.getString(EXTRA_FOLDER_PATH),
         discNumber = mediaMetadata.discNumber,
+        albumArtist = mediaMetadata.albumArtist?.toString(),
     )
 }
 

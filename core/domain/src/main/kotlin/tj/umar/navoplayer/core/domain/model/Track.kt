@@ -12,4 +12,5 @@ data class Track(
     val contentUri: String,
     val folderPath: String?,
     val discNumber: Int?,
+    val albumArtist: String?,
 )

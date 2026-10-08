@@ -36,6 +36,7 @@ class TrackMapperTest {
             contentUri = "content://media/external/audio/media/7",
             folderPath = "Music/Navo",
             discNumber = null,
+            albumArtist = null,
         )
         assertEquals(expected, row.toTrack())
     }
@@ -106,5 +107,11 @@ class TrackMapperTest {
     @Test
     fun `relative path wins over data path`() {
         assertEquals("Music/New", folderPathOf("Music/New/", "/storage/emulated/0/Old/a.mp3"))
+    }
+
+    @Test
+    fun `album artist tag is cleaned`() {
+        assertEquals("Navo Band", row.copy(albumArtist = " Navo Band ").toTrack().albumArtist)
+        assertNull(row.copy(albumArtist = "<unknown>").toTrack().albumArtist)
     }
 }
