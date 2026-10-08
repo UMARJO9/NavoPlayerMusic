@@ -36,6 +36,7 @@ fun NavoChip(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    role: Role = Role.Tab,
 ) {
     val colors = NavoTheme.colors
     val interactionSource = remember { MutableInteractionSource() }
@@ -56,7 +57,7 @@ fun NavoChip(
                 selected = selected,
                 interactionSource = interactionSource,
                 indication = null,
-                role = Role.Tab,
+                role = role,
                 onClick = onClick,
             ),
         contentAlignment = Alignment.Center,
