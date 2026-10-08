@@ -11,7 +11,10 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.navOptions
+import tj.umar.navoplayer.feature.library.navigation.GroupDetailDestination
 import tj.umar.navoplayer.feature.library.navigation.LibraryDestination
+import tj.umar.navoplayer.feature.library.navigation.groupDetailScreen
+import tj.umar.navoplayer.feature.library.navigation.navigateToGroupDetail
 import tj.umar.navoplayer.feature.library.navigation.navigateToLibrary
 import tj.umar.navoplayer.feature.library.navigation.libraryScreen
 import tj.umar.navoplayer.feature.player.navigation.NowPlayingDestination
@@ -61,6 +64,22 @@ fun NavoNavHost(
             },
         )
         libraryScreen(
+            onAudioPermissionMissing = {
+                navController.navigateToWelcome(
+                    navOptions {
+                        popUpTo<LibraryDestination> { inclusive = true }
+                        launchSingleTop = true
+                    },
+                )
+            },
+            onGroupClick = navController::navigateToGroupDetail,
+        )
+        groupDetailScreen(
+            onBack = {
+                if (navController.currentDestination?.hasRoute<GroupDetailDestination>() == true) {
+                    navController.popBackStack()
+                }
+            },
             onAudioPermissionMissing = {
                 navController.navigateToWelcome(
                     navOptions {

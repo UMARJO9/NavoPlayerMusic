@@ -15,7 +15,7 @@ import tj.umar.navoplayer.core.ui.permission.hasAudioReadPermission
 @Composable
 internal fun LibraryRoute(
     onAudioPermissionMissing: () -> Unit,
-    onGroupClick: (TrackGroupKey) -> Unit = {},
+    onGroupClick: (TrackGroupKey) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
