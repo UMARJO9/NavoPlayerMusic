@@ -1,6 +1,6 @@
 package tj.umar.navoplayer.feature.player.nowplaying
 
-import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animate
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -27,9 +27,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,7 +47,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
 import tj.umar.navoplayer.core.designsystem.component.NavoSlider
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
@@ -77,28 +76,27 @@ internal fun NowPlayingScreen(
     modifier: Modifier = Modifier,
 ) {
     val colors = NavoTheme.colors
-    val scope = rememberCoroutineScope()
     val density = LocalDensity.current
-    val dragOffset = remember { Animatable(0f) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
     var screenHeightPx by remember { mutableIntStateOf(0) }
     Box(
         modifier = modifier
             .fillMaxSize()
             .onSizeChanged { screenHeightPx = it.height }
-            .offset { IntOffset(0, dragOffset.value.roundToInt()) }
+            .offset { IntOffset(0, dragOffset.roundToInt()) }
             .background(colors.background)
             .draggable(
                 orientation = Orientation.Vertical,
                 state = rememberDraggableState { delta ->
-                    scope.launch { dragOffset.snapTo((dragOffset.value + delta).coerceAtLeast(0f)) }
+                    dragOffset = (dragOffset + delta).coerceAtLeast(0f)
                 },
                 onDragStopped = { velocity ->
                     val threshold = screenHeightPx * COLLAPSE_DISTANCE_FRACTION
                     val fastFling = velocity > with(density) { CollapseVelocity.toPx() }
-                    if (dragOffset.value > threshold || fastFling) {
+                    if (dragOffset > threshold || fastFling) {
                         onIntent(NowPlayingIntent.CollapseClicked)
                     } else {
-                        dragOffset.animateTo(0f)
+                        animate(initialValue = dragOffset, targetValue = 0f) { value, _ -> dragOffset = value }
                     }
                 },
             ),
