@@ -6,12 +6,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import tj.umar.navoplayer.core.domain.model.Track
+import tj.umar.navoplayer.core.domain.model.totalDurationMinutes
 import tj.umar.navoplayer.core.domain.usecase.ObserveTracksUseCase
 import tj.umar.navoplayer.core.ui.mvi.MviViewModel
 import javax.inject.Inject
-
-private const val MILLIS_PER_MINUTE = 60_000L
 
 @HiltViewModel
 internal class LibraryViewModel @Inject constructor(
@@ -52,7 +50,7 @@ internal class LibraryViewModel @Inject constructor(
         tracksJob = observeTracks()
             .onEach { tracks ->
                 setState {
-                    copy(tracks = tracks, totalMinutes = tracks.totalMinutes(), isLoadingTracks = false)
+                    copy(tracks = tracks, totalMinutes = tracks.totalDurationMinutes(), isLoadingTracks = false)
                 }
             }
             .catch { setState { copy(isLoadingTracks = false, tracksLoadFailed = true) } }
@@ -64,6 +62,3 @@ internal class LibraryViewModel @Inject constructor(
         tracksJob = null
     }
 }
-
-private fun List<Track>.totalMinutes(): Int =
-    ((sumOf { it.durationMs } + MILLIS_PER_MINUTE / 2) / MILLIS_PER_MINUTE).toInt()
