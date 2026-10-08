@@ -6,4 +6,6 @@ fun List<Track>.totalDurationMinutes(): Int = sumOf { it.durationMs }.toRoundedM
 
 fun PlaylistSummary.durationMinutes(): Int = durationMs.toRoundedMinutes()
 
+fun FavoritesSummary.durationMinutes(): Int = durationMs.toRoundedMinutes()
+
 private fun Long.toRoundedMinutes(): Int = ((this + MILLIS_PER_MINUTE / 2) / MILLIS_PER_MINUTE).toInt()
