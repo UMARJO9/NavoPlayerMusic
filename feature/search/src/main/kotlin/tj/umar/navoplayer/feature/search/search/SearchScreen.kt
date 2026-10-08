@@ -3,14 +3,12 @@ package tj.umar.navoplayer.feature.search.search
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -38,9 +36,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import kotlinx.coroutines.flow.filter
 import tj.umar.navoplayer.core.designsystem.component.ContentPhase
 import tj.umar.navoplayer.core.designsystem.component.GroupRow
@@ -106,7 +102,9 @@ internal fun SearchScreen(
         }
         PhasedContent(
             phase = state.contentPhase(),
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding(),
             empty = {
                 if (state.phase == SearchPhase.NoResults) {
                     StateMessage(
@@ -127,7 +125,14 @@ internal fun SearchScreen(
                 )
             },
         ) {
-            SearchResultsList(state = state, onIntent = onIntent, onScroll = { keyboard?.hide() })
+            SearchResultsList(
+                state = state,
+                onIntent = { intent ->
+                    keyboard?.hide()
+                    onIntent(intent)
+                },
+                onScroll = { keyboard?.hide() },
+            )
         }
     }
 }
@@ -145,24 +150,24 @@ private fun SearchResultsList(state: SearchState, onIntent: (SearchIntent) -> Un
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrollInProgress }.filter { it }.collect { onScroll() }
     }
-    val listPadding = navoListPadding(state.hasActivePlayback)
-    val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
+    LaunchedEffect(state.resultsQuery) {
+        listState.scrollToItem(0)
+    }
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = listPadding.calculateLeftPadding(LayoutDirection.Ltr),
-            top = listPadding.calculateTopPadding(),
-            end = listPadding.calculateRightPadding(LayoutDirection.Ltr),
-            bottom = max(listPadding.calculateBottomPadding(), imeBottom),
-        ),
+        contentPadding = navoListPadding(state.hasActivePlayback),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         groupSection("artists", R.string.search_section_artists, state.artists, state.artistCount, onIntent)
         groupSection("albums", R.string.search_section_albums, state.albums, state.albumCount, onIntent)
         if (state.tracks.isNotEmpty()) {
             item(key = "header:tracks", contentType = "header") {
-                SectionHeader(title = stringResource(R.string.search_section_tracks), count = state.tracks.size)
+                SectionHeader(
+                    title = stringResource(R.string.search_section_tracks),
+                    count = state.tracks.size,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                )
             }
             items(state.tracks, key = { "t:${it.id}" }, contentType = { "track" }) { track ->
                 TrackListItem(
@@ -200,12 +205,12 @@ private fun LazyListScope.groupSection(
 }
 
 @Composable
-private fun SectionHeader(title: String, count: Int) {
+private fun SectionHeader(title: String, count: Int, modifier: Modifier = Modifier) {
     Text(
         text = stringResource(R.string.search_section_count, title, count),
         style = NavoTheme.typography.titleS,
         color = NavoTheme.colors.content,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(start = NavoSummaryHorizontalPadding, end = NavoSummaryHorizontalPadding, top = 16.dp, bottom = 6.dp)
             .semantics { heading() },
