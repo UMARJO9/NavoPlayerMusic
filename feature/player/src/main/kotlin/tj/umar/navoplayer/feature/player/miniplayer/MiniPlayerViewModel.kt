@@ -3,6 +3,7 @@ package tj.umar.navoplayer.feature.player.miniplayer
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -37,11 +38,13 @@ internal class MiniPlayerViewModel @Inject constructor(
                 .onEach { playback ->
                     setState { copy(track = playback.currentTrack, isPlaying = playback.isPlaying) }
                 }
+                .catch { }
                 .launchIn(viewModelScope)
         }
         if (progressJob?.isActive != true) {
             progressJob = observePlaybackProgress()
                 .onEach { progress -> setState { copy(progress = progress.fraction) } }
+                .catch { }
                 .launchIn(viewModelScope)
         }
     }

@@ -3,6 +3,7 @@ package tj.umar.navoplayer.feature.player.nowplaying
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -57,10 +58,10 @@ internal class NowPlayingViewModel @Inject constructor(
 
     private fun startObserving() {
         if (stateJob?.isActive != true) {
-            stateJob = observePlaybackState().onEach(::onPlaybackState).launchIn(viewModelScope)
+            stateJob = observePlaybackState().onEach(::onPlaybackState).catch { }.launchIn(viewModelScope)
         }
         if (progressJob?.isActive != true) {
-            progressJob = observePlaybackProgress().onEach(::onProgress).launchIn(viewModelScope)
+            progressJob = observePlaybackProgress().onEach(::onProgress).catch { }.launchIn(viewModelScope)
         }
     }
 

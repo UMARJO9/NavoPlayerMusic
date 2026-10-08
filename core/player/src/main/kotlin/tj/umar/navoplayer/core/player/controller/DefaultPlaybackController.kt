@@ -1,20 +1,26 @@
 package tj.umar.navoplayer.core.player.controller
 
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
+import androidx.media3.session.MediaController
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.withContext
 import tj.umar.navoplayer.core.common.coroutines.ApplicationScope
@@ -31,7 +37,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.random.Random
 
+private const val TAG = "PlaybackController"
 private const val STOP_SHARING_DELAY_MILLIS = 5_000L
+private const val MAX_CONNECT_RETRIES = 3L
+private const val RETRY_BACKOFF_MILLIS = 1_000L
 
 @Singleton
 internal class DefaultPlaybackController @Inject constructor(
@@ -42,13 +51,23 @@ internal class DefaultPlaybackController @Inject constructor(
 
     private val source = MutableStateFlow<PlaybackSource?>(null)
 
+    private val sharing = SharingStarted.WhileSubscribed(
+        stopTimeoutMillis = STOP_SHARING_DELAY_MILLIS,
+        replayExpirationMillis = 0,
+    )
+
     private val playbackState: Flow<PlaybackState> = connection
         .withController { controller ->
             controller.events { _, _ -> true }
                 .combine(source) { _, currentSource -> controller.toPlaybackState(currentSource) }
         }
+        .retryConnecting()
+        .catch { failure ->
+            Log.w(TAG, "Playback state unavailable", failure)
+            emit(PlaybackState.Empty)
+        }
         .distinctUntilChanged()
-        .shareIn(scope, SharingStarted.WhileSubscribed(STOP_SHARING_DELAY_MILLIS), replay = 1)
+        .shareIn(scope, sharing, replay = 1)
 
     private val progress: Flow<PlaybackProgress> = connection
         .withController { controller ->
@@ -63,8 +82,13 @@ internal class DefaultPlaybackController @Inject constructor(
             }.map { controller.isPlaying }
             progressTicks(playingChanges).map { controller.toProgress() }
         }
+        .retryConnecting()
+        .catch { failure ->
+            Log.w(TAG, "Playback progress unavailable", failure)
+            emit(PlaybackProgress.Zero)
+        }
         .distinctUntilChanged()
-        .shareIn(scope, SharingStarted.WhileSubscribed(STOP_SHARING_DELAY_MILLIS), replay = 1)
+        .shareIn(scope, sharing, replay = 1)
 
     override fun observePlaybackState(): Flow<PlaybackState> = playbackState
 
@@ -72,9 +96,9 @@ internal class DefaultPlaybackController @Inject constructor(
 
     override suspend fun play(queue: List<Track>, startIndex: Int, source: PlaybackSource) {
         val items = withContext(defaultDispatcher) { queue.map { it.toMediaItem() } }
-        this.source.value = source
-        connection.command { controller ->
+        runCommand { controller ->
             controller.setMediaItems(items, startIndex, 0L)
+            this.source.value = source
             controller.prepare()
             controller.play()
         }
@@ -82,11 +106,11 @@ internal class DefaultPlaybackController @Inject constructor(
 
     override suspend fun playShuffled(queue: List<Track>, source: PlaybackSource) {
         val items = withContext(defaultDispatcher) { queue.map { it.toMediaItem() } }
-        this.source.value = source
         val startIndex = Random.nextInt(items.size)
-        connection.command { controller ->
+        runCommand { controller ->
             controller.shuffleModeEnabled = true
             controller.setMediaItems(items, startIndex, 0L)
+            this.source.value = source
             controller.prepare()
             controller.play()
         }
@@ -94,27 +118,46 @@ internal class DefaultPlaybackController @Inject constructor(
 
     @OptIn(UnstableApi::class)
     override suspend fun togglePlayPause() {
-        connection.command { controller -> Util.handlePlayPauseButtonAction(controller) }
+        runCommand { controller -> Util.handlePlayPauseButtonAction(controller) }
     }
 
     override suspend fun skipToNext() {
-        connection.command { controller -> controller.seekToNext() }
+        runCommand { controller -> controller.seekToNext() }
     }
 
     override suspend fun skipToPrevious() {
-        connection.command { controller -> controller.seekToPrevious() }
+        runCommand { controller -> controller.seekToPrevious() }
     }
 
     override suspend fun seekTo(positionMs: Long) {
-        connection.command { controller -> controller.seekTo(positionMs) }
+        runCommand { controller -> controller.seekTo(positionMs) }
     }
 
     override suspend fun setShuffleEnabled(enabled: Boolean) {
-        connection.command { controller -> controller.shuffleModeEnabled = enabled }
+        runCommand { controller -> controller.shuffleModeEnabled = enabled }
     }
 
     override suspend fun setRepeatMode(mode: RepeatMode) {
-        connection.command { controller -> controller.repeatMode = mode.toPlayerRepeatMode() }
+        runCommand { controller -> controller.repeatMode = mode.toPlayerRepeatMode() }
+    }
+
+    private suspend fun runCommand(block: (MediaController) -> Unit) {
+        try {
+            connection.command(block)
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (failure: Exception) {
+            Log.w(TAG, "Playback command failed", failure)
+        }
+    }
+}
+
+private fun <T> Flow<T>.retryConnecting(): Flow<T> = retryWhen { cause, attempt ->
+    if (cause is CancellationException || attempt >= MAX_CONNECT_RETRIES) {
+        false
+    } else {
+        delay(RETRY_BACKOFF_MILLIS * (attempt + 1))
+        true
     }
 }
 

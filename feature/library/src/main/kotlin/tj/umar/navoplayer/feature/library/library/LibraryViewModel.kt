@@ -97,6 +97,7 @@ internal class LibraryViewModel @Inject constructor(
             .onEach { playback ->
                 setState { copy(currentTrackId = playback.currentTrack?.id, isPlaying = playback.isPlaying) }
             }
+            .catch { }
             .launchIn(viewModelScope)
     }
 
