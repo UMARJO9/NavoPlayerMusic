@@ -64,4 +64,11 @@ class LibraryFilterTest {
         assertEquals(MinTrackDuration.ThirtySeconds, MinTrackDuration.fromSeconds(30))
         assertEquals(MinTrackDuration.Off, MinTrackDuration.fromSeconds(42))
     }
+
+    @Test
+    fun `excluded folder without tracks stays listed`() {
+        val folders = listOf(song).toLibraryFolders(excluded = setOf("Old/Gone"))
+
+        assertEquals(LibraryFolder("Old/Gone", "Gone", 0, isExcluded = true), folders.first())
+    }
 }

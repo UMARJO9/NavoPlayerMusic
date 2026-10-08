@@ -30,10 +30,10 @@ fun UserSettings.toLibraryFilter(): LibraryFilter =
 fun List<Track>.filteredBy(filter: LibraryFilter): List<Track> =
     if (filter.isNoOp) this else filter(filter::accepts)
 
-fun List<Track>.toLibraryFolders(excluded: Set<String>, collator: Collator = nameCollator()): List<LibraryFolder> =
-    mapNotNull { it.folderPath }
-        .groupingBy { it }
-        .eachCount()
+fun List<Track>.toLibraryFolders(excluded: Set<String>, collator: Collator = nameCollator()): List<LibraryFolder> {
+    val counts = mapNotNull { it.folderPath }.groupingBy { it }.eachCount()
+    val emptyExcluded = (excluded - counts.keys).associateWith { 0 }
+    return (counts + emptyExcluded)
         .map { (path, count) ->
             LibraryFolder(
                 path = path,
@@ -43,6 +43,7 @@ fun List<Track>.toLibraryFolders(excluded: Set<String>, collator: Collator = nam
             )
         }
         .sortedWith(compareBy(collator) { it.name })
+}
 
 data class TrackCatalog(
     val tracksById: Map<Long, Track>,
