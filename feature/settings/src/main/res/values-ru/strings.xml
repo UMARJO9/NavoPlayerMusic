@@ -19,4 +19,5 @@
     <string name="settings_folders_error">Не удалось загрузить папки</string>
     <string name="settings_folders_retry">Повторить</string>
     <string name="settings_about_subtitle">Версия %1$s\nОфлайн-плеер, без интернета</string>
+    <string name="settings_load_error">Не удалось загрузить настройки</string>
 </resources>

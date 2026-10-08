@@ -7,6 +7,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import tj.umar.navoplayer.core.ui.mvi.CollectEffects
 import tj.umar.navoplayer.feature.settings.R
@@ -24,6 +25,11 @@ internal fun SettingsRoute(
     val currentOnBack by rememberUpdatedState(onBack)
     val currentOnHiddenFoldersClick by rememberUpdatedState(onHiddenFoldersClick)
     val currentOnLicensesClick by rememberUpdatedState(onLicensesClick)
+
+    LifecycleStartEffect(Unit) {
+        viewModel.onIntent(SettingsIntent.ScreenStarted)
+        onStopOrDispose { viewModel.onIntent(SettingsIntent.ScreenStopped) }
+    }
 
     viewModel.effects.CollectEffects { effect ->
         when (effect) {

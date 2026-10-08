@@ -6,6 +6,7 @@ import tj.umar.navoplayer.core.domain.model.MinTrackDuration
 @Immutable
 internal data class SettingsState(
     val isLoading: Boolean = true,
+    val loadFailed: Boolean = false,
     val minTrackDuration: MinTrackDuration = MinTrackDuration.Off,
     val hiddenFolderCount: Int = 0,
     val pauseOnHeadphonesDisconnect: Boolean = true,
@@ -16,6 +17,9 @@ internal data class SettingsState(
 }
 
 internal sealed interface SettingsIntent {
+    data object ScreenStarted : SettingsIntent
+    data object ScreenStopped : SettingsIntent
+    data object RetryLoad : SettingsIntent
     data class MinTrackDurationSelected(val value: MinTrackDuration) : SettingsIntent
     data class PauseOnHeadphonesDisconnectToggled(val enabled: Boolean) : SettingsIntent
     data object HiddenFoldersClicked : SettingsIntent

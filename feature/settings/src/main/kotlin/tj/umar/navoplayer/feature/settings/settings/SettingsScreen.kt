@@ -30,13 +30,17 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import tj.umar.navoplayer.core.designsystem.component.ContentPhase
 import tj.umar.navoplayer.core.designsystem.component.NavoChip
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
+import tj.umar.navoplayer.core.designsystem.component.PhasedContent
 import tj.umar.navoplayer.core.designsystem.component.SettingsInfoRow
 import tj.umar.navoplayer.core.designsystem.component.SettingsNavigationRow
 import tj.umar.navoplayer.core.designsystem.component.SettingsSectionHeader
 import tj.umar.navoplayer.core.designsystem.component.SettingsSwitchRow
+import tj.umar.navoplayer.core.designsystem.component.StateMessage
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
+import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.MinTrackDuration
@@ -55,44 +59,61 @@ internal fun SettingsScreen(
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)),
     ) {
         SettingsTopBar(title = stringResource(R.string.settings_title), onBack = { onIntent(SettingsIntent.BackClicked) })
-        LazyColumn(
+        PhasedContent(
+            phase = when {
+                state.isLoading -> ContentPhase.Loading
+                state.loadFailed -> ContentPhase.Error
+                else -> ContentPhase.Content
+            },
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 24.dp),
+            error = {
+                StateMessage(
+                    message = stringResource(R.string.settings_load_error),
+                    palette = MedallionPalettes.all[0],
+                    actionLabel = stringResource(R.string.settings_folders_retry),
+                    onAction = { onIntent(SettingsIntent.RetryLoad) },
+                )
+            },
         ) {
-            item(key = "library") { SettingsSectionHeader(title = stringResource(R.string.settings_section_library)) }
-            item(key = "duration") { DurationSetting(state = state, onIntent = onIntent) }
-            item(key = "folders") {
-                SettingsNavigationRow(
-                    title = stringResource(R.string.settings_hidden_folders_title),
-                    subtitle = if (state.hiddenFolderCount == 0) {
-                        stringResource(R.string.settings_hidden_folders_none)
-                    } else {
-                        pluralStringResource(R.plurals.settings_hidden_folders_count, state.hiddenFolderCount, state.hiddenFolderCount)
-                    },
-                    onClick = { onIntent(SettingsIntent.HiddenFoldersClicked) },
-                )
-            }
-            item(key = "playback") { SettingsSectionHeader(title = stringResource(R.string.settings_section_playback)) }
-            item(key = "headphones") {
-                SettingsSwitchRow(
-                    title = stringResource(R.string.settings_pause_on_disconnect_title),
-                    subtitle = stringResource(R.string.settings_pause_on_disconnect_subtitle),
-                    checked = state.pauseOnHeadphonesDisconnect,
-                    onCheckedChange = { onIntent(SettingsIntent.PauseOnHeadphonesDisconnectToggled(it)) },
-                )
-            }
-            item(key = "about") { SettingsSectionHeader(title = stringResource(R.string.settings_section_about)) }
-            item(key = "app") {
-                SettingsInfoRow(
-                    title = stringResource(R.string.settings_about_app_name),
-                    subtitle = stringResource(R.string.settings_about_subtitle, state.versionName),
-                )
-            }
-            item(key = "licenses") {
-                SettingsNavigationRow(
-                    title = stringResource(R.string.settings_licenses_title),
-                    onClick = { onIntent(SettingsIntent.LicensesClicked) },
-                )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 24.dp),
+            ) {
+                item(key = "library") { SettingsSectionHeader(title = stringResource(R.string.settings_section_library)) }
+                item(key = "duration") { DurationSetting(state = state, onIntent = onIntent) }
+                item(key = "folders") {
+                    SettingsNavigationRow(
+                        title = stringResource(R.string.settings_hidden_folders_title),
+                        subtitle = if (state.hiddenFolderCount == 0) {
+                            stringResource(R.string.settings_hidden_folders_none)
+                        } else {
+                            pluralStringResource(R.plurals.settings_hidden_folders_count, state.hiddenFolderCount, state.hiddenFolderCount)
+                        },
+                        onClick = { onIntent(SettingsIntent.HiddenFoldersClicked) },
+                    )
+                }
+                item(key = "playback") { SettingsSectionHeader(title = stringResource(R.string.settings_section_playback)) }
+                item(key = "headphones") {
+                    SettingsSwitchRow(
+                        title = stringResource(R.string.settings_pause_on_disconnect_title),
+                        subtitle = stringResource(R.string.settings_pause_on_disconnect_subtitle),
+                        checked = state.pauseOnHeadphonesDisconnect,
+                        onCheckedChange = { onIntent(SettingsIntent.PauseOnHeadphonesDisconnectToggled(it)) },
+                    )
+                }
+                item(key = "about") { SettingsSectionHeader(title = stringResource(R.string.settings_section_about)) }
+                item(key = "app") {
+                    SettingsInfoRow(
+                        title = stringResource(R.string.settings_about_app_name),
+                        subtitle = stringResource(R.string.settings_about_subtitle, state.versionName),
+                    )
+                }
+                item(key = "licenses") {
+                    SettingsNavigationRow(
+                        title = stringResource(R.string.settings_licenses_title),
+                        onClick = { onIntent(SettingsIntent.LicensesClicked) },
+                    )
+                }
             }
         }
     }

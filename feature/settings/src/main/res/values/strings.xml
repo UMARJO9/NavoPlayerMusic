@@ -20,4 +20,5 @@
     <string name="settings_folders_error">Couldn’t load folders</string>
     <string name="settings_folders_retry">Try again</string>
     <string name="settings_about_subtitle">Version %1$s\nOffline player, no internet</string>
+    <string name="settings_load_error">Couldn’t load settings</string>
 </resources>

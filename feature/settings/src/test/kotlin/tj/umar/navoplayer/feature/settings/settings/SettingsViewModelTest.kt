@@ -31,7 +31,7 @@ class SettingsViewModelTest {
         getAppInfo = GetAppInfoUseCase(FakeAppInfoProvider("2.1")),
         setMinTrackDuration = SetMinTrackDurationUseCase(settings),
         setPauseOnHeadphonesDisconnect = SetPauseOnHeadphonesDisconnectUseCase(settings),
-    )
+    ).apply { onIntent(SettingsIntent.ScreenStarted) }
 
     @Test
     fun `state comes from settings and app info`() {
@@ -90,12 +90,34 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `settings error falls back to defaults`() {
+    fun `settings error shows retry and blocks writes`() {
         settings.observeError = IllegalStateException("broken")
+        val viewModel = viewModel()
+        assertTrue(viewModel.state.value.loadFailed)
 
-        val state = viewModel().state.value
+        viewModel.onIntent(SettingsIntent.PauseOnHeadphonesDisconnectToggled(true))
+        assertEquals(0, settings.writeCalls)
 
-        assertFalse(state.isLoading)
-        assertTrue(state.pauseOnHeadphonesDisconnect)
+        settings.observeError = null
+        viewModel.onIntent(SettingsIntent.RetryLoad)
+        assertFalse(viewModel.state.value.loadFailed)
+        assertFalse(viewModel.state.value.pauseOnHeadphonesDisconnect)
+    }
+
+    @Test
+    fun `nothing is read before start and after stop`() {
+        val viewModel = SettingsViewModel(
+            observeSettings = ObserveSettingsUseCase(settings),
+            getAppInfo = GetAppInfoUseCase(FakeAppInfoProvider()),
+            setMinTrackDuration = SetMinTrackDurationUseCase(settings),
+            setPauseOnHeadphonesDisconnect = SetPauseOnHeadphonesDisconnectUseCase(settings),
+        )
+        assertEquals(0, settings.observeCalls)
+
+        viewModel.onIntent(SettingsIntent.ScreenStarted)
+        viewModel.onIntent(SettingsIntent.ScreenStopped)
+        settings.emit(UserSettings(excludedFolders = setOf("C")))
+
+        assertEquals(2, viewModel.state.value.hiddenFolderCount)
     }
 }
