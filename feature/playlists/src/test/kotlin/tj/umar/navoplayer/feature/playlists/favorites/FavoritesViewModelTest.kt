@@ -17,6 +17,7 @@ import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.SetFavoriteUseCase
 import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
+import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
 import tj.umar.navoplayer.core.testing.MainDispatcherRule
 import tj.umar.navoplayer.core.testing.data.TestPlaybackStates
 import tj.umar.navoplayer.core.testing.data.TestTracks
@@ -38,7 +39,7 @@ class FavoritesViewModelTest {
     private fun viewModel() = FavoritesViewModel(
         observeFavoriteTracks = ObserveFavoriteTracksUseCase(
             favorites,
-            ObserveTracksUseCase(tracks),
+            ObserveTracksUseCase(tracks, FakeSettingsRepository()),
             mainDispatcherRule.testDispatcher,
         ),
         observePlaybackState = ObservePlaybackStateUseCase(playback),

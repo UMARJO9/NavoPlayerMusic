@@ -19,6 +19,7 @@ import tj.umar.navoplayer.core.domain.usecase.ObserveTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
+import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
 import tj.umar.navoplayer.core.testing.MainDispatcherRule
 import tj.umar.navoplayer.core.testing.data.TestPlaybackStates
 import tj.umar.navoplayer.core.testing.data.TestPlaylists
@@ -40,7 +41,7 @@ class LibraryViewModelTest {
     private val playlistTracks = FakeTrackRepository()
     private val favorites = FakeFavoritesRepository(listOf(TestTracks.alpha.id))
     private val viewModel = LibraryViewModel(
-        observeLibrary = ObserveLibraryUseCase(ObserveTracksUseCase(repository), mainDispatcherRule.testDispatcher),
+        observeLibrary = ObserveLibraryUseCase(ObserveTracksUseCase(repository, FakeSettingsRepository()), mainDispatcherRule.testDispatcher),
         observePlaybackState = ObservePlaybackStateUseCase(playback),
         playTracks = PlayTracksUseCase(playback),
         shufflePlayTracks = ShufflePlayTracksUseCase(playback),
@@ -48,7 +49,7 @@ class LibraryViewModelTest {
         observePlaylistsOverview = ObservePlaylistsOverviewUseCase(
             playlists,
             favorites,
-            ObserveTracksUseCase(playlistTracks),
+            ObserveTracksUseCase(playlistTracks, FakeSettingsRepository()),
             mainDispatcherRule.testDispatcher,
         ),
         createPlaylist = CreatePlaylistUseCase(playlists),

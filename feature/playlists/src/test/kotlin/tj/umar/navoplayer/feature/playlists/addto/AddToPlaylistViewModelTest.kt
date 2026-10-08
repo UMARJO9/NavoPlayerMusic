@@ -15,6 +15,7 @@ import tj.umar.navoplayer.core.domain.usecase.ObserveIsFavoriteUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaylistsUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.SetFavoriteUseCase
+import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
 import tj.umar.navoplayer.core.testing.MainDispatcherRule
 import tj.umar.navoplayer.core.testing.data.TestPlaylists
 import tj.umar.navoplayer.core.testing.data.TestTracks
@@ -32,7 +33,7 @@ class AddToPlaylistViewModelTest {
     private val favorites = FakeFavoritesRepository(listOf(TestTracks.alpha.id))
 
     private val viewModel = AddToPlaylistViewModel(
-        observePlaylists = ObservePlaylistsUseCase(playlists, ObserveTracksUseCase(tracks), mainDispatcherRule.testDispatcher),
+        observePlaylists = ObservePlaylistsUseCase(playlists, ObserveTracksUseCase(tracks, FakeSettingsRepository()), mainDispatcherRule.testDispatcher),
         addTracksToPlaylist = AddTracksToPlaylistUseCase(playlists),
         createPlaylist = CreatePlaylistUseCase(playlists),
         observeIsFavorite = ObserveIsFavoriteUseCase(favorites),

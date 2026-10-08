@@ -16,6 +16,7 @@ import tj.umar.navoplayer.core.domain.usecase.ObserveTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
+import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
 import tj.umar.navoplayer.core.testing.MainDispatcherRule
 import tj.umar.navoplayer.core.testing.data.TestPlaybackStates
 import tj.umar.navoplayer.core.testing.data.TestTracks
@@ -36,7 +37,7 @@ class GroupDetailViewModelTest {
 
     private fun viewModel(key: TrackGroupKey = albumKey) = GroupDetailViewModel(
         key = key,
-        observeTrackGroup = ObserveTrackGroupUseCase(ObserveTracksUseCase(repository), mainDispatcherRule.testDispatcher),
+        observeTrackGroup = ObserveTrackGroupUseCase(ObserveTracksUseCase(repository, FakeSettingsRepository()), mainDispatcherRule.testDispatcher),
         observePlaybackState = ObservePlaybackStateUseCase(playback),
         playTracks = PlayTracksUseCase(playback),
         shufflePlayTracks = ShufflePlayTracksUseCase(playback),

@@ -6,6 +6,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
 import tj.umar.navoplayer.core.testing.data.TestPlaylists
 import tj.umar.navoplayer.core.testing.data.TestTracks
 import tj.umar.navoplayer.core.testing.repository.FakePlaylistRepository
@@ -18,7 +19,7 @@ class ObservePlaylistsUseCaseTest {
 
     @Test
     fun `summaries count available tracks in update order`() = runTest {
-        val observe = ObservePlaylistsUseCase(playlists, ObserveTracksUseCase(tracks), UnconfinedTestDispatcher(testScheduler))
+        val observe = ObservePlaylistsUseCase(playlists, ObserveTracksUseCase(tracks, FakeSettingsRepository()), UnconfinedTestDispatcher(testScheduler))
 
         observe().test {
             tracks.emit(TestTracks.tracks)
@@ -32,7 +33,7 @@ class ObservePlaylistsUseCaseTest {
 
     @Test
     fun `library change re-emits summaries`() = runTest {
-        val observe = ObservePlaylistsUseCase(playlists, ObserveTracksUseCase(tracks), UnconfinedTestDispatcher(testScheduler))
+        val observe = ObservePlaylistsUseCase(playlists, ObserveTracksUseCase(tracks, FakeSettingsRepository()), UnconfinedTestDispatcher(testScheduler))
 
         observe().test {
             tracks.emit(TestTracks.tracks)
@@ -44,7 +45,7 @@ class ObservePlaylistsUseCaseTest {
 
     @Test
     fun `detail resolves tracks and reports missing`() = runTest {
-        val observe = ObservePlaylistUseCase(playlists, ObserveTracksUseCase(tracks), UnconfinedTestDispatcher(testScheduler))
+        val observe = ObservePlaylistUseCase(playlists, ObserveTracksUseCase(tracks, FakeSettingsRepository()), UnconfinedTestDispatcher(testScheduler))
 
         observe(TestPlaylists.morning.id).test {
             tracks.emit(TestTracks.tracks)
@@ -56,7 +57,7 @@ class ObservePlaylistsUseCaseTest {
 
     @Test
     fun `detail becomes null after delete`() = runTest {
-        val observe = ObservePlaylistUseCase(playlists, ObserveTracksUseCase(tracks), UnconfinedTestDispatcher(testScheduler))
+        val observe = ObservePlaylistUseCase(playlists, ObserveTracksUseCase(tracks, FakeSettingsRepository()), UnconfinedTestDispatcher(testScheduler))
 
         observe(TestPlaylists.morning.id).test {
             tracks.emit(TestTracks.tracks)
@@ -69,7 +70,7 @@ class ObservePlaylistsUseCaseTest {
     @Test
     fun `track errors propagate`() = runTest {
         tracks.error = IllegalStateException("scan failed")
-        val observe = ObservePlaylistsUseCase(playlists, ObserveTracksUseCase(tracks), UnconfinedTestDispatcher(testScheduler))
+        val observe = ObservePlaylistsUseCase(playlists, ObserveTracksUseCase(tracks, FakeSettingsRepository()), UnconfinedTestDispatcher(testScheduler))
 
         observe().test {
             assertEquals("scan failed", awaitError().message)

@@ -9,6 +9,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import tj.umar.navoplayer.core.common.result.NavoResult
 import tj.umar.navoplayer.core.domain.model.FavoritesSummary
+import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
 import tj.umar.navoplayer.core.testing.data.TestPlaylists
 import tj.umar.navoplayer.core.testing.data.TestTracks
 import tj.umar.navoplayer.core.testing.repository.FakeFavoritesRepository
@@ -22,7 +23,7 @@ class FavoriteUseCasesTest {
 
     @Test
     fun `favorite tracks resolve against library and follow changes`() = runTest {
-        val observe = ObserveFavoriteTracksUseCase(favorites, ObserveTracksUseCase(tracks), UnconfinedTestDispatcher(testScheduler))
+        val observe = ObserveFavoriteTracksUseCase(favorites, ObserveTracksUseCase(tracks, FakeSettingsRepository()), UnconfinedTestDispatcher(testScheduler))
 
         observe().test {
             tracks.emit(TestTracks.tracks)
@@ -41,7 +42,7 @@ class FavoriteUseCasesTest {
     @Test
     fun `favorite tracks pass errors`() = runTest {
         tracks.error = IllegalStateException("scan failed")
-        val observe = ObserveFavoriteTracksUseCase(favorites, ObserveTracksUseCase(tracks), UnconfinedTestDispatcher(testScheduler))
+        val observe = ObserveFavoriteTracksUseCase(favorites, ObserveTracksUseCase(tracks, FakeSettingsRepository()), UnconfinedTestDispatcher(testScheduler))
 
         observe().test {
             assertEquals("scan failed", awaitError().message)
@@ -80,7 +81,7 @@ class FavoriteUseCasesTest {
         val observe = ObservePlaylistsOverviewUseCase(
             playlists,
             favorites,
-            ObserveTracksUseCase(tracks),
+            ObserveTracksUseCase(tracks, FakeSettingsRepository()),
             UnconfinedTestDispatcher(testScheduler),
         )
 
@@ -101,7 +102,7 @@ class FavoriteUseCasesTest {
         val observe = ObservePlaylistsOverviewUseCase(
             FakePlaylistRepository(),
             FakeFavoritesRepository(),
-            ObserveTracksUseCase(tracks),
+            ObserveTracksUseCase(tracks, FakeSettingsRepository()),
             UnconfinedTestDispatcher(testScheduler),
         )
 

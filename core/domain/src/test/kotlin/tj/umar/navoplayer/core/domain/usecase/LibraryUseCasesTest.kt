@@ -8,6 +8,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import tj.umar.navoplayer.core.domain.model.TrackGroupKey
 import tj.umar.navoplayer.core.domain.model.TrackGroupType
+import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
 import tj.umar.navoplayer.core.testing.data.TestTracks
 import tj.umar.navoplayer.core.testing.repository.FakeTrackRepository
 
@@ -17,7 +18,7 @@ class LibraryUseCasesTest {
 
     @Test
     fun `library emission builds all lists`() = runTest {
-        val observeLibrary = ObserveLibraryUseCase(ObserveTracksUseCase(repository), UnconfinedTestDispatcher(testScheduler))
+        val observeLibrary = ObserveLibraryUseCase(ObserveTracksUseCase(repository, FakeSettingsRepository()), UnconfinedTestDispatcher(testScheduler))
 
         observeLibrary().test {
             repository.emit(TestTracks.library)
@@ -35,7 +36,7 @@ class LibraryUseCasesTest {
     @Test
     fun `library propagates errors`() = runTest {
         repository.error = IllegalStateException("scan failed")
-        val observeLibrary = ObserveLibraryUseCase(ObserveTracksUseCase(repository), UnconfinedTestDispatcher(testScheduler))
+        val observeLibrary = ObserveLibraryUseCase(ObserveTracksUseCase(repository, FakeSettingsRepository()), UnconfinedTestDispatcher(testScheduler))
 
         observeLibrary().test {
             assertEquals("scan failed", awaitError().message)
@@ -45,7 +46,7 @@ class LibraryUseCasesTest {
     @Test
     fun `group observation follows the group and suppresses duplicates`() = runTest {
         val key = TrackGroupKey(TrackGroupType.Album, 10, null)
-        val observeGroup = ObserveTrackGroupUseCase(ObserveTracksUseCase(repository), UnconfinedTestDispatcher(testScheduler))
+        val observeGroup = ObserveTrackGroupUseCase(ObserveTracksUseCase(repository, FakeSettingsRepository()), UnconfinedTestDispatcher(testScheduler))
 
         observeGroup(key).test {
             repository.emit(TestTracks.library)

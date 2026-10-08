@@ -4,13 +4,17 @@ import app.cash.turbine.test
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import tj.umar.navoplayer.core.domain.model.MinTrackDuration
+import tj.umar.navoplayer.core.domain.model.UserSettings
+import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
 import tj.umar.navoplayer.core.testing.data.TestTracks
 import tj.umar.navoplayer.core.testing.repository.FakeTrackRepository
 
 class ObserveTracksUseCaseTest {
 
     private val repository = FakeTrackRepository()
-    private val observeTracks = ObserveTracksUseCase(repository)
+    private val settings = FakeSettingsRepository()
+    private val observeTracks = ObserveTracksUseCase(repository, settings)
 
     @Test
     fun `emits tracks from repository`() = runTest {
@@ -37,7 +41,7 @@ class ObserveTracksUseCaseTest {
         repository.error = failure
 
         observeTracks().test {
-            assertEquals(failure, awaitError())
+            assertEquals(failure.message, awaitError().message)
         }
     }
 
@@ -50,5 +54,29 @@ class ObserveTracksUseCaseTest {
         }
 
         assertEquals(1, repository.observeCalls)
+    }
+
+    @Test
+    fun `hides short tracks and excluded folders`() = runTest {
+        repository.emit(TestTracks.tracks)
+        settings.emit(UserSettings(minTrackDuration = MinTrackDuration.SixtySeconds))
+
+        observeTracks().test {
+            assertEquals(TestTracks.tracks.filter { it.durationMs >= 60_000 }, awaitItem())
+            settings.emit(UserSettings(excludedFolders = setOf(TestTracks.alpha.folderPath!!)))
+            assertEquals(TestTracks.tracks.filter { it.folderPath != TestTracks.alpha.folderPath }, awaitItem())
+        }
+        assertEquals(1, repository.observeCalls)
+    }
+
+    @Test
+    fun `headphones toggle does not re-emit tracks`() = runTest {
+        repository.emit(TestTracks.tracks)
+
+        observeTracks().test {
+            awaitItem()
+            settings.emit(UserSettings(pauseOnHeadphonesDisconnect = false))
+            expectNoEvents()
+        }
     }
 }

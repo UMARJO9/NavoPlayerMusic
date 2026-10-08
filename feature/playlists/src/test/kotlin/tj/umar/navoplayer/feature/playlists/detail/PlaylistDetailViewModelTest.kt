@@ -19,6 +19,7 @@ import tj.umar.navoplayer.core.domain.usecase.RemoveTrackFromPlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.RenamePlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
+import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
 import tj.umar.navoplayer.core.testing.MainDispatcherRule
 import tj.umar.navoplayer.core.testing.data.TestPlaybackStates
 import tj.umar.navoplayer.core.testing.data.TestPlaylists
@@ -43,7 +44,7 @@ class PlaylistDetailViewModelTest {
 
     private fun viewModel(playlistId: Long = morning.id) = PlaylistDetailViewModel(
         playlistId = playlistId,
-        observePlaylist = ObservePlaylistUseCase(playlists, ObserveTracksUseCase(tracks), mainDispatcherRule.testDispatcher),
+        observePlaylist = ObservePlaylistUseCase(playlists, ObserveTracksUseCase(tracks, FakeSettingsRepository()), mainDispatcherRule.testDispatcher),
         observePlaybackState = ObservePlaybackStateUseCase(playback),
         playTracks = PlayTracksUseCase(playback),
         shufflePlayTracks = ShufflePlayTracksUseCase(playback),

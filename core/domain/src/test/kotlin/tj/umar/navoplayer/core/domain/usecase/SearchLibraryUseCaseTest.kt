@@ -9,6 +9,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import tj.umar.navoplayer.core.domain.model.SearchResults
+import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
 import tj.umar.navoplayer.core.testing.data.TestSearchTracks
 import tj.umar.navoplayer.core.testing.repository.FakeTrackRepository
 
@@ -18,7 +19,7 @@ class SearchLibraryUseCaseTest {
 
     private fun TestScope.useCase(): SearchLibraryUseCase {
         val dispatcher = UnconfinedTestDispatcher(testScheduler)
-        return SearchLibraryUseCase(ObserveLibraryUseCase(ObserveTracksUseCase(repository), dispatcher), dispatcher)
+        return SearchLibraryUseCase(ObserveLibraryUseCase(ObserveTracksUseCase(repository, FakeSettingsRepository()), dispatcher), dispatcher)
     }
 
     @Test

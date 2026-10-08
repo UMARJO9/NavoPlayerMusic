@@ -18,6 +18,7 @@ import tj.umar.navoplayer.core.domain.usecase.ObserveTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.SearchLibraryUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
+import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
 import tj.umar.navoplayer.core.testing.MainDispatcherRule
 import tj.umar.navoplayer.core.testing.data.TestPlaybackStates
 import tj.umar.navoplayer.core.testing.data.TestSearchTracks
@@ -37,7 +38,7 @@ class SearchViewModelTest {
         val dispatcher = mainDispatcherRule.testDispatcher
         return SearchViewModel(
             savedStateHandle = savedStateHandle,
-            searchLibrary = SearchLibraryUseCase(ObserveLibraryUseCase(ObserveTracksUseCase(repository), dispatcher), dispatcher),
+            searchLibrary = SearchLibraryUseCase(ObserveLibraryUseCase(ObserveTracksUseCase(repository, FakeSettingsRepository()), dispatcher), dispatcher),
             observePlaybackState = ObservePlaybackStateUseCase(playback),
             playTracks = PlayTracksUseCase(playback),
             togglePlayPause = TogglePlayPauseUseCase(playback),
