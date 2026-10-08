@@ -6,6 +6,8 @@
     <string name="library_sections">Разделы медиатеки</string>
     <string name="library_search">Поиск</string>
     <string name="library_settings">Настройки</string>
+    <string name="library_sort">Сортировка</string>
+    <string name="library_shuffle">Перемешать</string>
     <string name="library_unknown_artist">Неизвестный исполнитель</string>
     <string name="library_unknown_title">Без названия</string>
     <string name="library_tracks_empty">На телефоне не найдено музыки</string>
