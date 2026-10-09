@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,11 +38,12 @@ fun NavoChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     role: Role = Role.Tab,
+    unselectedContainerColor: Color = NavoTheme.colors.raised,
 ) {
     val colors = NavoTheme.colors
     val interactionSource = remember { MutableInteractionSource() }
     val container by animateColorAsState(
-        targetValue = if (selected) colors.accent else colors.raised,
+        targetValue = if (selected) colors.accent else unselectedContainerColor,
         animationSpec = tween(CHIP_COLOR_DURATION_MILLIS),
         label = "chipContainer",
     )

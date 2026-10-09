@@ -106,6 +106,7 @@ internal fun LibrarySortContent(
                     selected = option == direction,
                     onClick = { onIntent(LibraryIntent.SortDirectionSelected(target, option)) },
                     role = Role.RadioButton,
+                    unselectedContainerColor = NavoTheme.colors.high,
                 )
             }
         }
