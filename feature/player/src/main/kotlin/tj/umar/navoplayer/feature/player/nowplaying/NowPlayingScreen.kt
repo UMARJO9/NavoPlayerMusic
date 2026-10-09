@@ -1,6 +1,16 @@
 package tj.umar.navoplayer.feature.player.nowplaying
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -69,6 +79,9 @@ import tj.umar.navoplayer.core.ui.R as CoreUiR
 private val MedallionMaxSize = 300.dp
 private const val COLLAPSE_DISTANCE_FRACTION = 0.25f
 private val CollapseVelocity = 1200.dp
+private const val TRACK_CHANGE_MILLIS = 350
+private const val MEDALLION_CHANGE_SCALE = 0.85f
+private const val TRACK_INFO_SLIDE_DIVISOR = 3
 
 @Composable
 internal fun NowPlayingScreen(
@@ -118,11 +131,26 @@ internal fun NowPlayingScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 if (track != null) {
-                    RotatingMedallion(trackId = track.id, isPlaying = state.isPlaying)
+                    AnimatedContent(
+                        targetState = track,
+                        contentKey = { it.id },
+                        contentAlignment = Alignment.Center,
+                        transitionSpec = { medallionTransition(state.trackChangeDirection) },
+                        label = "medallionChange",
+                    ) { shownTrack ->
+                        RotatingMedallion(trackId = shownTrack.id, isPlaying = state.isPlaying)
+                    }
                 }
             }
             if (track != null) {
-                TrackInfo(track = track, isFavorite = state.isFavorite, onIntent = onIntent)
+                AnimatedContent(
+                    targetState = track,
+                    contentKey = { it.id },
+                    transitionSpec = { trackInfoTransition(state.trackChangeDirection) },
+                    label = "trackInfoChange",
+                ) { shownTrack ->
+                    TrackInfo(track = shownTrack, isFavorite = state.isFavorite, onIntent = onIntent)
+                }
             }
             Spacer(modifier = Modifier.height(24.dp))
             SeekBar(state = state, onIntent = onIntent)
@@ -140,6 +168,39 @@ internal fun NowPlayingScreen(
     if (state.isSleepTimerSheetVisible) {
         SleepTimerSheet(sleepTimer = state.sleepTimer, onIntent = onIntent)
     }
+}
+
+private fun medallionTransition(direction: TrackChangeDirection): ContentTransform {
+    val sign = direction.sign()
+    val enter = slideInHorizontally(tween(TRACK_CHANGE_MILLIS)) { width -> sign * width / 2 } +
+        fadeIn(tween(TRACK_CHANGE_MILLIS)) +
+        scaleIn(tween(TRACK_CHANGE_MILLIS), initialScale = MEDALLION_CHANGE_SCALE)
+    val exit = slideOutHorizontally(tween(TRACK_CHANGE_MILLIS)) { width -> -sign * width / 2 } +
+        fadeOut(tween(TRACK_CHANGE_MILLIS)) +
+        scaleOut(tween(TRACK_CHANGE_MILLIS), targetScale = MEDALLION_CHANGE_SCALE)
+    return ContentTransform(
+        targetContentEnter = enter,
+        initialContentExit = exit,
+        sizeTransform = SizeTransform(clip = false),
+    )
+}
+
+private fun trackInfoTransition(direction: TrackChangeDirection): ContentTransform {
+    val sign = direction.sign()
+    val enter = slideInHorizontally(tween(TRACK_CHANGE_MILLIS)) { width -> sign * width / TRACK_INFO_SLIDE_DIVISOR } +
+        fadeIn(tween(TRACK_CHANGE_MILLIS))
+    val exit = slideOutHorizontally(tween(TRACK_CHANGE_MILLIS)) { width -> -sign * width / TRACK_INFO_SLIDE_DIVISOR } +
+        fadeOut(tween(TRACK_CHANGE_MILLIS))
+    return ContentTransform(
+        targetContentEnter = enter,
+        initialContentExit = exit,
+        sizeTransform = SizeTransform(clip = false),
+    )
+}
+
+private fun TrackChangeDirection.sign(): Int = when (this) {
+    TrackChangeDirection.Forward -> 1
+    TrackChangeDirection.Backward -> -1
 }
 
 @Composable
