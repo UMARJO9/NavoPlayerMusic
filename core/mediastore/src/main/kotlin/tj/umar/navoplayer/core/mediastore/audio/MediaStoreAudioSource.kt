@@ -39,15 +39,20 @@ internal class MediaStoreAudioSource @Inject constructor(
         awaitClose { context.contentResolver.unregisterContentObserver(observer) }
     }.buffer(Channel.CONFLATED)
 
-    override suspend fun queryAudio(): List<MediaStoreAudioRow> = withContext(ioDispatcher) {
+    override suspend fun queryAudio(): List<MediaStoreAudioRow> = query(MUSIC_SELECTION, null)
+
+    override suspend fun queryAudio(ids: Collection<Long>): List<MediaStoreAudioRow> =
+        idSelectionChunks(ids).flatMap { query(it.selection, it.args) }
+
+    private suspend fun query(selection: String, args: Array<String>?): List<MediaStoreAudioRow> = withContext(ioDispatcher) {
         val cancellationSignal = CancellationSignal()
         val cancelHandle = coroutineContext.job.invokeOnCompletion { cancellationSignal.cancel() }
         val cursor = try {
             context.contentResolver.query(
                 collection,
                 projection(),
-                "${MediaStore.Audio.Media.IS_MUSIC} != 0",
-                null,
+                selection,
+                args,
                 null,
                 cancellationSignal,
             )

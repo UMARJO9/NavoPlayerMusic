@@ -15,6 +15,9 @@ internal class FakeAudioMediaSource : AudioMediaSource {
 
     var queryDelayMs: Long = 0
 
+    var idQueryCount: Int = 0
+        private set
+
     var queryCount: Int = 0
         private set
 
@@ -25,6 +28,11 @@ internal class FakeAudioMediaSource : AudioMediaSource {
         val result = rows
         if (queryDelayMs > 0) delay(queryDelayMs)
         return result
+    }
+
+    override suspend fun queryAudio(ids: Collection<Long>): List<MediaStoreAudioRow> {
+        idQueryCount++
+        return rows.filter { it.id in ids }
     }
 
     suspend fun awaitObserver() {
