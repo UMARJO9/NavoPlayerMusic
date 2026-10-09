@@ -42,6 +42,7 @@ internal sealed interface NowPlayingIntent {
 
 internal sealed interface NowPlayingEffect {
     data object Collapse : NowPlayingEffect
+    data object OpenQueue : NowPlayingEffect
     data class ShowMessage(val message: NowPlayingMessage) : NowPlayingEffect
 }
 

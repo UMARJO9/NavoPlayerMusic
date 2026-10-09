@@ -69,8 +69,8 @@ internal class NowPlayingViewModel @Inject constructor(
             NowPlayingIntent.SeekFinished -> finishSeek()
             NowPlayingIntent.FavoriteClicked -> toggleFavorite()
             NowPlayingIntent.CollapseClicked -> requestCollapse()
+            NowPlayingIntent.QueueClicked -> sendEffect(NowPlayingEffect.OpenQueue)
             NowPlayingIntent.MoreClicked,
-            NowPlayingIntent.QueueClicked,
             NowPlayingIntent.SleepTimerClicked -> Unit
         }
     }

@@ -19,7 +19,10 @@ import tj.umar.navoplayer.feature.library.navigation.libraryScreen
 import tj.umar.navoplayer.feature.library.navigation.navigateToGroupDetail
 import tj.umar.navoplayer.feature.library.navigation.navigateToLibrary
 import tj.umar.navoplayer.feature.player.navigation.NowPlayingDestination
+import tj.umar.navoplayer.feature.player.navigation.QueueDestination
+import tj.umar.navoplayer.feature.player.navigation.navigateToQueue
 import tj.umar.navoplayer.feature.player.navigation.nowPlayingScreen
+import tj.umar.navoplayer.feature.player.navigation.queueScreen
 import tj.umar.navoplayer.feature.playlists.navigation.FavoritesDestination
 import tj.umar.navoplayer.feature.playlists.navigation.favoritesScreen
 import tj.umar.navoplayer.feature.playlists.navigation.navigateToFavorites
@@ -163,6 +166,14 @@ fun NavoNavHost(
         nowPlayingScreen(
             onCollapse = {
                 if (navController.currentDestination?.hasRoute<NowPlayingDestination>() == true) {
+                    navController.popBackStack()
+                }
+            },
+            onOpenQueue = { if (isResumed()) navController.navigateToQueue() },
+        )
+        queueScreen(
+            onClose = {
+                if (navController.currentDestination?.hasRoute<QueueDestination>() == true) {
                     navController.popBackStack()
                 }
             },

@@ -174,10 +174,20 @@ class NowPlayingViewModelTest {
         val before = viewModel.state.value
 
         viewModel.onIntent(NowPlayingIntent.MoreClicked)
-        viewModel.onIntent(NowPlayingIntent.QueueClicked)
         viewModel.onIntent(NowPlayingIntent.SleepTimerClicked)
 
         assertEquals(before, viewModel.state.value)
+        assertTrue(controller.commands.isEmpty())
+    }
+
+    @Test
+    fun `queue click opens queue`() = runTest {
+        startWith()
+
+        viewModel.effects.test {
+            viewModel.onIntent(NowPlayingIntent.QueueClicked)
+            assertEquals(NowPlayingEffect.OpenQueue, awaitItem())
+        }
         assertTrue(controller.commands.isEmpty())
     }
 

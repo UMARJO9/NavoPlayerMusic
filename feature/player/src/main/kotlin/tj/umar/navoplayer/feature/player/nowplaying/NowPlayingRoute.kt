@@ -15,11 +15,13 @@ import tj.umar.navoplayer.feature.player.R
 @Composable
 internal fun NowPlayingRoute(
     onCollapse: () -> Unit,
+    onOpenQueue: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: NowPlayingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val currentOnCollapse by rememberUpdatedState(onCollapse)
+    val currentOnOpenQueue by rememberUpdatedState(onOpenQueue)
     val context = LocalContext.current
 
     LifecycleStartEffect(Unit) {
@@ -30,6 +32,7 @@ internal fun NowPlayingRoute(
     viewModel.effects.CollectEffects { effect ->
         when (effect) {
             NowPlayingEffect.Collapse -> currentOnCollapse()
+            NowPlayingEffect.OpenQueue -> currentOnOpenQueue()
             is NowPlayingEffect.ShowMessage ->
                 Toast.makeText(context, effect.message.textRes(), Toast.LENGTH_SHORT).show()
         }
