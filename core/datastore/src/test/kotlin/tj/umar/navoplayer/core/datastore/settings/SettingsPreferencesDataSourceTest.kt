@@ -88,4 +88,18 @@ class SettingsPreferencesDataSourceTest {
 
         assertEquals(StoredSettings(0, emptySet(), true), dataSource.settings.first())
     }
+
+    @Test
+    fun `sort fields and directions are stored independently`() = runTest {
+        val dataSource = dataSource()
+
+        dataSource.setTrackSortField("artist")
+        dataSource.setGroupSortDescending(true)
+
+        val settings = dataSource.settings.first()
+        assertEquals("artist", settings.trackSortField)
+        assertEquals(false, settings.trackSortDescending)
+        assertEquals(null, settings.groupSortField)
+        assertEquals(true, settings.groupSortDescending)
+    }
 }

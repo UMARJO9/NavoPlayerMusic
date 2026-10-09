@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -17,6 +18,10 @@ import javax.inject.Inject
 private val MinTrackDurationSeconds = intPreferencesKey("min_track_duration_seconds")
 private val ExcludedFolders = stringSetPreferencesKey("excluded_folders")
 private val PauseOnHeadphonesDisconnect = booleanPreferencesKey("pause_on_headphones_disconnect")
+private val TrackSortField = stringPreferencesKey("track_sort_field")
+private val TrackSortDescending = booleanPreferencesKey("track_sort_descending")
+private val GroupSortField = stringPreferencesKey("group_sort_field")
+private val GroupSortDescending = booleanPreferencesKey("group_sort_descending")
 
 class SettingsPreferencesDataSource @Inject constructor(
     @param:SettingsDataStore private val dataStore: DataStore<Preferences>,
@@ -28,6 +33,10 @@ class SettingsPreferencesDataSource @Inject constructor(
                 minTrackDurationSeconds = preferences[MinTrackDurationSeconds] ?: 0,
                 excludedFolders = preferences[ExcludedFolders].orEmpty(),
                 pauseOnHeadphonesDisconnect = preferences[PauseOnHeadphonesDisconnect] ?: true,
+                trackSortField = preferences[TrackSortField],
+                trackSortDescending = preferences[TrackSortDescending] ?: false,
+                groupSortField = preferences[GroupSortField],
+                groupSortDescending = preferences[GroupSortDescending] ?: false,
             )
         }
 
@@ -44,5 +53,21 @@ class SettingsPreferencesDataSource @Inject constructor(
 
     suspend fun setPauseOnHeadphonesDisconnect(enabled: Boolean) {
         dataStore.edit { it[PauseOnHeadphonesDisconnect] = enabled }
+    }
+
+    suspend fun setTrackSortField(value: String) {
+        dataStore.edit { it[TrackSortField] = value }
+    }
+
+    suspend fun setTrackSortDescending(descending: Boolean) {
+        dataStore.edit { it[TrackSortDescending] = descending }
+    }
+
+    suspend fun setGroupSortField(value: String) {
+        dataStore.edit { it[GroupSortField] = value }
+    }
+
+    suspend fun setGroupSortDescending(descending: Boolean) {
+        dataStore.edit { it[GroupSortDescending] = descending }
     }
 }
