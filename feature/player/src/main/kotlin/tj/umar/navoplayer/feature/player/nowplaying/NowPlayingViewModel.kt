@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import tj.umar.navoplayer.core.common.result.onError
 import tj.umar.navoplayer.core.domain.model.PlaybackProgress
 import tj.umar.navoplayer.core.domain.model.PlaybackState
+import tj.umar.navoplayer.core.domain.model.Track
 import tj.umar.navoplayer.core.domain.usecase.CancelSleepTimerUseCase
 import tj.umar.navoplayer.core.domain.usecase.CycleRepeatModeUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveIsFavoriteUseCase
@@ -65,14 +66,21 @@ internal class NowPlayingViewModel @Inject constructor(
     private var sleepTimerJob: Job? = null
     private var lastFavorite: Pair<Long, Boolean>? = null
     private val currentTrackIds = MutableStateFlow<Long?>(null)
+    private var previousRequested = false
 
     override fun onIntent(intent: NowPlayingIntent) {
         when (intent) {
             NowPlayingIntent.ScreenStarted -> startObserving()
             NowPlayingIntent.ScreenStopped -> stopObserving()
             NowPlayingIntent.PlayPauseClicked -> launchCommand { togglePlayPause() }
-            NowPlayingIntent.NextClicked -> launchCommand { skipToNext() }
-            NowPlayingIntent.PreviousClicked -> launchCommand { skipToPrevious() }
+            NowPlayingIntent.NextClicked -> {
+                previousRequested = false
+                launchCommand { skipToNext() }
+            }
+            NowPlayingIntent.PreviousClicked -> {
+                previousRequested = true
+                launchCommand { skipToPrevious() }
+            }
             NowPlayingIntent.ShuffleClicked -> launchCommand { toggleShuffle() }
             NowPlayingIntent.RepeatClicked -> launchCommand { cycleRepeatMode() }
             is NowPlayingIntent.SeekChanged -> setState { copy(seekPreviewMs = intent.positionMs) }
@@ -122,6 +130,7 @@ internal class NowPlayingViewModel @Inject constructor(
             requestCollapse()
             return
         }
+        val direction = changeDirectionTo(track)
         setState {
             copy(
                 isLoading = false,
@@ -132,9 +141,19 @@ internal class NowPlayingViewModel @Inject constructor(
                 shuffleEnabled = playback.shuffleEnabled,
                 repeatMode = playback.repeatMode,
                 isFavorite = favoriteFor(track.id),
+                trackChangeDirection = direction,
             )
         }
         currentTrackIds.value = track.id
+    }
+
+    private fun changeDirectionTo(track: Track): TrackChangeDirection {
+        val current = state.value
+        val previousTrack = current.track
+        if (previousTrack == null || previousTrack.id == track.id) return current.trackChangeDirection
+        val backward = previousRequested && track.id != current.nextTrack?.id
+        previousRequested = false
+        return if (backward) TrackChangeDirection.Backward else TrackChangeDirection.Forward
     }
 
     private fun onProgress(progress: PlaybackProgress) {

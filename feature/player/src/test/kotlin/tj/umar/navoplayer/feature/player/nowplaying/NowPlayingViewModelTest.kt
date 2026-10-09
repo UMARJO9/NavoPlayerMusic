@@ -246,6 +246,58 @@ class NowPlayingViewModelTest {
     }
 
     @Test
+    fun `advancing to next track moves forward`() = runTest {
+        startWith()
+
+        controller.state.emit(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.beta, nextTrack = null))
+
+        assertEquals(TrackChangeDirection.Forward, viewModel.state.value.trackChangeDirection)
+    }
+
+    @Test
+    fun `previous click moves backward`() = runTest {
+        startWith(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.beta, nextTrack = null))
+
+        viewModel.onIntent(NowPlayingIntent.PreviousClicked)
+        controller.state.emit(TestPlaybackStates.playingAlpha)
+
+        assertEquals(TrackChangeDirection.Backward, viewModel.state.value.trackChangeDirection)
+    }
+
+    @Test
+    fun `previous that restarted track does not reverse later advance`() = runTest {
+        startWith()
+
+        viewModel.onIntent(NowPlayingIntent.PreviousClicked)
+        controller.state.emit(TestPlaybackStates.pausedAlpha)
+        controller.state.emit(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.beta, nextTrack = null))
+
+        assertEquals(TrackChangeDirection.Forward, viewModel.state.value.trackChangeDirection)
+    }
+
+    @Test
+    fun `next click after previous moves forward`() = runTest {
+        startWith(TestPlaybackStates.playingAlpha.copy(nextTrack = null))
+
+        viewModel.onIntent(NowPlayingIntent.PreviousClicked)
+        viewModel.onIntent(NowPlayingIntent.NextClicked)
+        controller.state.emit(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.beta, nextTrack = null))
+
+        assertEquals(TrackChangeDirection.Forward, viewModel.state.value.trackChangeDirection)
+    }
+
+    @Test
+    fun `backward direction is kept while same track updates`() = runTest {
+        startWith(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.beta, nextTrack = null))
+
+        viewModel.onIntent(NowPlayingIntent.PreviousClicked)
+        controller.state.emit(TestPlaybackStates.playingAlpha)
+        controller.state.emit(TestPlaybackStates.pausedAlpha)
+
+        assertEquals(TrackChangeDirection.Backward, viewModel.state.value.trackChangeDirection)
+    }
+
+    @Test
     fun `heart follows track changes`() = runTest {
         favorites.addFavorite(TestTracks.alpha.id)
         startWith()

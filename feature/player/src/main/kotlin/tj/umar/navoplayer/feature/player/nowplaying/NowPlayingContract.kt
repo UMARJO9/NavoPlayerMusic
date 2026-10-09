@@ -23,10 +23,13 @@ internal data class NowPlayingState(
     val isFavorite: Boolean = false,
     val sleepTimer: SleepTimer = SleepTimer.Off,
     val isSleepTimerSheetVisible: Boolean = false,
+    val trackChangeDirection: TrackChangeDirection = TrackChangeDirection.Forward,
 ) {
     val displayedPositionMs: Long
         get() = seekPreviewMs ?: positionMs
 }
+
+internal enum class TrackChangeDirection { Forward, Backward }
 
 internal sealed interface SleepTimerOption {
     data class Minutes(val minutes: Int) : SleepTimerOption
