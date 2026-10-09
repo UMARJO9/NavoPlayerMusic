@@ -10,12 +10,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import kotlin.math.PI
 import kotlin.math.sin
 
-private const val FULL_TURN = (2 * PI).toFloat()
+internal const val WAVE_FULL_TURN = (2 * PI).toFloat()
 private const val FLAT_AMPLITUDE_PX = 0.5f
 private const val WAVE_STEP_PX = 2f
 
 internal fun waveOffset(x: Float, wavelength: Float, amplitude: Float, phase: Float): Float =
-    amplitude * sin(FULL_TURN * x / wavelength - phase)
+    amplitude * sin(WAVE_FULL_TURN * x / wavelength - phase)
 
 internal fun DrawScope.drawWavyTrack(
     fraction: Float,
