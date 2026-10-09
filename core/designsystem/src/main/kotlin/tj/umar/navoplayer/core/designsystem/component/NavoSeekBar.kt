@@ -22,8 +22,12 @@ import androidx.compose.runtime.FloatState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.contentDescription
@@ -60,7 +64,8 @@ fun NavoSeekBar(
     val dragged by interactionSource.collectIsDraggedAsState()
     val pressed by interactionSource.collectIsPressedAsState()
     val touched = dragged || pressed
-    val waving = playing && enabled && !touched
+    val motionEnabled = rememberMotionEnabled()
+    val waving = playing && enabled && !touched && motionEnabled
     val amplitude by animateDpAsState(
         targetValue = if (waving) SeekWaveAmplitude else 0.dp,
         animationSpec = tween(AMPLITUDE_ANIMATION_MILLIS),
@@ -114,6 +119,16 @@ fun NavoSeekBar(
             }
         },
     )
+}
+
+@Composable
+private fun rememberMotionEnabled(): Boolean {
+    var enabled by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        val motionScale = coroutineContext[MotionDurationScale] ?: return@LaunchedEffect
+        snapshotFlow { motionScale.scaleFactor > 0f }.collect { enabled = it }
+    }
+    return enabled
 }
 
 @Composable
