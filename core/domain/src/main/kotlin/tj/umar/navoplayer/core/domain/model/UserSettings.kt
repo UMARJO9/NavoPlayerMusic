@@ -21,6 +21,8 @@ data class UserSettings(
     val minTrackDuration: MinTrackDuration = MinTrackDuration.Off,
     val excludedFolders: Set<String> = emptySet(),
     val pauseOnHeadphonesDisconnect: Boolean = true,
+    val trackSort: TrackSort = TrackSort.Default,
+    val groupSort: GroupSort = GroupSort.Default,
 )
 
 data class LibraryFolder(

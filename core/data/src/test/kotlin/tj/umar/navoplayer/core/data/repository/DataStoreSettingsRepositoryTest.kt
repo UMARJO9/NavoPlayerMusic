@@ -11,7 +11,12 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import tj.umar.navoplayer.core.datastore.settings.SettingsPreferencesDataSource
 import tj.umar.navoplayer.core.datastore.settings.StoredSettings
+import tj.umar.navoplayer.core.domain.model.GroupSort
+import tj.umar.navoplayer.core.domain.model.GroupSortField
 import tj.umar.navoplayer.core.domain.model.MinTrackDuration
+import tj.umar.navoplayer.core.domain.model.SortDirection
+import tj.umar.navoplayer.core.domain.model.TrackSort
+import tj.umar.navoplayer.core.domain.model.TrackSortField
 import tj.umar.navoplayer.core.domain.model.UserSettings
 import java.io.File
 
@@ -58,5 +63,26 @@ class DataStoreSettingsRepositoryTest {
     @Test
     fun `unknown stored duration maps to off`() {
         assertEquals(MinTrackDuration.Off, StoredSettings(7, emptySet(), true).toUserSettings().minTrackDuration)
+    }
+
+    @Test
+    fun `sort settings round trip`() = runTest {
+        val repository = repository()
+
+        repository.setTrackSortField(TrackSortField.DateAdded)
+        repository.setTrackSortDirection(SortDirection.Descending)
+        repository.setGroupSortField(GroupSortField.TrackCount)
+
+        val settings = repository.observeSettings().first()
+        assertEquals(TrackSort(TrackSortField.DateAdded, SortDirection.Descending), settings.trackSort)
+        assertEquals(GroupSort(GroupSortField.TrackCount, SortDirection.Ascending), settings.groupSort)
+    }
+
+    @Test
+    fun `unknown stored sort falls back to defaults`() {
+        val settings = StoredSettings(0, emptySet(), true, trackSortField = "rating", groupSortField = "size").toUserSettings()
+
+        assertEquals(TrackSort.Default, settings.trackSort)
+        assertEquals(GroupSort.Default, settings.groupSort)
     }
 }

@@ -5,7 +5,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
+import tj.umar.navoplayer.core.domain.model.GroupSortField
 import tj.umar.navoplayer.core.domain.model.MinTrackDuration
+import tj.umar.navoplayer.core.domain.model.SortDirection
+import tj.umar.navoplayer.core.domain.model.TrackSortField
 import tj.umar.navoplayer.core.domain.model.UserSettings
 import tj.umar.navoplayer.core.domain.repository.SettingsRepository
 
@@ -42,6 +45,22 @@ class FakeSettingsRepository(initial: UserSettings = UserSettings()) : SettingsR
 
     override suspend fun setPauseOnHeadphonesDisconnect(enabled: Boolean) {
         write { copy(pauseOnHeadphonesDisconnect = enabled) }
+    }
+
+    override suspend fun setTrackSortField(field: TrackSortField) {
+        write { copy(trackSort = trackSort.copy(field = field)) }
+    }
+
+    override suspend fun setTrackSortDirection(direction: SortDirection) {
+        write { copy(trackSort = trackSort.copy(direction = direction)) }
+    }
+
+    override suspend fun setGroupSortField(field: GroupSortField) {
+        write { copy(groupSort = groupSort.copy(field = field)) }
+    }
+
+    override suspend fun setGroupSortDirection(direction: SortDirection) {
+        write { copy(groupSort = groupSort.copy(direction = direction)) }
     }
 
     fun emit(value: UserSettings) {
