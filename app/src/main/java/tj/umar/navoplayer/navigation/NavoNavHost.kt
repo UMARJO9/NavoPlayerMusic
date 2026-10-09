@@ -1,10 +1,12 @@
 package tj.umar.navoplayer.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -65,10 +67,12 @@ fun NavoNavHost(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier,
-        enterTransition = { sharedAxisForwardEnter() },
+        enterTransition = { if (involvesWelcome()) fadeThroughEnter() else sharedAxisForwardEnter() },
         exitTransition = {
             if (targetState.destination.hasRoute<NowPlayingDestination>()) {
                 ExitTransition.KeepUntilTransitionsFinished
+            } else if (involvesWelcome()) {
+                fadeThroughExit()
             } else {
                 sharedAxisForwardExit()
             }
@@ -185,3 +189,6 @@ fun NavoNavHost(
         )
     }
 }
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.involvesWelcome(): Boolean =
+    initialState.destination.hasRoute<WelcomeDestination>() || targetState.destination.hasRoute<WelcomeDestination>()
