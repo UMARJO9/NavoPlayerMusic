@@ -9,8 +9,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Icon
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -91,6 +94,31 @@ fun SettingsSwitchRow(
 }
 
 @Composable
+fun SettingsRadioRow(
+    title: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+) {
+    val colors = NavoTheme.colors
+    SettingsRowLayout(
+        title = title,
+        subtitle = subtitle,
+        modifier = modifier.selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = null,
+            colors = RadioButtonDefaults.colors(
+                selectedColor = colors.accent,
+                unselectedColor = colors.contentSecondary,
+            ),
+        )
+    }
+}
+
+@Composable
 fun SettingsInfoRow(title: String, modifier: Modifier = Modifier, subtitle: String? = null) {
     SettingsRowLayout(title = title, subtitle = subtitle, modifier = modifier) {}
 }
@@ -144,6 +172,7 @@ private fun SettingsRowsPreview() {
                 onCheckedChange = {},
             )
             SettingsNavigationRow(title = "Скрытые папки", subtitle = "Нет", onClick = {})
+            SettingsRadioRow(title = "Название", selected = true, onClick = {})
             SettingsInfoRow(title = "Navo", subtitle = "Версия 1.0")
         }
     }
