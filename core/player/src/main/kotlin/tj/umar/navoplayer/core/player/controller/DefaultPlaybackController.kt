@@ -6,6 +6,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.session.MediaController
+import androidx.media3.session.SessionResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -22,17 +23,24 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.withContext
 import tj.umar.navoplayer.core.common.coroutines.ApplicationScope
 import tj.umar.navoplayer.core.common.dispatchers.DefaultDispatcher
 import tj.umar.navoplayer.core.domain.model.PlaybackProgress
+import tj.umar.navoplayer.core.domain.model.PlaybackQueue
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.PlaybackState
+import tj.umar.navoplayer.core.domain.model.QueueInsertion
+import tj.umar.navoplayer.core.domain.model.QueueItemId
 import tj.umar.navoplayer.core.domain.model.RepeatMode
 import tj.umar.navoplayer.core.domain.model.Track
 import tj.umar.navoplayer.core.domain.playback.PlaybackController
+import tj.umar.navoplayer.core.player.mapper.queueItemId
 import tj.umar.navoplayer.core.player.mapper.toMediaItem
 import tj.umar.navoplayer.core.player.mapper.toPlayerRepeatMode
+import tj.umar.navoplayer.core.player.service.QueueRequest
+import tj.umar.navoplayer.core.player.service.QueueSessionCommands
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.random.Random
@@ -91,9 +99,31 @@ internal class DefaultPlaybackController @Inject constructor(
         .distinctUntilChanged()
         .shareIn(scope, sharing, replay = 1)
 
+    private val queue: Flow<PlaybackQueue> = connection
+        .withController { controller ->
+            controller.events { _, events ->
+                events.containsAny(
+                    Player.EVENT_TIMELINE_CHANGED,
+                    Player.EVENT_MEDIA_ITEM_TRANSITION,
+                    Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED,
+                    Player.EVENT_POSITION_DISCONTINUITY,
+                )
+            }.map { controller.queueSnapshot() }
+        }
+        .map { snapshot -> withContext(defaultDispatcher) { snapshot.toPlaybackQueue() } }
+        .retryConnecting()
+        .catch { failure ->
+            Log.w(TAG, "Playback queue unavailable", failure)
+            emit(PlaybackQueue.Empty)
+        }
+        .distinctUntilChanged()
+        .shareIn(scope, sharing, replay = 1)
+
     override fun observePlaybackState(): Flow<PlaybackState> = playbackState
 
     override fun observeProgress(): Flow<PlaybackProgress> = progress
+
+    override fun observeQueue(): Flow<PlaybackQueue> = queue
 
     override suspend fun play(queue: List<Track>, startIndex: Int, source: PlaybackSource) {
         val items = withContext(defaultDispatcher) { queue.map { it.toMediaItem(idFactory.create()) } }
@@ -140,6 +170,43 @@ internal class DefaultPlaybackController @Inject constructor(
 
     override suspend fun setRepeatMode(mode: RepeatMode) {
         runCommand { controller -> controller.repeatMode = mode.toPlayerRepeatMode() }
+    }
+
+    override suspend fun skipToQueueItem(id: QueueItemId) {
+        runCommand { controller ->
+            val index = (0 until controller.mediaItemCount)
+                .firstOrNull { controller.getMediaItemAt(it).queueItemId() == id.value }
+                ?: return@runCommand
+            controller.seekToDefaultPosition(index)
+            if (controller.playbackState == Player.STATE_IDLE) controller.prepare()
+            controller.play()
+        }
+    }
+
+    override suspend fun removeQueueItem(id: QueueItemId) {
+        sendQueueCommand { QueueRequest.Remove(id.value) }
+    }
+
+    override suspend fun moveQueueItem(id: QueueItemId, toIndex: Int) {
+        sendQueueCommand { QueueRequest.Move(id.value, toIndex) }
+    }
+
+    override suspend fun enqueue(tracks: List<Track>, insertion: QueueInsertion) {
+        sendQueueCommand { QueueRequest.Enqueue(tracks.map { it.toMediaItem(idFactory.create()) }, insertion) }
+    }
+
+    private suspend fun sendQueueCommand(request: () -> QueueRequest) {
+        try {
+            val encoded = withContext(defaultDispatcher) { QueueSessionCommands.encode(request()) }
+            val result = connection.command { it.sendCustomCommand(encoded.command, encoded.args) }.await()
+            if (result.resultCode != SessionResult.RESULT_SUCCESS) {
+                Log.w(TAG, "Queue command rejected with code ${result.resultCode}")
+            }
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (failure: Exception) {
+            Log.w(TAG, "Queue command failed", failure)
+        }
     }
 
     private suspend fun runCommand(block: (MediaController) -> Unit) {
