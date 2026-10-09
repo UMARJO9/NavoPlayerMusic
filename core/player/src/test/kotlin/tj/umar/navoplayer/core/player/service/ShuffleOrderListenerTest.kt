@@ -11,16 +11,21 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import tj.umar.navoplayer.core.player.mapper.toMediaItem
+import tj.umar.navoplayer.core.player.queue.PendingShuffleOrder
+import tj.umar.navoplayer.core.testing.data.TestTracks
 import kotlin.random.Random
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
 class ShuffleOrderListenerTest {
 
+    private val pending = PendingShuffleOrder()
+
     private val player = ExoPlayer.Builder(RuntimeEnvironment.getApplication())
         .setLooper(Looper.getMainLooper())
         .build()
-        .also { it.addListener(ShuffleOrderListener(it, Random(7))) }
+        .also { it.addListener(ShuffleOrderListener(it, Random(7), pending)) }
 
     private val items = (1..8).map { MediaItem.Builder().setMediaId("$it").setUri("content://media/$it").build() }
 
@@ -89,5 +94,30 @@ class ShuffleOrderListenerTest {
         idle()
 
         assertEquals(before.filter { it != "7" }, playedIds())
+    }
+
+    private val tagged = (1..5).map { TestTracks.alpha.copy(id = it.toLong()).toMediaItem("t$it") }
+
+    @Test
+    fun `pending order is applied to matching playlist`() {
+        player.shuffleModeEnabled = true
+        pending.offer(intArrayOf(3, 1, 4, 0, 2), firstQueueItemId = "t1", size = 5)
+
+        player.setMediaItems(tagged, 3, 0)
+        idle()
+
+        assertEquals(listOf(3, 1, 4, 0, 2), player.currentTimeline.playOrder(true).toList())
+    }
+
+    @Test
+    fun `pending order for other playlist is ignored and used once`() {
+        player.shuffleModeEnabled = true
+        pending.offer(intArrayOf(3, 1, 4, 0, 2), firstQueueItemId = "other", size = 5)
+
+        player.setMediaItems(tagged, 2, 0)
+        idle()
+
+        assertEquals(2, player.currentTimeline.playOrder(true).first())
+        assertEquals(null, pending.take(player))
     }
 }

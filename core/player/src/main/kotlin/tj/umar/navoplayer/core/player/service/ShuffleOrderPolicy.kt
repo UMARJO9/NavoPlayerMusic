@@ -5,6 +5,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import tj.umar.navoplayer.core.player.queue.PendingShuffleOrder
 import kotlin.random.Random
 
 internal fun shuffledIndicesStartingAt(length: Int, startIndex: Int, random: Random): IntArray {
@@ -18,6 +19,7 @@ internal fun shuffledIndicesStartingAt(length: Int, startIndex: Int, random: Ran
 internal class ShuffleOrderListener(
     private val player: ExoPlayer,
     private val random: Random = Random.Default,
+    private val pending: PendingShuffleOrder = PendingShuffleOrder(),
 ) : Player.Listener {
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
@@ -26,7 +28,9 @@ internal class ShuffleOrderListener(
 
     override fun onTimelineChanged(timeline: Timeline, reason: Int) {
         if (reason != Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED || !player.shuffleModeEnabled) return
-        if (player.shuffleOrder !is QueueShuffleOrder) applyShuffleOrder()
+        if (player.shuffleOrder is QueueShuffleOrder) return
+        val restored = pending.take(player)
+        if (restored != null) player.setShuffleOrder(QueueShuffleOrder(restored)) else applyShuffleOrder()
     }
 
     private fun applyShuffleOrder() {
