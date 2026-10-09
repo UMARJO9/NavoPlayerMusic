@@ -148,7 +148,7 @@ private fun SearchState.contentPhase(): ContentPhase = when (phase) {
 @Composable
 private fun SearchResultsList(state: SearchState, onIntent: (SearchIntent) -> Unit, onScroll: () -> Unit) {
     val listState = rememberLazyListState()
-    val addToPlaylistLabel = stringResource(CoreUiR.string.core_ui_add_to_playlist)
+    val trackOptionsLabel = stringResource(CoreUiR.string.core_ui_track_options)
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrollInProgress }.filter { it }.collect { onScroll() }
     }
@@ -178,7 +178,7 @@ private fun SearchResultsList(state: SearchState, onIntent: (SearchIntent) -> Un
                     isPlaying = track.id == state.currentTrackId && state.isPlaying,
                     onClick = { onIntent(SearchIntent.TrackClicked(track.id)) },
                     onLongClick = { onIntent(SearchIntent.TrackLongPressed(track.id)) },
-                    onLongClickLabel = addToPlaylistLabel,
+                    onLongClickLabel = trackOptionsLabel,
                     modifier = Modifier.animateItem(),
                 )
             }

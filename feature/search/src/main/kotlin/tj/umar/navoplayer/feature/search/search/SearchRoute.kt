@@ -17,7 +17,7 @@ internal fun SearchRoute(
     onBack: () -> Unit,
     onGroupClick: (TrackGroupKey) -> Unit,
     onAudioPermissionMissing: () -> Unit,
-    onAddToPlaylist: (List<Long>) -> Unit,
+    onTrackActions: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
@@ -26,7 +26,7 @@ internal fun SearchRoute(
     val currentOnBack by rememberUpdatedState(onBack)
     val currentOnGroupClick by rememberUpdatedState(onGroupClick)
     val currentOnAudioPermissionMissing by rememberUpdatedState(onAudioPermissionMissing)
-    val currentOnAddToPlaylist by rememberUpdatedState(onAddToPlaylist)
+    val currentOnTrackActions by rememberUpdatedState(onTrackActions)
 
     LifecycleStartEffect(Unit) {
         viewModel.onIntent(SearchIntent.ScreenStarted(context.hasAudioReadPermission()))
@@ -38,7 +38,7 @@ internal fun SearchRoute(
             SearchEffect.NavigateBack -> currentOnBack()
             SearchEffect.NavigateToWelcome -> currentOnAudioPermissionMissing()
             is SearchEffect.NavigateToGroup -> currentOnGroupClick(effect.key)
-            is SearchEffect.OpenAddToPlaylist -> currentOnAddToPlaylist(effect.trackIds)
+            is SearchEffect.OpenTrackActions -> currentOnTrackActions(effect.trackIds)
         }
     }
 

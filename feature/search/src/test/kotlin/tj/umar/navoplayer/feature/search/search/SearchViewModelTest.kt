@@ -303,12 +303,12 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun `track long press opens add to playlist`() = runTest {
+    fun `track long press opens track options`() = runTest {
         val viewModel = viewModel()
 
         viewModel.effects.test {
             viewModel.onIntent(SearchIntent.TrackLongPressed(TestSearchTracks.blackbird.id))
-            assertEquals(SearchEffect.OpenAddToPlaylist(listOf(TestSearchTracks.blackbird.id)), awaitItem())
+            assertEquals(SearchEffect.OpenTrackActions(listOf(TestSearchTracks.blackbird.id)), awaitItem())
         }
     }
 }

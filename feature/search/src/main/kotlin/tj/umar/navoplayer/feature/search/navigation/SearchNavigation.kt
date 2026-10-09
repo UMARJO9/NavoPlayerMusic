@@ -19,14 +19,14 @@ fun NavGraphBuilder.searchScreen(
     onBack: () -> Unit,
     onGroupClick: (TrackGroupKey) -> Unit,
     onAudioPermissionMissing: () -> Unit,
-    onAddToPlaylist: (List<Long>) -> Unit,
+    onTrackActions: (List<Long>) -> Unit,
 ) {
     composable<SearchDestination> {
         SearchRoute(
             onBack = onBack,
             onGroupClick = onGroupClick,
             onAudioPermissionMissing = onAudioPermissionMissing,
-            onAddToPlaylist = onAddToPlaylist,
+            onTrackActions = onTrackActions,
         )
     }
 }

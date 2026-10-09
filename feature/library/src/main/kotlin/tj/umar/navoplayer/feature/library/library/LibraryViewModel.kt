@@ -67,7 +67,7 @@ internal class LibraryViewModel @Inject constructor(
             LibraryIntent.CreatePlaylistDismissed -> setState { copy(isCreatePlaylistSheetVisible = false) }
             is LibraryIntent.CreatePlaylistConfirmed -> onCreatePlaylistConfirmed(intent.name)
             LibraryIntent.RetryLoadPlaylists -> startObservingPlaylists()
-            is LibraryIntent.TrackLongPressed -> sendEffect(LibraryEffect.OpenAddToPlaylist(listOf(intent.trackId)))
+            is LibraryIntent.TrackLongPressed -> sendEffect(LibraryEffect.OpenTrackActions(listOf(intent.trackId)))
             LibraryIntent.SettingsClicked -> sendEffect(LibraryEffect.NavigateToSettings)
             is LibraryIntent.SortClicked -> setState { copy(sortSheet = intent.target) }
             LibraryIntent.SortSheetDismissed -> setState { copy(sortSheet = null) }

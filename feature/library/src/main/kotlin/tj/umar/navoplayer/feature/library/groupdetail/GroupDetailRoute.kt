@@ -17,7 +17,7 @@ internal fun GroupDetailRoute(
     key: TrackGroupKey,
     onBack: () -> Unit,
     onAudioPermissionMissing: () -> Unit,
-    onAddToPlaylist: (List<Long>) -> Unit,
+    onTrackActions: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: GroupDetailViewModel = hiltViewModel<GroupDetailViewModel, GroupDetailViewModel.Factory>(
         creationCallback = { factory -> factory.create(key) },
@@ -27,7 +27,7 @@ internal fun GroupDetailRoute(
     val context = LocalContext.current
     val currentOnBack by rememberUpdatedState(onBack)
     val currentOnAudioPermissionMissing by rememberUpdatedState(onAudioPermissionMissing)
-    val currentOnAddToPlaylist by rememberUpdatedState(onAddToPlaylist)
+    val currentOnTrackActions by rememberUpdatedState(onTrackActions)
 
     LifecycleStartEffect(Unit) {
         viewModel.onIntent(GroupDetailIntent.ScreenStarted(context.hasAudioReadPermission()))
@@ -38,7 +38,7 @@ internal fun GroupDetailRoute(
         when (effect) {
             GroupDetailEffect.NavigateBack -> currentOnBack()
             GroupDetailEffect.NavigateToWelcome -> currentOnAudioPermissionMissing()
-            is GroupDetailEffect.OpenAddToPlaylist -> currentOnAddToPlaylist(effect.trackIds)
+            is GroupDetailEffect.OpenTrackActions -> currentOnTrackActions(effect.trackIds)
         }
     }
 

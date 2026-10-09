@@ -64,7 +64,6 @@ fun NavoApp(
         NavoNavHost(
             navController = navController,
             startDestination = if (startOnWelcome) WelcomeDestination else LibraryDestination,
-            onAddToPlaylist = { trackIds -> addToPlaylistRequest = AddToPlaylistRequest.of(trackIds) },
             onTrackActions = { trackIds -> trackActionsRequest = TrackActionsRequest.of(trackIds) },
             modifier = Modifier.fillMaxSize(),
         )

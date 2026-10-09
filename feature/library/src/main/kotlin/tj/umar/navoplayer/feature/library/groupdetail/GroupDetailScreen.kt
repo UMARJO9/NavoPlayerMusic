@@ -102,7 +102,7 @@ internal fun GroupDetailScreen(
 
 @Composable
 private fun GroupTrackList(state: GroupDetailState, group: TrackGroup, onIntent: (GroupDetailIntent) -> Unit) {
-    val addToPlaylistLabel = stringResource(CoreUiR.string.core_ui_add_to_playlist)
+    val trackOptionsLabel = stringResource(CoreUiR.string.core_ui_track_options)
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = navoListPadding(state.hasActivePlayback),
@@ -125,7 +125,7 @@ private fun GroupTrackList(state: GroupDetailState, group: TrackGroup, onIntent:
                 isPlaying = track.id == state.currentTrackId && state.isPlaying,
                 onClick = { onIntent(GroupDetailIntent.TrackClicked(track.id)) },
                 onLongClick = { onIntent(GroupDetailIntent.TrackLongPressed(track.id)) },
-                onLongClickLabel = addToPlaylistLabel,
+                onLongClickLabel = trackOptionsLabel,
                 modifier = Modifier.animateItem(),
             )
         }

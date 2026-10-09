@@ -48,7 +48,7 @@ internal class GroupDetailViewModel @AssistedInject constructor(
             GroupDetailIntent.BackClicked -> sendEffect(GroupDetailEffect.NavigateBack)
             is GroupDetailIntent.TrackClicked -> onTrackClicked(intent.trackId)
             GroupDetailIntent.ShuffleClicked -> onShuffleClicked()
-            is GroupDetailIntent.TrackLongPressed -> sendEffect(GroupDetailEffect.OpenAddToPlaylist(listOf(intent.trackId)))
+            is GroupDetailIntent.TrackLongPressed -> sendEffect(GroupDetailEffect.OpenTrackActions(listOf(intent.trackId)))
         }
     }
 

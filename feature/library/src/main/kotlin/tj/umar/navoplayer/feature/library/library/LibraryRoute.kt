@@ -22,7 +22,7 @@ internal fun LibraryRoute(
     onPlaylistClick: (Long) -> Unit,
     onFavoritesClick: () -> Unit,
     onSettingsClick: () -> Unit,
-    onAddToPlaylist: (List<Long>) -> Unit,
+    onTrackActions: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
@@ -34,7 +34,7 @@ internal fun LibraryRoute(
     val currentOnPlaylistClick by rememberUpdatedState(onPlaylistClick)
     val currentOnFavoritesClick by rememberUpdatedState(onFavoritesClick)
     val currentOnSettingsClick by rememberUpdatedState(onSettingsClick)
-    val currentOnAddToPlaylist by rememberUpdatedState(onAddToPlaylist)
+    val currentOnTrackActions by rememberUpdatedState(onTrackActions)
 
     LifecycleStartEffect(Unit) {
         viewModel.onIntent(LibraryIntent.ScreenStarted(context.hasAudioReadPermission()))
@@ -49,7 +49,7 @@ internal fun LibraryRoute(
             is LibraryEffect.NavigateToPlaylist -> currentOnPlaylistClick(effect.playlistId)
             LibraryEffect.NavigateToFavorites -> currentOnFavoritesClick()
             LibraryEffect.NavigateToSettings -> currentOnSettingsClick()
-            is LibraryEffect.OpenAddToPlaylist -> currentOnAddToPlaylist(effect.trackIds)
+            is LibraryEffect.OpenTrackActions -> currentOnTrackActions(effect.trackIds)
             LibraryEffect.ShowSortSaveFailed ->
                 Toast.makeText(context, R.string.library_sort_save_failed, Toast.LENGTH_SHORT).show()
             LibraryEffect.ShowCreatePlaylistFailed ->

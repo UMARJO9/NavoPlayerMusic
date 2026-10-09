@@ -96,5 +96,5 @@ internal sealed interface LibraryEffect {
     data object NavigateToSettings : LibraryEffect
     data object ShowCreatePlaylistFailed : LibraryEffect
     data object ShowSortSaveFailed : LibraryEffect
-    data class OpenAddToPlaylist(val trackIds: List<Long>) : LibraryEffect
+    data class OpenTrackActions(val trackIds: List<Long>) : LibraryEffect
 }

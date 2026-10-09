@@ -6,6 +6,7 @@
     <string name="core_ui_various_artists">Various artists</string>
     <string name="core_ui_group_subtitle" translatable="false">%1$s · %2$s</string>
     <string name="core_ui_add_to_playlist">Add to playlist</string>
+    <string name="core_ui_track_options">Track options</string>
     <string name="core_ui_new_playlist">New playlist</string>
     <string name="core_ui_playlist_name">Playlist name</string>
     <string name="core_ui_create">Create</string>

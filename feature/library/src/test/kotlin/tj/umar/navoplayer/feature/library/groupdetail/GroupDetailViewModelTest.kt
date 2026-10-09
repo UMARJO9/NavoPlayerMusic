@@ -210,12 +210,12 @@ class GroupDetailViewModelTest {
     }
 
     @Test
-    fun `track long press opens add to playlist`() = runTest {
+    fun `track long press opens track options`() = runTest {
         val viewModel = viewModel()
 
         viewModel.effects.test {
             viewModel.onIntent(GroupDetailIntent.TrackLongPressed(TestTracks.alpha.id))
-            assertEquals(GroupDetailEffect.OpenAddToPlaylist(listOf(TestTracks.alpha.id)), awaitItem())
+            assertEquals(GroupDetailEffect.OpenTrackActions(listOf(TestTracks.alpha.id)), awaitItem())
         }
     }
 }

@@ -52,7 +52,6 @@ private const val EXIT_FADE_MILLIS = 200
 fun NavoNavHost(
     navController: NavHostController,
     startDestination: Any,
-    onAddToPlaylist: (List<Long>) -> Unit,
     onTrackActions: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -103,7 +102,7 @@ fun NavoNavHost(
             onPlaylistClick = { id -> if (isResumed()) navController.navigateToPlaylistDetail(id) },
             onFavoritesClick = { if (isResumed()) navController.navigateToFavorites() },
             onSettingsClick = { if (isResumed()) navController.navigateToSettings() },
-            onAddToPlaylist = onAddToPlaylist,
+            onTrackActions = onTrackActions,
         )
         searchScreen(
             onBack = {
@@ -113,7 +112,7 @@ fun NavoNavHost(
             },
             onGroupClick = { key -> if (isResumed()) navController.navigateToGroupDetail(key) },
             onAudioPermissionMissing = onAudioPermissionMissing,
-            onAddToPlaylist = onAddToPlaylist,
+            onTrackActions = onTrackActions,
         )
         groupDetailScreen(
             onBack = {
@@ -122,7 +121,7 @@ fun NavoNavHost(
                 }
             },
             onAudioPermissionMissing = onAudioPermissionMissing,
-            onAddToPlaylist = onAddToPlaylist,
+            onTrackActions = onTrackActions,
         )
         playlistDetailScreen(
             onBack = {

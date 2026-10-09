@@ -42,7 +42,7 @@ fun NavGraphBuilder.libraryScreen(
     onPlaylistClick: (Long) -> Unit,
     onFavoritesClick: () -> Unit,
     onSettingsClick: () -> Unit,
-    onAddToPlaylist: (List<Long>) -> Unit,
+    onTrackActions: (List<Long>) -> Unit,
 ) {
     composable<LibraryDestination> {
         LibraryRoute(
@@ -52,7 +52,7 @@ fun NavGraphBuilder.libraryScreen(
             onPlaylistClick = onPlaylistClick,
             onFavoritesClick = onFavoritesClick,
             onSettingsClick = onSettingsClick,
-            onAddToPlaylist = onAddToPlaylist,
+            onTrackActions = onTrackActions,
         )
     }
 }
@@ -60,14 +60,14 @@ fun NavGraphBuilder.libraryScreen(
 fun NavGraphBuilder.groupDetailScreen(
     onBack: () -> Unit,
     onAudioPermissionMissing: () -> Unit,
-    onAddToPlaylist: (List<Long>) -> Unit,
+    onTrackActions: (List<Long>) -> Unit,
 ) {
     composable<GroupDetailDestination> { entry ->
         GroupDetailRoute(
             key = entry.toRoute<GroupDetailDestination>().toKey(),
             onBack = onBack,
             onAudioPermissionMissing = onAudioPermissionMissing,
-            onAddToPlaylist = onAddToPlaylist,
+            onTrackActions = onTrackActions,
         )
     }
 }

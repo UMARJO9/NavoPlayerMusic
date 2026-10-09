@@ -38,5 +38,5 @@ internal sealed interface GroupDetailIntent {
 internal sealed interface GroupDetailEffect {
     data object NavigateBack : GroupDetailEffect
     data object NavigateToWelcome : GroupDetailEffect
-    data class OpenAddToPlaylist(val trackIds: List<Long>) : GroupDetailEffect
+    data class OpenTrackActions(val trackIds: List<Long>) : GroupDetailEffect
 }

@@ -46,5 +46,5 @@ internal sealed interface SearchEffect {
     data object NavigateBack : SearchEffect
     data object NavigateToWelcome : SearchEffect
     data class NavigateToGroup(val key: TrackGroupKey) : SearchEffect
-    data class OpenAddToPlaylist(val trackIds: List<Long>) : SearchEffect
+    data class OpenTrackActions(val trackIds: List<Long>) : SearchEffect
 }
