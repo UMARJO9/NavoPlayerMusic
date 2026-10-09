@@ -38,9 +38,10 @@ private class FakeSleepTimerPlayer : SleepTimerPlayer {
 class SleepTimerExecutorTest {
 
     private val player = FakeSleepTimerPlayer()
+    private var sleptMs = 0L
 
     private fun TestScope.startExecutor(): Pair<SleepTimerStore, SleepTimerExecutor> {
-        val clock = NavoClock { testScheduler.currentTime }
+        val clock = NavoClock { testScheduler.currentTime + sleptMs }
         val store = SleepTimerStore(clock).also { it.attach() }
         val executor = SleepTimerExecutor(store, player, clock, fadeMs = 10_000)
         executor.start(backgroundScope)
@@ -181,5 +182,51 @@ class SleepTimerExecutorTest {
 
         assertEquals(0.8f, player.volume)
         assertFalse(player.pauseAtEnd)
+    }
+
+    @Test
+    fun `deadline passed during device sleep completes silently on resume`() = runTest {
+        val (store, _) = startExecutor()
+        player.isPlaying = false
+        store.startCountdown(30 * 60_000L)
+        advanceTimeBy(5 * 60_000L)
+        runCurrent()
+
+        sleptMs = 2 * 60 * 60_000L
+        player.isPlaying = true
+        player.events.emit(SleepTimerPlayerEvent.PlayingChanged(true))
+        runCurrent()
+
+        assertEquals(0, player.pauseCalls)
+        assertTrue(player.volumeHistory.isEmpty())
+        assertEquals(SleepTimerSchedule.Off, store.schedule.value)
+    }
+
+    @Test
+    fun `restart during fade restores volume before new countdown`() = runTest {
+        val (store, _) = startExecutor()
+        store.startCountdown(20_000)
+        advanceTimeBy(15_000)
+        runCurrent()
+
+        store.startCountdown(60_000)
+        runCurrent()
+
+        assertEquals(0.8f, player.volume)
+        assertEquals(0, player.pauseCalls)
+        assertTrue(store.schedule.value is SleepTimerSchedule.Countdown)
+    }
+
+    @Test
+    fun `playback end completes end of track timer`() = runTest {
+        val (store, _) = startExecutor()
+        store.startEndOfTrack()
+        runCurrent()
+
+        player.events.emit(SleepTimerPlayerEvent.PlaybackEnded)
+        runCurrent()
+
+        assertFalse(player.pauseAtEnd)
+        assertEquals(SleepTimerSchedule.Off, store.schedule.value)
     }
 }

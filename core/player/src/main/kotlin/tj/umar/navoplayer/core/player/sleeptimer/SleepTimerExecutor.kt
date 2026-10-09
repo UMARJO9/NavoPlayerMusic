@@ -1,7 +1,6 @@
 package tj.umar.navoplayer.core.player.sleeptimer
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -51,6 +50,10 @@ internal class SleepTimerExecutor(
 
     private suspend fun runCountdown(schedule: SleepTimerSchedule.Countdown) {
         delayUntil(schedule.endsAtMs - fadeMs)
+        if (clock.nowMillis() >= schedule.endsAtMs) {
+            store.complete(schedule)
+            return
+        }
         if (!player.isPlaying && !awaitResumeBefore(schedule.endsAtMs)) {
             store.complete(schedule)
             return
@@ -92,7 +95,7 @@ internal class SleepTimerExecutor(
         while (true) {
             val wait = targetMs - clock.nowMillis()
             if (wait <= 0) return
-            delay(wait)
+            withTimeoutOrNull(wait) { player.events.first { it is SleepTimerPlayerEvent.PlayingChanged } }
         }
     }
 }
