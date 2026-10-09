@@ -32,7 +32,6 @@ internal sealed interface GroupDetailIntent {
     data object BackClicked : GroupDetailIntent
     data class TrackClicked(val trackId: Long) : GroupDetailIntent
     data object ShuffleClicked : GroupDetailIntent
-    data object SortClicked : GroupDetailIntent
     data class TrackLongPressed(val trackId: Long) : GroupDetailIntent
 }
 

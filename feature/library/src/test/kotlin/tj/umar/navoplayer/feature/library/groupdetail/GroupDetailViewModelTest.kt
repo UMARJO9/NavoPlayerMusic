@@ -205,7 +205,6 @@ class GroupDetailViewModelTest {
 
         viewModel.onIntent(GroupDetailIntent.ShuffleClicked)
         viewModel.onIntent(GroupDetailIntent.TrackClicked(TestTracks.alpha.id))
-        viewModel.onIntent(GroupDetailIntent.SortClicked)
 
         assertTrue(playback.commands.isEmpty())
     }

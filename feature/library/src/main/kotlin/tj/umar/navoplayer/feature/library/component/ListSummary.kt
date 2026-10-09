@@ -25,9 +25,9 @@ import tj.umar.navoplayer.feature.library.R
 internal fun ListSummary(
     title: String,
     subtitle: String,
-    onSortClick: () -> Unit,
     onShuffleClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onSortClick: (() -> Unit)? = null,
 ) {
     val colors = NavoTheme.colors
     val typography = NavoTheme.typography
@@ -42,13 +42,15 @@ internal fun ListSummary(
             Text(text = title, style = typography.titleS, color = colors.content)
             Text(text = subtitle, style = typography.secondary, color = colors.contentSecondary)
         }
-        NavoIconButton(
-            icon = NavoIcons.Sort,
-            contentDescription = stringResource(R.string.library_sort),
-            onClick = onSortClick,
-            containerColor = colors.raised,
-            iconSize = 22.dp,
-        )
+        if (onSortClick != null) {
+            NavoIconButton(
+                icon = NavoIcons.Sort,
+                contentDescription = stringResource(R.string.library_sort),
+                onClick = onSortClick,
+                containerColor = colors.raised,
+                iconSize = 22.dp,
+            )
+        }
         NavoButton(
             text = stringResource(R.string.library_shuffle),
             onClick = onShuffleClick,
