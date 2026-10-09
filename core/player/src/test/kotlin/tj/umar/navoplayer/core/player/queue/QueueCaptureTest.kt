@@ -81,5 +81,6 @@ class QueueCaptureTest {
 
         assertEquals(listOf("q1", "q2"), saved.items.map { it.queueItemId.value })
         assertEquals(1, saved.progress.currentIndex)
+        assertEquals(1, player.captureQueue(null)!!.toProgress().currentIndex)
     }
 }

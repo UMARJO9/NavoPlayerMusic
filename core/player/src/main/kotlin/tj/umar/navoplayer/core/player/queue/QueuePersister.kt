@@ -2,6 +2,7 @@ package tj.umar.navoplayer.core.player.queue
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -9,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import tj.umar.navoplayer.core.domain.model.SavedQueue
 
 internal const val QUEUE_SAVE_DEBOUNCE_MILLIS = 500L
 internal const val QUEUE_POSITION_TICK_MILLIS = 15_000L
@@ -24,16 +24,21 @@ internal class QueuePersister(
     private var job: Job? = null
     private var flushJob: Job? = null
     private var scope: CoroutineScope? = null
-    private var structureDirty = false
+    private var structureGeneration = 0L
+    private var savedGeneration = 0L
     private val playing = MutableStateFlow(false)
+
+    private val structureDirty: Boolean
+        get() = structureGeneration != savedGeneration
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun start(scope: CoroutineScope, saveNow: Boolean) {
         if (job != null) return
         this.scope = scope
         playing.value = player.isPlaying
+        if (saveNow) structureGeneration++
         job = scope.launch {
-            launch { player.events.collect(::onEvent) }
+            launch(start = CoroutineStart.UNDISPATCHED) { player.events.collect(::onEvent) }
             launch {
                 playing.collectLatest { isPlaying ->
                     while (isPlaying) {
@@ -42,10 +47,7 @@ internal class QueuePersister(
                     }
                 }
             }
-            if (saveNow) {
-                structureDirty = true
-                scheduleFlush(0)
-            }
+            if (saveNow) scheduleFlush(0)
         }
     }
 
@@ -53,7 +55,13 @@ internal class QueuePersister(
         if (job == null) return
         flushJob?.cancel()
         val captured = player.capture() ?: return
-        submit(captured, captured.takeIf { structureDirty }?.toSavedQueue())
+        val generation = structureGeneration
+        if (generation != savedGeneration) {
+            captured.toSavedQueue()?.let { writer.submit(QueueWrite.Full(it)) }
+            savedGeneration = generation
+        } else {
+            writer.submit(QueueWrite.Progress(captured.toProgress()))
+        }
     }
 
     fun release() {
@@ -67,13 +75,14 @@ internal class QueuePersister(
     private fun onEvent(event: QueuePlayerEvent) {
         when (event) {
             QueuePlayerEvent.StructureChanged -> {
-                structureDirty = true
+                structureGeneration++
                 scheduleFlush(debounceMs)
             }
             QueuePlayerEvent.ProgressChanged -> scheduleFlush(debounceMs)
             QueuePlayerEvent.Emptied -> {
                 flushJob?.cancel()
-                structureDirty = false
+                structureGeneration++
+                savedGeneration = structureGeneration
                 writer.submit(QueueWrite.Clear)
             }
             is QueuePlayerEvent.PlayingChanged -> {
@@ -94,16 +103,14 @@ internal class QueuePersister(
 
     private suspend fun flushNow() {
         val captured = player.capture() ?: return
-        val full = if (structureDirty) withContext(mappingDispatcher) { captured.toSavedQueue() } else null
-        submit(captured, full)
-    }
-
-    private fun submit(captured: CapturedQueue, full: SavedQueue?) {
-        if (structureDirty) {
-            structureDirty = false
-            if (full != null) writer.submit(QueueWrite.Full(full))
-        } else {
+        val generation = structureGeneration
+        if (generation == savedGeneration) {
             writer.submit(QueueWrite.Progress(captured.toProgress()))
+            return
         }
+        val full = withContext(mappingDispatcher) { captured.toSavedQueue() }
+        if (generation != structureGeneration) return
+        full?.let { writer.submit(QueueWrite.Full(it)) }
+        savedGeneration = generation
     }
 }

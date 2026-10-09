@@ -5,8 +5,10 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import tj.umar.navoplayer.core.player.mapper.queueItemId
 import tj.umar.navoplayer.core.player.service.playOrder
@@ -56,7 +58,7 @@ internal class ExoQueuePlayer(
         }
         player.addListener(listener)
         awaitClose { player.removeListener(listener) }
-    }
+    }.buffer(Channel.UNLIMITED)
 
     override fun capture(): CapturedQueue? = player.captureQueue(sourceStore.source.value)
 

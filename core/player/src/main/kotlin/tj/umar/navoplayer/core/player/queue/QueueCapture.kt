@@ -1,5 +1,6 @@
 package tj.umar.navoplayer.core.player.queue
 
+import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
@@ -60,9 +61,16 @@ internal fun CapturedQueue.toSavedQueue(): SavedQueue? {
     )
 }
 
-internal fun CapturedQueue.toProgress(): SavedQueueProgress = SavedQueueProgress(
-    currentIndex = currentIndex,
-    positionMs = if (ended) 0 else positionMs,
-    shuffleEnabled = shuffleEnabled,
-    repeatMode = repeatMode.toDomainRepeatMode(),
-)
+internal fun CapturedQueue.toProgress(): SavedQueueProgress {
+    val window = Timeline.Window()
+    val savedIndex = (0 until currentIndex.coerceIn(0, timeline.windowCount))
+        .count { timeline.getWindow(it, window).mediaItem.isSavable() }
+    return SavedQueueProgress(
+        currentIndex = savedIndex,
+        positionMs = if (ended) 0 else positionMs,
+        shuffleEnabled = shuffleEnabled,
+        repeatMode = repeatMode.toDomainRepeatMode(),
+    )
+}
+
+private fun MediaItem.isSavable(): Boolean = mediaId.toLongOrNull() != null && queueItemId() != null
