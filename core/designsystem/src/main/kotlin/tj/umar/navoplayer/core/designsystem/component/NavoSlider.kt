@@ -35,13 +35,17 @@ fun NavoSlider(
     stateDescription: String,
     contentDescription: String,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     val colors = NavoTheme.colors
     val interactionSource = remember { MutableInteractionSource() }
+    val activeColor = if (enabled) colors.accent else colors.contentMuted
+    val thumbColor = if (enabled) colors.content else colors.contentMuted
     Slider(
         value = value.coerceIn(0f, 1f),
         onValueChange = onValueChange,
         onValueChangeFinished = onValueChangeFinished,
+        enabled = enabled,
         interactionSource = interactionSource,
         modifier = modifier
             .fillMaxWidth()
@@ -53,7 +57,7 @@ fun NavoSlider(
             Box(
                 modifier = Modifier
                     .size(ThumbSize)
-                    .background(colors.content, CircleShape),
+                    .background(thumbColor, CircleShape),
             )
         },
         track = { sliderState ->
@@ -73,7 +77,7 @@ fun NavoSlider(
                     cap = StrokeCap.Round,
                 )
                 drawLine(
-                    color = colors.accent,
+                    color = activeColor,
                     start = Offset(0f, centerY),
                     end = Offset(size.width * fraction, centerY),
                     strokeWidth = stroke,

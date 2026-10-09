@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
@@ -30,6 +31,7 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 
 private const val CHIP_COLOR_DURATION_MILLIS = 200
+private const val DISABLED_CHIP_ALPHA = 0.4f
 
 @Composable
 fun NavoChip(
@@ -39,6 +41,7 @@ fun NavoChip(
     modifier: Modifier = Modifier,
     role: Role = Role.Tab,
     unselectedContainerColor: Color = NavoTheme.colors.raised,
+    enabled: Boolean = true,
 ) {
     val colors = NavoTheme.colors
     val interactionSource = remember { MutableInteractionSource() }
@@ -54,12 +57,14 @@ fun NavoChip(
     )
     Box(
         modifier = modifier
+            .alpha(if (enabled) 1f else DISABLED_CHIP_ALPHA)
             .heightIn(min = NavoSpacing.MinTouchTarget)
             .selectable(
                 selected = selected,
                 interactionSource = interactionSource,
                 indication = null,
                 role = role,
+                enabled = enabled,
                 onClick = onClick,
             ),
         contentAlignment = Alignment.Center,
