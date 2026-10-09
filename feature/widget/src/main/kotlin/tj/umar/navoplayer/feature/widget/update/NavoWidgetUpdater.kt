@@ -1,5 +1,6 @@
 package tj.umar.navoplayer.feature.widget.update
 
+import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -12,6 +13,8 @@ import tj.umar.navoplayer.core.domain.usecase.ObserveNowPlayingUseCase
 import tj.umar.navoplayer.feature.widget.toWidgetUiState
 import javax.inject.Inject
 import javax.inject.Singleton
+
+private const val TAG = "NavoWidgetUpdater"
 
 @Singleton
 class NavoWidgetUpdater @Inject internal constructor(
@@ -36,7 +39,7 @@ class NavoWidgetUpdater @Inject internal constructor(
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (failure: Exception) {
-            return
+            Log.w(TAG, "Widget refresh failed", failure)
         }
     }
 }

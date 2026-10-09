@@ -58,7 +58,7 @@ internal fun NavoWidgetContent(state: NavoWidgetUiState, artwork: Bitmap?, actio
             .background(ImageProvider(R.drawable.navo_widget_background))
             .cornerRadius(R.dimen.navo_widget_corner_radius)
             .clickable(actions.open)
-            .padding(12.dp),
+            .padding(horizontal = 12.dp, vertical = if (tall) 12.dp else 4.dp),
         contentAlignment = Alignment.CenterStart,
     ) {
         if (tall) {
@@ -79,12 +79,12 @@ internal fun NavoWidgetContent(state: NavoWidgetUiState, artwork: Bitmap?, actio
             }
         } else {
             Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Artwork(artwork = artwork, size = 44.dp)
+                Artwork(artwork = artwork, size = 40.dp)
                 Spacer(modifier = GlanceModifier.width(12.dp))
                 Box(modifier = GlanceModifier.defaultWeight()) {
                     TrackText(state = state, titleLines = 1)
                 }
-                Controls(state = state, actions = actions, showPrevious = wide, playSize = 44.dp)
+                Controls(state = state, actions = actions, showPrevious = wide, playSize = 40.dp)
             }
         }
     }
