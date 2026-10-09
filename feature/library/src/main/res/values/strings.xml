@@ -18,4 +18,16 @@
     <string name="library_playlists_empty">No playlists yet</string>
     <string name="library_playlists_error">Couldn’t load playlists</string>
     <string name="library_sort_save_failed">Couldn’t save sorting</string>
+    <string name="library_sort_sheet_title">Sort by</string>
+    <string name="library_sort_title">Title</string>
+    <string name="library_sort_artist">Artist</string>
+    <string name="library_sort_album">Album</string>
+    <string name="library_sort_date_added">Date added</string>
+    <string name="library_sort_duration">Duration</string>
+    <string name="library_sort_name">Name</string>
+    <string name="library_sort_track_count">Number of tracks</string>
+    <string name="library_sort_order">Order</string>
+    <string name="library_sort_ascending">Ascending</string>
+    <string name="library_sort_descending">Descending</string>
+    <string name="library_sort_groups_hint">Applies to albums, artists and folders</string>
 </resources>

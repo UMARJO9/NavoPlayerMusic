@@ -18,4 +18,16 @@
     <string name="library_playlists_empty">Плейлистов пока нет</string>
     <string name="library_playlists_error">Не удалось загрузить плейлисты</string>
     <string name="library_sort_save_failed">Не удалось сохранить сортировку</string>
+    <string name="library_sort_sheet_title">Сортировка</string>
+    <string name="library_sort_title">Название</string>
+    <string name="library_sort_artist">Исполнитель</string>
+    <string name="library_sort_album">Альбом</string>
+    <string name="library_sort_date_added">Дата добавления</string>
+    <string name="library_sort_duration">Длительность</string>
+    <string name="library_sort_name">Название</string>
+    <string name="library_sort_track_count">Количество треков</string>
+    <string name="library_sort_order">Порядок</string>
+    <string name="library_sort_ascending">По возрастанию</string>
+    <string name="library_sort_descending">По убыванию</string>
+    <string name="library_sort_groups_hint">Для альбомов, исполнителей и папок</string>
 </resources>
