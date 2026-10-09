@@ -1,0 +1,32 @@
+package tj.umar.navoplayer.core.player.sleeptimer
+
+import androidx.media3.exoplayer.ExoPlayer
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+
+internal class ExoSleepTimerPlayer(private val player: ExoPlayer) : SleepTimerPlayer {
+
+    override val isPlaying: Boolean
+        get() = player.isPlaying
+
+    override var volume: Float
+        get() = player.volume
+        set(value) {
+            player.volume = value
+        }
+
+    override val events: Flow<SleepTimerPlayerEvent> = callbackFlow {
+        val listener = SleepTimerPlayerListener { trySend(it) }
+        player.addListener(listener)
+        awaitClose { player.removeListener(listener) }
+    }
+
+    override fun pause() {
+        player.pause()
+    }
+
+    override fun setPauseAtEndOfMediaItems(enabled: Boolean) {
+        player.pauseAtEndOfMediaItems = enabled
+    }
+}
