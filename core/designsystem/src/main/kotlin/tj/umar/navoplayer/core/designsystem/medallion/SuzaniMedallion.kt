@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import tj.umar.navoplayer.core.designsystem.theme.Ivory
+import kotlin.math.PI
 import kotlin.math.sin
 
 private const val UNITS = 200f
@@ -21,7 +22,7 @@ private const val STAR_LAYER_TURN = -2f
 private const val ROSETTE_LAYER_TURN = 0.5f
 private const val BREATH_CYCLES_PER_TURN = 10f
 private const val BREATH_DEPTH = 0.06f
-private const val DEGREES_TO_RADIANS = (Math.PI / 180).toFloat()
+private const val DEGREES_TO_RADIANS = (PI / 180).toFloat()
 
 internal class SuzaniOrnament(size: Size) {
     val unit: Float = size.minDimension / UNITS
@@ -36,6 +37,9 @@ internal class SuzaniOrnament(size: Size) {
     )
     val tulip: Path = tulipPath(base = center + Offset(0f, -20f * unit), length = 38f * unit, width = 12f * unit)
     val bodom: Path = bodomPath(center = center + Offset(0f, -84f * unit), length = 15f * unit, width = 7f * unit)
+    val starStroke: Stroke = Stroke(width = 2f * unit)
+    val outerRingStroke: Stroke = Stroke(width = 1.5f * unit)
+    val innerRingStroke: Stroke = Stroke(width = 2f * unit)
 }
 
 internal fun breathScale(turnDegrees: Float): Float =
@@ -52,7 +56,7 @@ internal fun DrawScope.drawSuzaniMedallion(
     drawOuterBand(palette, ornament)
     rotate(STAR_LAYER_TURN * turnDegrees, pivot = center) {
         drawPath(ornament.star, color = palette.center)
-        drawPath(ornament.star, color = palette.petals, style = Stroke(width = 2f * unit))
+        drawPath(ornament.star, color = palette.petals, style = ornament.starStroke)
         repeat(STAR_POINTS) { index ->
             rotate(index * STAR_STEP_DEGREES, pivot = center) {
                 drawPath(ornament.tulip, color = palette.petals)
@@ -82,7 +86,7 @@ internal fun DrawScope.drawSuzaniMedallion(
 private fun DrawScope.drawOuterBand(palette: MedallionPalette, ornament: SuzaniOrnament) {
     val unit = ornament.unit
     val center = ornament.center
-    drawCircle(palette.petals, radius = 96f * unit, center = center, style = Stroke(width = 1.5f * unit))
+    drawCircle(palette.petals, radius = 96f * unit, center = center, style = ornament.outerRingStroke)
     repeat(BAND_MOTIFS) { index ->
         rotate(index * BAND_STEP_DEGREES, pivot = center) {
             drawPath(ornament.bodom, color = if (index % 2 == 0) palette.petals else palette.center)
@@ -91,5 +95,5 @@ private fun DrawScope.drawOuterBand(palette: MedallionPalette, ornament: SuzaniO
             drawCircle(Ivory, radius = 2f * unit, center = center + Offset(0f, -84f * unit))
         }
     }
-    drawCircle(palette.petals, radius = 73f * unit, center = center, style = Stroke(width = 2f * unit))
+    drawCircle(palette.petals, radius = 73f * unit, center = center, style = ornament.innerRingStroke)
 }

@@ -3,6 +3,7 @@ package tj.umar.navoplayer.core.designsystem.medallion
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.ui.graphics.toArgb
+import tj.umar.navoplayer.core.designsystem.theme.Ivory
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -61,5 +62,13 @@ class MedallionBitmapTest {
     @Test
     fun `plain bitmap keeps transparent corners`() {
         assertEquals(0, palette.renderBitmap(64).getPixel(0, 0))
+    }
+
+    @Test
+    fun `detailed suzani medallion renders ivory center inside transparent corners`() {
+        val bitmap = palette.renderBitmap(128, MedallionVariant.Detailed)
+
+        assertEquals(0, bitmap.getPixel(0, 0))
+        assertEquals(Ivory.toArgb(), bitmap.getPixel(64, 64))
     }
 }
