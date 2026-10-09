@@ -5,6 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import kotlinx.serialization.Serializable
+import tj.umar.navoplayer.feature.settings.equalizer.EqualizerRoute
 import tj.umar.navoplayer.feature.settings.folders.HiddenFoldersRoute
 import tj.umar.navoplayer.feature.settings.licenses.LicensesRoute
 import tj.umar.navoplayer.feature.settings.settings.SettingsRoute
@@ -56,5 +57,18 @@ fun NavController.navigateToLicenses(navOptions: NavOptions? = null) {
 fun NavGraphBuilder.licensesScreen(onBack: () -> Unit) {
     composable<LicensesDestination> {
         LicensesRoute(onBack = onBack)
+    }
+}
+
+@Serializable
+data object EqualizerDestination
+
+fun NavController.navigateToEqualizer(navOptions: NavOptions? = null) {
+    navigate(EqualizerDestination, navOptions)
+}
+
+fun NavGraphBuilder.equalizerScreen(onBack: () -> Unit) {
+    composable<EqualizerDestination> {
+        EqualizerRoute(onBack = onBack)
     }
 }

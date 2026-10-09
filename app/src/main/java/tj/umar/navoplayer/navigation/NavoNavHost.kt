@@ -32,9 +32,11 @@ import tj.umar.navoplayer.feature.playlists.navigation.playlistDetailScreen
 import tj.umar.navoplayer.feature.search.navigation.SearchDestination
 import tj.umar.navoplayer.feature.search.navigation.navigateToSearch
 import tj.umar.navoplayer.feature.search.navigation.searchScreen
+import tj.umar.navoplayer.feature.settings.navigation.EqualizerDestination
 import tj.umar.navoplayer.feature.settings.navigation.HiddenFoldersDestination
 import tj.umar.navoplayer.feature.settings.navigation.LicensesDestination
 import tj.umar.navoplayer.feature.settings.navigation.SettingsDestination
+import tj.umar.navoplayer.feature.settings.navigation.equalizerScreen
 import tj.umar.navoplayer.feature.settings.navigation.hiddenFoldersScreen
 import tj.umar.navoplayer.feature.settings.navigation.licensesScreen
 import tj.umar.navoplayer.feature.settings.navigation.navigateToHiddenFolders
@@ -155,6 +157,13 @@ fun NavoNavHost(
                 }
             },
             onAudioPermissionMissing = onAudioPermissionMissing,
+        )
+        equalizerScreen(
+            onBack = {
+                if (navController.currentDestination?.hasRoute<EqualizerDestination>() == true) {
+                    navController.popBackStack()
+                }
+            },
         )
         licensesScreen(
             onBack = {
