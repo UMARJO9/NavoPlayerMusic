@@ -45,6 +45,7 @@ private const val RETRY_BACKOFF_MILLIS = 1_000L
 @Singleton
 internal class DefaultPlaybackController @Inject constructor(
     private val connection: MediaControllerConnection,
+    private val idFactory: QueueItemIdFactory,
     @param:DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
     @param:ApplicationScope scope: CoroutineScope,
 ) : PlaybackController {
@@ -95,7 +96,7 @@ internal class DefaultPlaybackController @Inject constructor(
     override fun observeProgress(): Flow<PlaybackProgress> = progress
 
     override suspend fun play(queue: List<Track>, startIndex: Int, source: PlaybackSource) {
-        val items = withContext(defaultDispatcher) { queue.map { it.toMediaItem() } }
+        val items = withContext(defaultDispatcher) { queue.map { it.toMediaItem(idFactory.create()) } }
         runCommand { controller ->
             controller.setMediaItems(items, startIndex, 0L)
             this.source.value = source
@@ -105,7 +106,7 @@ internal class DefaultPlaybackController @Inject constructor(
     }
 
     override suspend fun playShuffled(queue: List<Track>, source: PlaybackSource) {
-        val items = withContext(defaultDispatcher) { queue.map { it.toMediaItem() } }
+        val items = withContext(defaultDispatcher) { queue.map { it.toMediaItem(idFactory.create()) } }
         val startIndex = Random.nextInt(items.size)
         runCommand { controller ->
             controller.shuffleModeEnabled = true
