@@ -10,7 +10,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -99,7 +98,7 @@ class QueueRestorerTest {
     fun `resumption before start finishes claims queue`() = runTest {
         val restorer = restorer()
 
-        val future = restorer.resumption(backgroundScope, isForPlayback = true)
+        val future = restorer.resumption(backgroundScope)
         restorer.start(backgroundScope)
         runCurrent()
 
@@ -118,7 +117,7 @@ class QueueRestorerTest {
         val current = MediaSession.MediaItemsWithStartPosition(listOf(MediaItem.EMPTY), 0, 0)
         player.current = current
 
-        assertEquals(current, restorer.resumption(backgroundScope, isForPlayback = true).await())
+        assertEquals(current, restorer.resumption(backgroundScope).await())
     }
 
     @Test
@@ -129,20 +128,34 @@ class QueueRestorerTest {
             StandardTestDispatcher(testScheduler),
         )
 
-        val failure = runCatching { restorer.resumption(backgroundScope, isForPlayback = true).await() }.exceptionOrNull()
+        val failure = runCatching { restorer.resumption(backgroundScope).await() }.exceptionOrNull()
 
         assertTrue(failure is UnsupportedOperationException)
     }
 
     @Test
-    fun `preview resumption returns current item only`() = runTest {
+    fun `resumption after queue was emptied reloads saved state`() = runTest {
         val restorer = restorer()
+        restorer.start(backgroundScope)
+        runCurrent()
+        player.hasCurrentItem = false
+        queues.clearQueue()
 
-        val result = restorer.resumption(backgroundScope, isForPlayback = false).await()
+        val failure = runCatching { restorer.resumption(backgroundScope).await() }.exceptionOrNull()
 
-        assertEquals(listOf("q2"), result.mediaItems.map { it.queueItemId() })
-        assertEquals(12_000L, result.startPositionMs)
-        assertTrue(player.prepared.isEmpty())
-        assertFalse(restorer.settled.value)
+        assertTrue(failure is UnsupportedOperationException)
+    }
+
+    @Test
+    fun `access granted later is picked up by resumption`() = runTest {
+        access.granted = false
+        val restorer = restorer()
+        restorer.start(backgroundScope)
+        runCurrent()
+
+        access.granted = true
+        val result = restorer.resumption(backgroundScope).await()
+
+        assertEquals(2, result.mediaItems.size)
     }
 }

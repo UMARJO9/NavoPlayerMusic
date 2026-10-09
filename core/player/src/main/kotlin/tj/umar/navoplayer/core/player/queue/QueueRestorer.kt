@@ -3,6 +3,7 @@ package tj.umar.navoplayer.core.player.queue
 import androidx.media3.session.MediaSession
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -36,44 +37,54 @@ internal class QueueRestorer(
                 val queue = runCatching { pending.await() }.getOrNull()
                 if (queue != null && !claimed && !player.hasCurrentItem) player.apply(queue)
             } finally {
+                loaded = null
                 settledState.value = true
             }
         }
     }
 
-    fun resumption(scope: CoroutineScope, isForPlayback: Boolean): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+    fun resumption(scope: CoroutineScope): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
         val result = SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
-        scope.launch {
-            val value = runCatching { resolveResumption(scope, isForPlayback) }.getOrNull()
-            if (value != null) result.set(value) else result.setException(UnsupportedOperationException())
+        val job = scope.launch {
+            try {
+                val value = resolveResumption(scope)
+                if (value != null) result.set(value) else result.setException(UnsupportedOperationException())
+            } catch (cancellation: CancellationException) {
+                result.setException(cancellation)
+                throw cancellation
+            } catch (failure: Exception) {
+                result.setException(failure)
+            }
+        }
+        job.invokeOnCompletion { cause ->
+            if (!result.isDone) result.setException(cause ?: CancellationException())
         }
         return result
     }
 
-    private suspend fun resolveResumption(
-        scope: CoroutineScope,
-        isForPlayback: Boolean,
-    ): MediaSession.MediaItemsWithStartPosition? {
+    private suspend fun resolveResumption(scope: CoroutineScope): MediaSession.MediaItemsWithStartPosition? {
         if (player.hasCurrentItem) return player.currentResumption()
         val queue = load(scope).await() ?: return null
-        if (!isForPlayback) {
-            return MediaSession.MediaItemsWithStartPosition(listOf(queue.items[queue.startIndex]), 0, queue.startPositionMs)
-        }
         if (player.hasCurrentItem) return player.currentResumption()
         claimed = true
+        loaded = null
         player.prepareForResumption(queue)
         settledState.value = true
         return MediaSession.MediaItemsWithStartPosition(queue.items, queue.startIndex, queue.startPositionMs)
     }
 
-    private fun load(scope: CoroutineScope): Deferred<RestoredMediaQueue?> = loaded ?: scope.async {
-        val result = loadResumableQueue()
-        if (result is QueueResumeResult.Resumable) {
-            withContext(mappingDispatcher) { result.queue.toRestoredMediaQueue() }
-        } else {
-            null
-        }
-    }.also { loaded = it }
+    private fun load(scope: CoroutineScope): Deferred<RestoredMediaQueue?> {
+        val cached = loaded
+        if (cached != null && !settledState.value) return cached
+        return scope.async {
+            val result = loadResumableQueue()
+            if (result is QueueResumeResult.Resumable) {
+                withContext(mappingDispatcher) { result.queue.toRestoredMediaQueue() }
+            } else {
+                null
+            }
+        }.also { if (!settledState.value) loaded = it }
+    }
 }
 
 internal fun ResumableQueue.toRestoredMediaQueue(): RestoredMediaQueue = RestoredMediaQueue(
