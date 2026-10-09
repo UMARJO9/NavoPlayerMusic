@@ -35,7 +35,7 @@ class PlaybackService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
-        val builder = MediaSession.Builder(this, player).setCallback(PlaybackSessionCallback())
+        val builder = MediaSession.Builder(this, player).setCallback(PlaybackSessionCallback(packageName, QueueEditor(player)))
         launchIntent()?.let(builder::setSessionActivity)
         mediaSession = builder.build()
         player.addListener(ShuffleOrderListener(player))
