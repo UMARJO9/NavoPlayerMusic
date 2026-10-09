@@ -39,6 +39,7 @@ import tj.umar.navoplayer.feature.settings.navigation.SettingsDestination
 import tj.umar.navoplayer.feature.settings.navigation.equalizerScreen
 import tj.umar.navoplayer.feature.settings.navigation.hiddenFoldersScreen
 import tj.umar.navoplayer.feature.settings.navigation.licensesScreen
+import tj.umar.navoplayer.feature.settings.navigation.navigateToEqualizer
 import tj.umar.navoplayer.feature.settings.navigation.navigateToHiddenFolders
 import tj.umar.navoplayer.feature.settings.navigation.navigateToLicenses
 import tj.umar.navoplayer.feature.settings.navigation.navigateToSettings
@@ -149,6 +150,7 @@ fun NavoNavHost(
             },
             onHiddenFoldersClick = { if (isResumed()) navController.navigateToHiddenFolders() },
             onLicensesClick = { if (isResumed()) navController.navigateToLicenses() },
+            onEqualizerClick = { if (isResumed()) navController.navigateToEqualizer() },
         )
         hiddenFoldersScreen(
             onBack = {

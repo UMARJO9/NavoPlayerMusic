@@ -36,4 +36,8 @@
     <string name="equalizer_reset">Сбросить</string>
     <string name="equalizer_unsupported">Эквалайзер не поддерживается на этом устройстве</string>
     <string name="equalizer_load_error">Не удалось загрузить эквалайзер</string>
+    <string name="settings_equalizer_title">Эквалайзер</string>
+    <string name="settings_equalizer_off">Выключен</string>
+    <string name="settings_equalizer_custom">Свой</string>
+    <string name="settings_equalizer_unsupported">Не поддерживается на этом устройстве</string>
 </resources>

@@ -37,4 +37,8 @@
     <string name="equalizer_reset">Reset</string>
     <string name="equalizer_unsupported">Equalizer isn’t supported on this device</string>
     <string name="equalizer_load_error">Couldn’t load the equalizer</string>
+    <string name="settings_equalizer_title">Equalizer</string>
+    <string name="settings_equalizer_off">Off</string>
+    <string name="settings_equalizer_custom">Custom</string>
+    <string name="settings_equalizer_unsupported">Not supported on this device</string>
 </resources>

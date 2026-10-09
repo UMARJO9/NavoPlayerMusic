@@ -101,6 +101,13 @@ internal fun SettingsScreen(
                         onCheckedChange = { onIntent(SettingsIntent.PauseOnHeadphonesDisconnectToggled(it)) },
                     )
                 }
+                item(key = "equalizer") {
+                    SettingsNavigationRow(
+                        title = stringResource(R.string.settings_equalizer_title),
+                        subtitle = state.equalizerSummary.label(),
+                        onClick = { onIntent(SettingsIntent.EqualizerClicked) },
+                    )
+                }
                 item(key = "about") { SettingsSectionHeader(title = stringResource(R.string.settings_section_about)) }
                 item(key = "app") {
                     SettingsInfoRow(
@@ -190,4 +197,13 @@ private fun SettingsPreview() {
             onIntent = {},
         )
     }
+}
+
+@Composable
+private fun EqualizerSummary.label(): String? = when (this) {
+    EqualizerSummary.Loading -> null
+    EqualizerSummary.Off -> stringResource(R.string.settings_equalizer_off)
+    EqualizerSummary.Custom -> stringResource(R.string.settings_equalizer_custom)
+    EqualizerSummary.Unsupported -> stringResource(R.string.settings_equalizer_unsupported)
+    is EqualizerSummary.Preset -> name
 }

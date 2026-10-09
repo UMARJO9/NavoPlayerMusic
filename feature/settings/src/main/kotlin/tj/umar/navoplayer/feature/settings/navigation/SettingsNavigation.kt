@@ -21,12 +21,14 @@ fun NavGraphBuilder.settingsScreen(
     onBack: () -> Unit,
     onHiddenFoldersClick: () -> Unit,
     onLicensesClick: () -> Unit,
+    onEqualizerClick: () -> Unit,
 ) {
     composable<SettingsDestination> {
         SettingsRoute(
             onBack = onBack,
             onHiddenFoldersClick = onHiddenFoldersClick,
             onLicensesClick = onLicensesClick,
+            onEqualizerClick = onEqualizerClick,
         )
     }
 }

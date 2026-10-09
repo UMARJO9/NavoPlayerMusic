@@ -17,6 +17,7 @@ internal fun SettingsRoute(
     onBack: () -> Unit,
     onHiddenFoldersClick: () -> Unit,
     onLicensesClick: () -> Unit,
+    onEqualizerClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -25,6 +26,7 @@ internal fun SettingsRoute(
     val currentOnBack by rememberUpdatedState(onBack)
     val currentOnHiddenFoldersClick by rememberUpdatedState(onHiddenFoldersClick)
     val currentOnLicensesClick by rememberUpdatedState(onLicensesClick)
+    val currentOnEqualizerClick by rememberUpdatedState(onEqualizerClick)
 
     LifecycleStartEffect(Unit) {
         viewModel.onIntent(SettingsIntent.ScreenStarted)
@@ -36,6 +38,7 @@ internal fun SettingsRoute(
             SettingsEffect.NavigateBack -> currentOnBack()
             SettingsEffect.NavigateToHiddenFolders -> currentOnHiddenFoldersClick()
             SettingsEffect.NavigateToLicenses -> currentOnLicensesClick()
+            SettingsEffect.NavigateToEqualizer -> currentOnEqualizerClick()
             SettingsEffect.ShowSaveFailed ->
                 Toast.makeText(context, R.string.settings_save_failed, Toast.LENGTH_SHORT).show()
         }
