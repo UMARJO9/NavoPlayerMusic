@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="navo_widget_background">#FF13204A</color>
+    <color name="navo_widget_content">#FFF3EEDF</color>
+    <color name="navo_widget_content_secondary">#FFA9B4D6</color>
+    <color name="navo_widget_accent">#FFE3B04B</color>
+    <color name="navo_widget_on_accent">#FF13204A</color>
+    <color name="navo_widget_disabled">#66A9B4D6</color>
+</resources>

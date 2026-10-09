@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="navo_widget_label">Сейчас играет</string>
+    <string name="navo_widget_description">Текущий трек и управление воспроизведением</string>
+    <string name="navo_widget_nothing_playing">Ничего не играет</string>
+    <string name="navo_widget_tap_to_open">Нажмите, чтобы открыть Navo</string>
+    <string name="navo_widget_play">Воспроизвести</string>
+    <string name="navo_widget_pause">Пауза</string>
+    <string name="navo_widget_previous">Предыдущий трек</string>
+    <string name="navo_widget_next">Следующий трек</string>
+    <string name="navo_widget_preview_title">Ваша музыка</string>
+</resources>

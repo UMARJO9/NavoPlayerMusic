@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="navo_widget_label">Now playing</string>
+    <string name="navo_widget_description">See the current track and control playback</string>
+    <string name="navo_widget_nothing_playing">Nothing playing</string>
+    <string name="navo_widget_tap_to_open">Tap to open Navo</string>
+    <string name="navo_widget_play">Play</string>
+    <string name="navo_widget_pause">Pause</string>
+    <string name="navo_widget_previous">Previous track</string>
+    <string name="navo_widget_next">Next track</string>
+    <string name="navo_widget_preview_title">Your music</string>
+    <string name="navo_widget_preview_artist" translatable="false">Navo</string>
+</resources>
