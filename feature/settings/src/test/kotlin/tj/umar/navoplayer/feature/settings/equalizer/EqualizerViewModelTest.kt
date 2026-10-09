@@ -1,6 +1,7 @@
 package tj.umar.navoplayer.feature.settings.equalizer
 
 import app.cash.turbine.test
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -191,5 +192,46 @@ class EqualizerViewModelTest {
             viewModel.onIntent(EqualizerIntent.BackClicked)
             assertEquals(EqualizerEffect.NavigateBack, awaitItem())
         }
+    }
+
+    @Test
+    fun `final level of one band survives a change to another band`() {
+        startReady()
+        val gate = CompletableDeferred<Unit>()
+        repository.writeGate = gate
+
+        viewModel.onIntent(EqualizerIntent.BandLevelChanged(0, 200))
+        viewModel.onIntent(EqualizerIntent.BandLevelChanged(1, 300))
+        viewModel.onIntent(EqualizerIntent.BandLevelChanged(1, 400))
+        viewModel.onIntent(EqualizerIntent.BandLevelChanged(2, 500))
+        repository.writeGate = null
+        gate.complete(Unit)
+
+        assertEquals(listOf(200, 400, 500, 0, 0), repository.current.customBandLevelsMb)
+    }
+
+    @Test
+    fun `reset after drag is not undone by pending draft`() {
+        startReady()
+        val gate = CompletableDeferred<Unit>()
+        repository.writeGate = gate
+
+        viewModel.onIntent(EqualizerIntent.BandLevelChanged(0, 600))
+        viewModel.onIntent(EqualizerIntent.BandLevelChangeFinished(0))
+        viewModel.onIntent(EqualizerIntent.ResetClicked)
+        repository.writeGate = null
+        gate.complete(Unit)
+
+        assertEquals(EqualizerSettings(enabled = true), repository.current)
+    }
+
+    @Test
+    fun `stopping clears drag state`() {
+        startReady()
+        viewModel.onIntent(EqualizerIntent.BandLevelChanged(0, 600))
+
+        viewModel.onIntent(EqualizerIntent.ScreenStopped)
+
+        assertNull(viewModel.state.value.draggingBand)
     }
 }

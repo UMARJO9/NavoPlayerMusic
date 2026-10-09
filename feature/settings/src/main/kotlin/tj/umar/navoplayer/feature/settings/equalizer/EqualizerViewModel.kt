@@ -3,11 +3,12 @@ package tj.umar.navoplayer.feature.settings.equalizer
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import tj.umar.navoplayer.core.common.result.NavoResult
 import tj.umar.navoplayer.core.common.result.onError
 import tj.umar.navoplayer.core.domain.model.EqualizerPresetSelection
@@ -21,6 +22,8 @@ import tj.umar.navoplayer.core.domain.usecase.SetEqualizerEnabledUseCase
 import tj.umar.navoplayer.core.ui.mvi.MviViewModel
 import javax.inject.Inject
 
+private const val BASS_BOOST_DRAFT_KEY = "bass_boost"
+
 @HiltViewModel
 internal class EqualizerViewModel @Inject constructor(
     private val observeEqualizer: ObserveEqualizerUseCase,
@@ -32,8 +35,8 @@ internal class EqualizerViewModel @Inject constructor(
 ) : MviViewModel<EqualizerState, EqualizerIntent, EqualizerEffect>(EqualizerState()) {
 
     private var observeJob: Job? = null
-    private val draftWrites = Channel<suspend () -> NavoResult<Unit>>(Channel.CONFLATED)
-    private var draftWriter: Job? = null
+    private val writeLock = Mutex()
+    private val pendingDrafts = mutableMapOf<Any, suspend () -> NavoResult<Unit>>()
 
     override fun onIntent(intent: EqualizerIntent) {
         when (intent) {
@@ -69,13 +72,13 @@ internal class EqualizerViewModel @Inject constructor(
                 selectedPreset = EqualizerPresetSelection.Custom,
             )
         }
-        writeDraft { setEqualizerBandLevel(band, levelMb) }
+        writeDraft(band) { setEqualizerBandLevel(band, levelMb) }
     }
 
     private fun onBassBoostChanged(strength: Int) = ifControlsEnabled {
         if (!currentState.bassBoostSupported) return@ifControlsEnabled
         setState { copy(bassBoostStrength = strength, draggingBassBoost = true) }
-        writeDraft { setBassBoostStrength(strength) }
+        writeDraft(BASS_BOOST_DRAFT_KEY) { setBassBoostStrength(strength) }
     }
 
     private fun onStatus(status: EqualizerStatus) {
@@ -112,17 +115,18 @@ internal class EqualizerViewModel @Inject constructor(
         if (currentState.controlsEnabled) action()
     }
 
-    private fun writeDraft(write: suspend () -> NavoResult<Unit>) {
-        if (draftWriter == null) {
-            draftWriter = viewModelScope.launch {
-                for (pending in draftWrites) report(pending())
+    private fun writeDraft(key: Any, write: suspend () -> NavoResult<Unit>) {
+        pendingDrafts[key] = write
+        viewModelScope.launch {
+            writeLock.withLock {
+                val pending = pendingDrafts.remove(key) ?: return@withLock
+                report(pending())
             }
         }
-        draftWrites.trySend(write)
     }
 
     private fun save(write: suspend () -> NavoResult<Unit>) {
-        viewModelScope.launch { report(write()) }
+        viewModelScope.launch { writeLock.withLock { report(write()) } }
     }
 
     private fun report(result: NavoResult<Unit>) {
@@ -141,5 +145,6 @@ internal class EqualizerViewModel @Inject constructor(
     private fun stopObserving() {
         observeJob?.cancel()
         observeJob = null
+        setState { copy(draggingBand = null, draggingBassBoost = false) }
     }
 }
