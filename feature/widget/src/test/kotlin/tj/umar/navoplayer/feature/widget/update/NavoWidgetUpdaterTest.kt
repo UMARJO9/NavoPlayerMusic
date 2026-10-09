@@ -10,6 +10,8 @@ import tj.umar.navoplayer.core.domain.model.NowPlaying
 import tj.umar.navoplayer.core.domain.usecase.ObserveNowPlayingUseCase
 import tj.umar.navoplayer.core.testing.data.TestTracks
 import tj.umar.navoplayer.core.testing.playback.FakeNowPlayingMonitor
+import tj.umar.navoplayer.core.testing.repository.FakePlaybackQueueRepository
+import tj.umar.navoplayer.core.testing.repository.FakeTrackRepository
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class NavoWidgetUpdaterTest {
@@ -22,7 +24,7 @@ class NavoWidgetUpdaterTest {
         refreshError?.let { throw it }
     }
 
-    private fun TestScope.updater() = NavoWidgetUpdater(ObserveNowPlayingUseCase(monitor), refresher, backgroundScope)
+    private fun TestScope.updater() = NavoWidgetUpdater(ObserveNowPlayingUseCase(monitor, FakePlaybackQueueRepository(), FakeTrackRepository()), refresher, backgroundScope)
 
     @Test
     fun `refreshes on start and on changes`() = runTest {
