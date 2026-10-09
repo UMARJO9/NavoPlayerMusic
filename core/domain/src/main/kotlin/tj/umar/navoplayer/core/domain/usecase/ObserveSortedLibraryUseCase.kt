@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import tj.umar.navoplayer.core.common.dispatchers.DefaultDispatcher
 import tj.umar.navoplayer.core.domain.grouping.nameCollator
+import tj.umar.navoplayer.core.domain.model.GroupSort
 import tj.umar.navoplayer.core.domain.model.LibraryContent
 import tj.umar.navoplayer.core.domain.model.SortedLibrary
 import tj.umar.navoplayer.core.domain.model.UserSettings
@@ -30,12 +31,13 @@ class ObserveSortedLibraryUseCase @Inject constructor(
                 .distinctUntilChanged(),
         ) { library, (trackSort, groupSort) ->
             val collator = nameCollator()
+            val groupsInGroupingOrder = groupSort == GroupSort.Default
             SortedLibrary(
                 content = LibraryContent(
                     tracks = library.tracks.sortedFor(trackSort, collator),
-                    albums = library.albums.sortedFor(groupSort, collator),
-                    artists = library.artists.sortedFor(groupSort, collator),
-                    folders = library.folders.sortedFor(groupSort, collator),
+                    albums = if (groupsInGroupingOrder) library.albums else library.albums.sortedFor(groupSort, collator),
+                    artists = if (groupsInGroupingOrder) library.artists else library.artists.sortedFor(groupSort, collator),
+                    folders = if (groupsInGroupingOrder) library.folders else library.folders.sortedFor(groupSort, collator),
                 ),
                 trackSort = trackSort,
                 groupSort = groupSort,
