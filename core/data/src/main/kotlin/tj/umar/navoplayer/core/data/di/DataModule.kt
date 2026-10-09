@@ -4,10 +4,12 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import tj.umar.navoplayer.core.data.repository.DataStoreEqualizerSettingsRepository
 import tj.umar.navoplayer.core.data.repository.DataStoreSettingsRepository
 import tj.umar.navoplayer.core.data.repository.MediaStoreTrackRepository
 import tj.umar.navoplayer.core.data.repository.RoomFavoritesRepository
 import tj.umar.navoplayer.core.data.repository.RoomPlaylistRepository
+import tj.umar.navoplayer.core.domain.repository.EqualizerSettingsRepository
 import tj.umar.navoplayer.core.domain.repository.FavoritesRepository
 import tj.umar.navoplayer.core.domain.repository.PlaylistRepository
 import tj.umar.navoplayer.core.domain.repository.SettingsRepository
@@ -28,4 +30,7 @@ internal interface DataModule {
 
     @Binds
     fun bindsSettingsRepository(repository: DataStoreSettingsRepository): SettingsRepository
+
+    @Binds
+    fun bindsEqualizerSettingsRepository(repository: DataStoreEqualizerSettingsRepository): EqualizerSettingsRepository
 }
