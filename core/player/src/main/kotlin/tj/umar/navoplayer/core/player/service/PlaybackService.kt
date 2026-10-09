@@ -11,9 +11,10 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.launch
 import tj.umar.navoplayer.core.common.dispatchers.MainDispatcher
 import tj.umar.navoplayer.core.common.time.ElapsedRealtimeClock
@@ -28,6 +29,8 @@ import tj.umar.navoplayer.core.player.sleeptimer.ExoSleepTimerPlayer
 import tj.umar.navoplayer.core.player.sleeptimer.SleepTimerExecutor
 import tj.umar.navoplayer.core.player.sleeptimer.SleepTimerStore
 import javax.inject.Inject
+
+private const val EQUALIZER_RETRY_DELAY_MILLIS = 5_000L
 
 @AndroidEntryPoint
 class PlaybackService : MediaSessionService() {
@@ -76,10 +79,13 @@ class PlaybackService : MediaSessionService() {
         sleepTimerExecutor = SleepTimerExecutor(sleepTimerStore, ExoSleepTimerPlayer(player), elapsedClock).also { it.start(scope) }
         scope.launch { equalizerStore.ensureProbed() }
         equalizerApplier = EqualizerApplier(
-            status = observeEqualizer().catch { emit(EqualizerStatus.Probing) },
+            status = observeEqualizer().retryWhen { _, _ ->
+                emit(EqualizerStatus.Probing)
+                delay(EQUALIZER_RETRY_DELAY_MILLIS)
+                true
+            },
             sessionIds = player.audioSessionIds(),
             factory = ::AndroidSoundEffects,
-            store = equalizerStore,
         ).also { it.start(scope) }
     }
 

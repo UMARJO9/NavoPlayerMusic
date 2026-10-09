@@ -2,7 +2,6 @@ package tj.umar.navoplayer.core.player.equalizer
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -10,7 +9,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import tj.umar.navoplayer.core.domain.equalizer.resolve
-import tj.umar.navoplayer.core.domain.model.EqualizerAvailability
 import tj.umar.navoplayer.core.domain.model.EqualizerProfile
 import tj.umar.navoplayer.core.domain.model.EqualizerSettings
 import tj.umar.navoplayer.core.domain.model.EqualizerStatus
@@ -46,12 +44,11 @@ class EqualizerApplierTest {
     private fun ready(settings: EqualizerSettings): EqualizerStatus.Ready =
         EqualizerStatus.Ready(testEqualizerCapabilities, settings, settings.resolve(testEqualizerCapabilities))
 
-    private fun TestScope.start(): Pair<EqualizerApplier, EqualizerCapabilitiesStore> {
-        val store = EqualizerCapabilitiesStore({ testEqualizerCapabilities }, StandardTestDispatcher(testScheduler))
-        val applier = EqualizerApplier(status, sessionIds, factory, store)
+    private fun TestScope.start(): EqualizerApplier {
+        val applier = EqualizerApplier(status, sessionIds, factory)
         applier.start(backgroundScope)
         runCurrent()
-        return applier to store
+        return applier
     }
 
     @Test
@@ -114,14 +111,20 @@ class EqualizerApplierTest {
     }
 
     @Test
-    fun `create failure marks unsupported`() = runTest {
-        val (_, store) = start()
-        createError = UnsupportedOperationException("no effect")
+    fun `create failure is retried on next change`() = runTest {
+        start()
+        createError = UnsupportedOperationException("engine busy")
 
         status.value = ready(EqualizerSettings(enabled = true))
         runCurrent()
+        assertTrue(created.isEmpty())
 
-        assertEquals(EqualizerAvailability.Unsupported, store.availability.value)
+        createError = null
+        status.value = ready(EqualizerSettings(enabled = true, customBandLevelsMb = listOf(100)))
+        runCurrent()
+
+        assertEquals(1, created.size)
+        assertEquals(listOf(100, 0, 0, 0, 0), created.single().applied.single().bandLevelsMb)
     }
 
     @Test
@@ -142,7 +145,7 @@ class EqualizerApplierTest {
 
     @Test
     fun `release frees effects and stops`() = runTest {
-        val (applier, _) = start()
+        val applier = start()
         status.value = ready(EqualizerSettings(enabled = true))
         runCurrent()
 

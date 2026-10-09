@@ -19,16 +19,20 @@ internal class AndroidSoundEffects(
     }
 
     override fun apply(profile: EqualizerProfile) {
-        profile.bandLevelsMb.forEachIndexed { band, level ->
-            equalizer.setBandLevel(band.toShort(), level.toShort())
+        runCatching {
+            profile.bandLevelsMb.forEachIndexed { band, level ->
+                equalizer.setBandLevel(band.toShort(), level.toShort())
+            }
         }
-        equalizer.enabled = true
+        runCatching { equalizer.enabled = true }
         bassBoost?.let { effect ->
-            if (profile.bassBoostStrength > 0) {
-                effect.setStrength(profile.bassBoostStrength.toShort())
-                effect.enabled = true
-            } else {
-                effect.enabled = false
+            runCatching {
+                if (profile.bassBoostStrength > 0) {
+                    effect.setStrength(profile.bassBoostStrength.toShort())
+                    effect.enabled = true
+                } else {
+                    effect.enabled = false
+                }
             }
         }
     }

@@ -12,7 +12,6 @@ internal class EqualizerApplier(
     private val status: Flow<EqualizerStatus>,
     private val sessionIds: Flow<Int>,
     private val factory: SoundEffectsFactory,
-    private val store: EqualizerCapabilitiesStore,
 ) {
     private var job: Job? = null
     private var effects: SoundEffects? = null
@@ -51,7 +50,6 @@ internal class EqualizerApplier(
     private fun createEffects(sessionId: Int, bassBoostSupported: Boolean): SoundEffects? = try {
         factory.create(sessionId, bassBoostSupported) { lastProfile?.let(::applySafely) }
     } catch (failure: RuntimeException) {
-        store.markUnsupported()
         null
     }
 
