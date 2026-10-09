@@ -20,4 +20,20 @@
     <string name="settings_folders_retry">Повторить</string>
     <string name="settings_about_subtitle">Версия %1$s\nОфлайн-плеер, без интернета</string>
     <string name="settings_load_error">Не удалось загрузить настройки</string>
+    <string name="equalizer_title">Эквалайзер</string>
+    <string name="equalizer_enable_title">Эквалайзер</string>
+    <string name="equalizer_enable_subtitle">Применяется ко всем трекам</string>
+    <string name="equalizer_section_presets">Пресеты</string>
+    <string name="equalizer_preset_custom">Свой</string>
+    <string name="equalizer_section_bands">Полосы</string>
+    <string name="equalizer_section_bass">Усиление басов</string>
+    <string name="equalizer_bass_description">Сила усиления басов</string>
+    <string name="equalizer_bass_value">%1$d%%</string>
+    <string name="equalizer_frequency_hz">%1$d Гц</string>
+    <string name="equalizer_frequency_khz">%1$s кГц</string>
+    <string name="equalizer_level_db">%1$s дБ</string>
+    <string name="equalizer_band_description">Полоса %1$s</string>
+    <string name="equalizer_reset">Сбросить</string>
+    <string name="equalizer_unsupported">Эквалайзер не поддерживается на этом устройстве</string>
+    <string name="equalizer_load_error">Не удалось загрузить эквалайзер</string>
 </resources>

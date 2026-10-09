@@ -21,4 +21,20 @@
     <string name="settings_folders_retry">Try again</string>
     <string name="settings_about_subtitle">Version %1$s\nOffline player, no internet</string>
     <string name="settings_load_error">Couldn’t load settings</string>
+    <string name="equalizer_title">Equalizer</string>
+    <string name="equalizer_enable_title">Equalizer</string>
+    <string name="equalizer_enable_subtitle">Applies to all tracks</string>
+    <string name="equalizer_section_presets">Presets</string>
+    <string name="equalizer_preset_custom">Custom</string>
+    <string name="equalizer_section_bands">Bands</string>
+    <string name="equalizer_section_bass">Bass boost</string>
+    <string name="equalizer_bass_description">Bass boost strength</string>
+    <string name="equalizer_bass_value">%1$d%%</string>
+    <string name="equalizer_frequency_hz">%1$d Hz</string>
+    <string name="equalizer_frequency_khz">%1$s kHz</string>
+    <string name="equalizer_level_db">%1$s dB</string>
+    <string name="equalizer_band_description">Band %1$s</string>
+    <string name="equalizer_reset">Reset</string>
+    <string name="equalizer_unsupported">Equalizer isn’t supported on this device</string>
+    <string name="equalizer_load_error">Couldn’t load the equalizer</string>
 </resources>
