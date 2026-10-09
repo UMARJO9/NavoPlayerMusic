@@ -28,7 +28,9 @@ class ObserveNowPlayingUseCase @Inject constructor(
     private fun savedNowPlaying(): Flow<NowPlaying> = queueRepository.observeSavedCurrentTrackId()
         .distinctUntilChanged()
         .map { trackId ->
-            val track = trackId?.let { trackRepository.getTracks(listOf(it)).firstOrNull() }
+            val track = trackId?.let { id ->
+                runCatching { trackRepository.getTracks(listOf(id)).firstOrNull() }.getOrNull()
+            }
             if (track != null) NowPlaying(track, isPlaying = false) else NowPlaying.Idle
         }
         .catch { emit(NowPlaying.Idle) }

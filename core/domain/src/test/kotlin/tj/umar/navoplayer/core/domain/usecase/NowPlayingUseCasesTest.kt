@@ -82,4 +82,18 @@ class NowPlayingUseCasesTest {
             controller.commands,
         )
     }
+
+    @Test
+    fun `failed lookup recovers on next saved track`() = runTest {
+        tracks.emit(listOf(TestTracks.alpha, TestTracks.beta))
+        tracks.getTracksError = SecurityException("no access")
+        queues.saveQueue(TestSavedQueues.alphaBeta)
+
+        observe().test {
+            assertEquals(NowPlaying.Idle, awaitItem())
+            tracks.getTracksError = null
+            queues.saveProgress(TestSavedQueues.alphaBeta.progress.copy(currentIndex = 0))
+            assertEquals(NowPlaying(TestTracks.alpha, isPlaying = false), awaitItem())
+        }
+    }
 }
