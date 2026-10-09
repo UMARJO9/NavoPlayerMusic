@@ -23,6 +23,9 @@ internal class PlaybackSessionCallback(
     private val resumption: () -> ListenableFuture<MediaSession.MediaItemsWithStartPosition> = {
         Futures.immediateFailedFuture(UnsupportedOperationException())
     },
+    private val preview: () -> ListenableFuture<MediaSession.MediaItemsWithStartPosition> = {
+        Futures.immediateFailedFuture(UnsupportedOperationException())
+    },
     private val newQueueItemId: () -> String = { UUID.randomUUID().toString() },
 ) : MediaSession.Callback {
 
@@ -49,7 +52,7 @@ internal class PlaybackSessionCallback(
         mediaSession: MediaSession,
         controller: MediaSession.ControllerInfo,
         isForPlayback: Boolean,
-    ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = resumption()
+    ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = if (isForPlayback) resumption() else preview()
 
     override fun onAddMediaItems(
         mediaSession: MediaSession,

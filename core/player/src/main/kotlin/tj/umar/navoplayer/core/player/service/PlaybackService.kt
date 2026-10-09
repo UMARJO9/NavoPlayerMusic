@@ -112,6 +112,7 @@ class PlaybackService : MediaSessionService() {
             ownPackage = packageName,
             editor = QueueEditor(player),
             resumption = { restorer.resumption(scope) },
+            preview = { restorer.preview(scope) },
         )
         val builder = MediaSession.Builder(this, player).setCallback(callback)
         launchIntent()?.let(builder::setSessionActivity)

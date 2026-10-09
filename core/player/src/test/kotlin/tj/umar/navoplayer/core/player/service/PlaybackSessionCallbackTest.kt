@@ -5,8 +5,10 @@ import android.os.Bundle
 import android.os.Looper
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
+import com.google.common.util.concurrent.Futures
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -64,6 +66,38 @@ class PlaybackSessionCallbackTest {
         QueueSessionCommands.all.forEach { command ->
             assertTrue(own.contains(command))
             assertFalse(foreign.contains(command))
+        }
+    }
+
+    @Test
+    fun `resumption for playback and preview use separate sources`() {
+        val player = ExoPlayer.Builder(RuntimeEnvironment.getApplication()).setLooper(Looper.getMainLooper()).build()
+        val session = MediaSession.Builder(RuntimeEnvironment.getApplication(), player).build()
+        try {
+            val full = MediaSession.MediaItemsWithStartPosition(listOf(MediaItem.EMPTY, MediaItem.EMPTY), 1, 5_000)
+            val single = MediaSession.MediaItemsWithStartPosition(listOf(MediaItem.EMPTY), 0, 5_000)
+            val callback = PlaybackSessionCallback(
+                ownPackage = "own",
+                editor = QueueEditor(player),
+                resumption = { Futures.immediateFuture(full) },
+                preview = { Futures.immediateFuture(single) },
+            )
+            val controller = MediaSession.ControllerInfo.createTestOnlyControllerInfo(
+                "com.android.systemui",
+                0,
+                0,
+                0,
+                0,
+                true,
+                Bundle.EMPTY,
+                true,
+            )
+
+            assertEquals(full, callback.onPlaybackResumption(session, controller, true).get())
+            assertEquals(single, callback.onPlaybackResumption(session, controller, false).get())
+        } finally {
+            session.release()
+            player.release()
         }
     }
 
