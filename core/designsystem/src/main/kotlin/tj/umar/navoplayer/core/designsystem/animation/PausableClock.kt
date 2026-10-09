@@ -8,6 +8,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.MotionDurationScale
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlin.coroutines.coroutineContext
@@ -15,9 +16,9 @@ import kotlin.coroutines.coroutineContext
 private const val NANOS_PER_MILLI = 1_000_000L
 
 @Composable
-fun rememberPausableElapsedMillis(running: Boolean): () -> Long {
+fun rememberPausableElapsedMillis(running: Boolean, frameIntervalMillis: Long = 0L): () -> Long {
     val elapsedNanos = rememberSaveable { mutableLongStateOf(0L) }
-    LaunchedEffect(running) {
+    LaunchedEffect(running, frameIntervalMillis) {
         if (!running) return@LaunchedEffect
         val motionScale = coroutineContext[MotionDurationScale]
         var lastFrame = withFrameNanos { it }
@@ -29,6 +30,7 @@ fun rememberPausableElapsedMillis(running: Boolean): () -> Long {
             val frame = withFrameNanos { it }
             elapsedNanos.longValue += frame - lastFrame
             lastFrame = frame
+            if (frameIntervalMillis > 0L) delay(frameIntervalMillis)
         }
     }
     return remember(elapsedNanos) { { elapsedNanos.longValue / NANOS_PER_MILLI } }

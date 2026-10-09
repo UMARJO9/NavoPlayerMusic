@@ -65,8 +65,9 @@ fun rememberMedallionRotation(
     running: Boolean,
     periodMillis: Int = 40_000,
     clockwise: Boolean = true,
+    frameIntervalMillis: Long = 0L,
 ): () -> Float {
-    val elapsed = rememberPausableElapsedMillis(running)
+    val elapsed = rememberPausableElapsedMillis(running, frameIntervalMillis)
     val direction = if (clockwise) 1f else -1f
     return remember(elapsed, periodMillis, direction) {
         { direction * (elapsed() % periodMillis).toFloat() / periodMillis * 360f }

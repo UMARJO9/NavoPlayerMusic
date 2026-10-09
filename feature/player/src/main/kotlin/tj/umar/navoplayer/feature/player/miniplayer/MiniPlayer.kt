@@ -41,7 +41,6 @@ import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
 import tj.umar.navoplayer.core.designsystem.medallion.Medallion
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
-import tj.umar.navoplayer.core.designsystem.medallion.rememberMedallionRotation
 import tj.umar.navoplayer.core.designsystem.modifier.pressScale
 import tj.umar.navoplayer.core.designsystem.theme.NavoShadows
 import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
@@ -60,11 +59,11 @@ internal fun MiniPlayer(
     track: Track,
     isPlaying: Boolean,
     progress: () -> Float,
+    rotation: () -> Float,
     onIntent: (MiniPlayerIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = NavoTheme.colors
-    val rotation = rememberMedallionRotation(running = isPlaying)
     val openInteraction = remember { MutableInteractionSource() }
     val openLabel = stringResource(R.string.player_open_now_playing)
     Row(
@@ -169,6 +168,7 @@ private fun MiniPlayerPreview() {
                 track = Track(2, "Ҷавонӣ", "Daler Nazarov", null, 11, 101, 252_000, 2, "content://media/2", "Music/Navo", null, null),
                 isPlaying = true,
                 progress = { 0.38f },
+                rotation = { 0f },
                 onIntent = {},
             )
         }

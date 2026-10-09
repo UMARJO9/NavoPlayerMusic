@@ -23,11 +23,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import tj.umar.navoplayer.core.designsystem.medallion.rememberMedallionRotation
 import tj.umar.navoplayer.core.domain.model.Track
 import tj.umar.navoplayer.core.ui.mvi.CollectEffects
 
 private const val ENTER_MILLIS = 280
 private const val EXIT_MILLIS = 200
+private const val ROTATION_FRAME_MILLIS = 33L
 
 @Composable
 fun MiniPlayerRoute(
@@ -50,6 +52,7 @@ internal fun MiniPlayerRoute(
     val isPlaying by remember { derivedStateOf { stateHolder.value.isPlaying } }
     val currentOnOpenNowPlaying by rememberUpdatedState(onOpenNowPlaying)
     var lastTrack by remember { mutableStateOf<Track?>(null) }
+    val rotation = rememberMedallionRotation(running = isPlaying && visible, frameIntervalMillis = ROTATION_FRAME_MILLIS)
 
     LifecycleStartEffect(visible) {
         if (visible) viewModel.onIntent(MiniPlayerIntent.ScreenStarted)
@@ -78,6 +81,7 @@ internal fun MiniPlayerRoute(
             track = shownTrack,
             isPlaying = isPlaying,
             progress = { stateHolder.value.progress },
+            rotation = rotation,
             onIntent = viewModel::onIntent,
             modifier = Modifier
                 .windowInsetsPadding(WindowInsets.navigationBars)
