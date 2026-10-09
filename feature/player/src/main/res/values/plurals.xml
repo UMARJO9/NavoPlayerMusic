@@ -7,4 +7,8 @@
         <item quantity="one">Sleep timer set for %d minute</item>
         <item quantity="other">Sleep timer set for %d minutes</item>
     </plurals>
+    <plurals name="player_sleep_timer_minutes">
+        <item quantity="one">%d minute</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
 </resources>

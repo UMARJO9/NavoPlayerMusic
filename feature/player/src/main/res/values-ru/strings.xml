@@ -23,6 +23,9 @@
     <string name="player_sleep_timer_set_end_of_track">Воспроизведение остановится после этого трека</string>
     <string name="player_sleep_timer_off">Таймер сна выключен</string>
     <string name="player_sleep_timer_unavailable">Не удалось включить таймер сна</string>
+    <string name="player_sleep_timer_end_of_track">До конца текущего трека</string>
+    <string name="player_sleep_timer_turn_off">Выключить таймер</string>
+    <string name="player_sleep_timer_remaining">Осталось %1$s</string>
     <string name="player_seek">Позиция в треке</string>
     <string name="player_seek_state">%1$s из %2$s</string>
     <string name="player_open_now_playing">Открыть плеер</string>

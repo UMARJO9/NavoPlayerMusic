@@ -136,6 +136,9 @@ internal fun NowPlayingScreen(
             BottomRow(nextTrack = state.nextTrack, onIntent = onIntent)
         }
     }
+    if (state.isSleepTimerSheetVisible) {
+        SleepTimerSheet(sleepTimer = state.sleepTimer, onIntent = onIntent)
+    }
 }
 
 @Composable

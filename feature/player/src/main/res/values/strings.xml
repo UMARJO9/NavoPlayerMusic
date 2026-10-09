@@ -23,6 +23,9 @@
     <string name="player_sleep_timer_set_end_of_track">Playback will pause after this track</string>
     <string name="player_sleep_timer_off">Sleep timer off</string>
     <string name="player_sleep_timer_unavailable">Couldn’t set sleep timer</string>
+    <string name="player_sleep_timer_end_of_track">End of current track</string>
+    <string name="player_sleep_timer_turn_off">Turn off timer</string>
+    <string name="player_sleep_timer_remaining">%1$s left</string>
     <string name="player_seek">Position in track</string>
     <string name="player_seek_state">%1$s of %2$s</string>
     <string name="player_open_now_playing">Open player</string>
