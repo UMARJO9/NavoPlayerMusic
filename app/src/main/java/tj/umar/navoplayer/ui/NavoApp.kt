@@ -24,6 +24,8 @@ import tj.umar.navoplayer.core.ui.permission.hasAudioReadPermission
 import tj.umar.navoplayer.feature.library.navigation.LibraryDestination
 import tj.umar.navoplayer.feature.player.miniplayer.MiniPlayerRoute
 import tj.umar.navoplayer.feature.player.navigation.navigateToNowPlaying
+import tj.umar.navoplayer.feature.player.trackactions.TrackActionsRequest
+import tj.umar.navoplayer.feature.player.trackactions.TrackActionsSheetRoute
 import tj.umar.navoplayer.feature.playlists.addto.AddToPlaylistRequest
 import tj.umar.navoplayer.feature.playlists.addto.AddToPlaylistSheetRoute
 import tj.umar.navoplayer.feature.welcome.navigation.WelcomeDestination
@@ -44,9 +46,15 @@ fun NavoApp(
     var addToPlaylistRequest by rememberSaveable(stateSaver = AddToPlaylistRequest.Saver) {
         mutableStateOf<AddToPlaylistRequest?>(null)
     }
+    var trackActionsRequest by rememberSaveable(stateSaver = TrackActionsRequest.Saver) {
+        mutableStateOf<TrackActionsRequest?>(null)
+    }
     val isOnWelcome = currentEntry?.destination?.hasRoute<WelcomeDestination>() == true
     LaunchedEffect(isOnWelcome) {
-        if (isOnWelcome) addToPlaylistRequest = null
+        if (isOnWelcome) {
+            addToPlaylistRequest = null
+            trackActionsRequest = null
+        }
     }
     Box(
         modifier = modifier
@@ -57,6 +65,7 @@ fun NavoApp(
             navController = navController,
             startDestination = if (startOnWelcome) WelcomeDestination else LibraryDestination,
             onAddToPlaylist = { trackIds -> addToPlaylistRequest = AddToPlaylistRequest.of(trackIds) },
+            onTrackActions = { trackIds -> trackActionsRequest = TrackActionsRequest.of(trackIds) },
             modifier = Modifier.fillMaxSize(),
         )
         MiniPlayerRoute(
@@ -64,6 +73,16 @@ fun NavoApp(
             onOpenNowPlaying = navController::navigateToNowPlaying,
             modifier = Modifier.align(Alignment.BottomCenter),
         )
+        trackActionsRequest?.let { request ->
+            TrackActionsSheetRoute(
+                request = request,
+                onAddToPlaylist = { trackIds ->
+                    trackActionsRequest = null
+                    addToPlaylistRequest = AddToPlaylistRequest.of(trackIds)
+                },
+                onDismiss = { trackActionsRequest = null },
+            )
+        }
         addToPlaylistRequest?.let { request ->
             AddToPlaylistSheetRoute(
                 request = request,

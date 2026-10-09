@@ -32,4 +32,10 @@
     <string name="player_queue_move_up">Move up</string>
     <string name="player_queue_move_down">Move down</string>
     <string name="player_queue_play_item">Play</string>
+    <string name="player_track_actions_play_next">Play next</string>
+    <string name="player_track_actions_add_to_queue">Add to queue</string>
+    <string name="player_queue_will_play_next">Will play next</string>
+    <string name="player_queue_added">Added to queue</string>
+    <string name="player_queue_started">Playing</string>
+    <string name="player_queue_failed">Couldn’t update the queue</string>
 </resources>

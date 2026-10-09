@@ -53,6 +53,7 @@ fun NavoNavHost(
     navController: NavHostController,
     startDestination: Any,
     onAddToPlaylist: (List<Long>) -> Unit,
+    onTrackActions: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val isResumed = { navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED }

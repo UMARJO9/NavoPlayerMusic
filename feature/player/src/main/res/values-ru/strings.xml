@@ -31,4 +31,10 @@
     <string name="player_queue_move_up">Переместить выше</string>
     <string name="player_queue_move_down">Переместить ниже</string>
     <string name="player_queue_play_item">Воспроизвести</string>
+    <string name="player_track_actions_play_next">Играть следующим</string>
+    <string name="player_track_actions_add_to_queue">Добавить в очередь</string>
+    <string name="player_queue_will_play_next">Будет играть следующим</string>
+    <string name="player_queue_added">Добавлено в очередь</string>
+    <string name="player_queue_started">Воспроизведение</string>
+    <string name="player_queue_failed">Не удалось изменить очередь</string>
 </resources>
