@@ -311,6 +311,7 @@ private fun PlaybackSource.label(): String = when (this) {
     is PlaybackSource.Search -> stringResource(R.string.player_source_search, query)
     is PlaybackSource.Playlist -> name
     PlaybackSource.Favorites -> stringResource(CoreUiR.string.core_ui_favorites)
+    PlaybackSource.Queue -> stringResource(R.string.player_source_queue)
 }
 
 @Preview(widthDp = 390, heightDp = 844)

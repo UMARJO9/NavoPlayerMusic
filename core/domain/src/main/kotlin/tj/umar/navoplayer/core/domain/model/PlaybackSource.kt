@@ -8,6 +8,7 @@ sealed interface PlaybackSource {
     data class Search(val query: String) : PlaybackSource
     data class Playlist(val id: Long, val name: String) : PlaybackSource
     data object Favorites : PlaybackSource
+    data object Queue : PlaybackSource
 }
 
 fun TrackGroup.toPlaybackSource(): PlaybackSource = when (this) {

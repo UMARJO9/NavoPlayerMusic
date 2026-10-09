@@ -26,4 +26,10 @@ class PlaybackSourceTest {
         assertFalse(PlaybackSource.AllTracks.isFavorites())
         assertFalse((null as PlaybackSource?).isFavorites())
     }
+
+    @Test
+    fun `queue source is neither playlist nor favorites`() {
+        assertFalse(PlaybackSource.Queue.isPlaylist(4))
+        assertFalse(PlaybackSource.Queue.isFavorites())
+    }
 }
