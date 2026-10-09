@@ -56,4 +56,38 @@ class ShuffleOrderListenerTest {
 
         assertEquals(6, firstShuffledIndex())
     }
+
+    private fun playedIds(): List<String> =
+        player.currentTimeline.playOrder(true).map { player.getMediaItemAt(it).mediaId }
+
+    private fun item(id: String) = MediaItem.Builder().setMediaId(id).setUri("content://media/$id").build()
+
+    @Test
+    fun `adding items keeps existing shuffled order`() {
+        player.shuffleModeEnabled = true
+        player.setMediaItems(items, 3, 0)
+        idle()
+        val before = playedIds()
+
+        player.addMediaItems(4, listOf(item("next")))
+        player.addMediaItem(item("last"))
+        idle()
+
+        val after = playedIds()
+        assertEquals(before, after.filter { it != "next" && it != "last" })
+        assertEquals("last", after.last())
+    }
+
+    @Test
+    fun `removing item keeps remaining shuffled order`() {
+        player.shuffleModeEnabled = true
+        player.setMediaItems(items, 3, 0)
+        idle()
+        val before = playedIds()
+
+        player.removeMediaItem(6)
+        idle()
+
+        assertEquals(before.filter { it != "7" }, playedIds())
+    }
 }

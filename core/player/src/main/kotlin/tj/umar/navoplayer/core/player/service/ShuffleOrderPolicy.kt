@@ -5,8 +5,6 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.ShuffleOrder
-import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import kotlin.random.Random
 
 internal fun shuffledIndicesStartingAt(length: Int, startIndex: Int, random: Random): IntArray {
@@ -22,22 +20,18 @@ internal class ShuffleOrderListener(
     private val random: Random = Random.Default,
 ) : Player.Listener {
 
-    private var appliedOrder: ShuffleOrder? = null
-
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
         if (shuffleModeEnabled) applyShuffleOrder()
     }
 
     override fun onTimelineChanged(timeline: Timeline, reason: Int) {
         if (reason != Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED || !player.shuffleModeEnabled) return
-        if (player.shuffleOrder !== appliedOrder) applyShuffleOrder()
+        if (player.shuffleOrder !is QueueShuffleOrder) applyShuffleOrder()
     }
 
     private fun applyShuffleOrder() {
         val indices = shuffledIndicesStartingAt(player.mediaItemCount, player.currentMediaItemIndex, random)
         if (indices.isEmpty()) return
-        val order = DefaultShuffleOrder(indices, random.nextLong())
-        appliedOrder = order
-        player.setShuffleOrder(order)
+        player.setShuffleOrder(QueueShuffleOrder(indices))
     }
 }
