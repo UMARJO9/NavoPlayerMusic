@@ -3,6 +3,7 @@ package tj.umar.navoplayer.core.domain.model
 data class PlaybackState(
     val currentTrack: Track?,
     val nextTrack: Track?,
+    val previousTrack: Track? = null,
     val isPlaying: Boolean,
     val shuffleEnabled: Boolean,
     val repeatMode: RepeatMode,

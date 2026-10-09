@@ -67,6 +67,7 @@ internal class NowPlayingViewModel @Inject constructor(
     private var lastFavorite: Pair<Long, Boolean>? = null
     private val currentTrackIds = MutableStateFlow<Long?>(null)
     private var previousRequested = false
+    private var previousTrackId: Long? = null
 
     override fun onIntent(intent: NowPlayingIntent) {
         when (intent) {
@@ -123,6 +124,7 @@ internal class NowPlayingViewModel @Inject constructor(
         sleepTimerJob = null
         lastFavorite = null
         previousRequested = false
+        previousTrackId = null
     }
 
     private fun onPlaybackState(playback: PlaybackState) {
@@ -132,6 +134,7 @@ internal class NowPlayingViewModel @Inject constructor(
             return
         }
         val direction = changeDirectionTo(track)
+        previousTrackId = playback.previousTrack?.id
         setState {
             copy(
                 isLoading = false,
@@ -150,9 +153,9 @@ internal class NowPlayingViewModel @Inject constructor(
 
     private fun changeDirectionTo(track: Track): TrackChangeDirection {
         val current = currentState
-        val previousTrack = current.track
-        if (previousTrack == null || previousTrack.id == track.id) return current.trackChangeDirection
-        val backward = previousRequested && track.id != current.nextTrack?.id
+        val shownTrack = current.track
+        if (shownTrack == null || shownTrack.id == track.id) return current.trackChangeDirection
+        val backward = track.id == previousTrackId && (previousRequested || track.id != current.nextTrack?.id)
         previousRequested = false
         return if (backward) TrackChangeDirection.Backward else TrackChangeDirection.Forward
     }

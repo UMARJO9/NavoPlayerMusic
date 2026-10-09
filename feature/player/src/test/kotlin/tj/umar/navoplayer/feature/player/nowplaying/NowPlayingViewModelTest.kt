@@ -245,18 +245,30 @@ class NowPlayingViewModelTest {
         assertTrue(viewModel.state.value.isFavorite)
     }
 
+    private val betaAfterAlpha = TestPlaybackStates.playingAlpha.copy(
+        currentTrack = TestTracks.beta,
+        nextTrack = null,
+        previousTrack = TestTracks.alpha,
+    )
+    private val alphaInTwoTrackLoop = TestPlaybackStates.playingAlpha.copy(previousTrack = TestTracks.beta)
+    private val betaInTwoTrackLoop = TestPlaybackStates.playingAlpha.copy(
+        currentTrack = TestTracks.beta,
+        nextTrack = TestTracks.alpha,
+        previousTrack = TestTracks.alpha,
+    )
+
     @Test
     fun `advancing to next track moves forward`() = runTest {
         startWith()
 
-        controller.state.emit(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.beta, nextTrack = null))
+        controller.state.emit(betaAfterAlpha)
 
         assertEquals(TrackChangeDirection.Forward, viewModel.state.value.trackChangeDirection)
     }
 
     @Test
     fun `previous click moves backward`() = runTest {
-        startWith(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.beta, nextTrack = null))
+        startWith(betaAfterAlpha)
 
         viewModel.onIntent(NowPlayingIntent.PreviousClicked)
         controller.state.emit(TestPlaybackStates.playingAlpha)
@@ -265,30 +277,58 @@ class NowPlayingViewModelTest {
     }
 
     @Test
-    fun `previous that restarted track does not reverse later advance`() = runTest {
-        startWith()
+    fun `previous from headset moves backward`() = runTest {
+        startWith(betaAfterAlpha)
+
+        controller.state.emit(TestPlaybackStates.playingAlpha)
+
+        assertEquals(TrackChangeDirection.Backward, viewModel.state.value.trackChangeDirection)
+    }
+
+    @Test
+    fun `previous in two track loop moves backward`() = runTest {
+        startWith(alphaInTwoTrackLoop)
 
         viewModel.onIntent(NowPlayingIntent.PreviousClicked)
-        controller.state.emit(TestPlaybackStates.pausedAlpha)
-        controller.state.emit(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.beta, nextTrack = null))
+        controller.state.emit(betaInTwoTrackLoop)
+
+        assertEquals(TrackChangeDirection.Backward, viewModel.state.value.trackChangeDirection)
+    }
+
+    @Test
+    fun `advance in two track loop moves forward`() = runTest {
+        startWith(alphaInTwoTrackLoop)
+
+        controller.state.emit(betaInTwoTrackLoop)
 
         assertEquals(TrackChangeDirection.Forward, viewModel.state.value.trackChangeDirection)
     }
 
     @Test
-    fun `next click after previous moves forward`() = runTest {
-        startWith(TestPlaybackStates.playingAlpha.copy(nextTrack = null))
+    fun `previous that restarted track does not reverse later advance`() = runTest {
+        startWith(alphaInTwoTrackLoop)
 
         viewModel.onIntent(NowPlayingIntent.PreviousClicked)
+        controller.state.emit(alphaInTwoTrackLoop.copy(isPlaying = false))
         viewModel.onIntent(NowPlayingIntent.NextClicked)
-        controller.state.emit(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.beta, nextTrack = null))
+        controller.state.emit(betaInTwoTrackLoop)
+
+        assertEquals(TrackChangeDirection.Forward, viewModel.state.value.trackChangeDirection)
+    }
+
+    @Test
+    fun `jump to unrelated track moves forward`() = runTest {
+        startWith(betaAfterAlpha)
+
+        viewModel.onIntent(NowPlayingIntent.PreviousClicked)
+        controller.state.emit(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.alpha.copy(id = 99)))
 
         assertEquals(TrackChangeDirection.Forward, viewModel.state.value.trackChangeDirection)
     }
 
     @Test
     fun `backward direction is kept while same track updates`() = runTest {
-        startWith(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.beta, nextTrack = null))
+        startWith(betaAfterAlpha)
 
         viewModel.onIntent(NowPlayingIntent.PreviousClicked)
         controller.state.emit(TestPlaybackStates.playingAlpha)
@@ -299,11 +339,11 @@ class NowPlayingViewModelTest {
 
     @Test
     fun `screen restart forgets previous click`() = runTest {
-        startWith(TestPlaybackStates.playingAlpha.copy(nextTrack = null))
+        startWith(alphaInTwoTrackLoop)
 
         viewModel.onIntent(NowPlayingIntent.PreviousClicked)
         viewModel.onIntent(NowPlayingIntent.ScreenStopped)
-        controller.state.emit(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.beta, nextTrack = null))
+        controller.state.emit(betaInTwoTrackLoop)
         viewModel.onIntent(NowPlayingIntent.ScreenStarted)
 
         assertEquals(TrackChangeDirection.Forward, viewModel.state.value.trackChangeDirection)

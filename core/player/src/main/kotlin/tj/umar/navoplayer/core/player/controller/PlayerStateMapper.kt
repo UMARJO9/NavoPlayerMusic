@@ -16,9 +16,12 @@ internal fun Player.toPlaybackState(source: PlaybackSource?): PlaybackState {
     val current = currentMediaItem?.toTrack()
     val nextIndex = nextMediaItemIndex
     val next = if (nextIndex != C.INDEX_UNSET) getMediaItemAt(nextIndex).toTrack() else null
+    val previousIndex = previousMediaItemIndex
+    val previous = if (previousIndex != C.INDEX_UNSET) getMediaItemAt(previousIndex).toTrack() else null
     return PlaybackState(
         currentTrack = current,
         nextTrack = next,
+        previousTrack = previous,
         isPlaying = current != null && !Util.shouldShowPlayButton(this),
         shuffleEnabled = shuffleModeEnabled,
         repeatMode = repeatMode.toDomainRepeatMode(),
