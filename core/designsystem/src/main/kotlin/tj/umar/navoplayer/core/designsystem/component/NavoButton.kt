@@ -30,6 +30,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -103,6 +105,7 @@ fun NavoIconButton(
     size: Dp = 44.dp,
     iconSize: Dp = 24.dp,
     tint: Color = NavoTheme.colors.content,
+    animateIconChange: Boolean = false,
 ) {
     val colors = NavoTheme.colors
     val interactionSource = remember { MutableInteractionSource() }
@@ -117,9 +120,14 @@ fun NavoIconButton(
                 indication = ripple(color = colors.content),
                 role = Role.Button,
                 onClick = onClick,
-            ),
+            )
+            .semantics { this.contentDescription = contentDescription },
         contentAlignment = Alignment.Center,
     ) {
+        if (!animateIconChange) {
+            Icon(imageVector = icon, contentDescription = null, tint = tint, modifier = Modifier.size(iconSize))
+            return@Box
+        }
         AnimatedContent(
             targetState = icon,
             transitionSpec = {
@@ -132,7 +140,7 @@ fun NavoIconButton(
         ) { shownIcon ->
             Icon(
                 imageVector = shownIcon,
-                contentDescription = contentDescription,
+                contentDescription = null,
                 tint = tint,
                 modifier = Modifier.size(iconSize),
             )

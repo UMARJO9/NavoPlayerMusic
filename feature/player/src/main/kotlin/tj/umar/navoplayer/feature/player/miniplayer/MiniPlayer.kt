@@ -115,6 +115,7 @@ internal fun MiniPlayer(
             onClick = { onIntent(MiniPlayerIntent.PlayPauseClicked) },
             size = 48.dp,
             iconSize = 26.dp,
+            animateIconChange = true,
         )
     }
 }

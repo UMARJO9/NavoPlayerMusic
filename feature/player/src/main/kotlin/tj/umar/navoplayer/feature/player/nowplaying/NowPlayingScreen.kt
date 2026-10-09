@@ -301,6 +301,7 @@ private fun TrackInfo(track: Track, isFavorite: Boolean, onIntent: (NowPlayingIn
             iconSize = 26.dp,
             modifier = Modifier.semantics { selected = isFavorite },
             tint = if (isFavorite) colors.accent else colors.content,
+            animateIconChange = true,
         )
     }
 }
