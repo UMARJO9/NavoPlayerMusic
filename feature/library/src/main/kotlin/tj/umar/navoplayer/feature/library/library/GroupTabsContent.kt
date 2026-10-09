@@ -58,7 +58,7 @@ private fun GroupTabContent(
                 ListSummary(
                     title = pluralStringResource(countPluralRes, groups.size, groups.size),
                     subtitle = pluralStringResource(CoreUiR.plurals.core_ui_track_count, state.tracks.size, state.tracks.size),
-                    onSortClick = { onIntent(LibraryIntent.SortClicked) },
+                    onSortClick = { onIntent(LibraryIntent.SortClicked(SortTarget.Groups)) },
                     onShuffleClick = { onIntent(LibraryIntent.ShuffleClicked) },
                 )
             }

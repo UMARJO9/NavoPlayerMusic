@@ -72,7 +72,7 @@ private fun TrackList(state: LibraryState, onIntent: (LibraryIntent) -> Unit) {
             ListSummary(
                 title = pluralStringResource(CoreUiR.plurals.core_ui_track_count, state.tracks.size, state.tracks.size),
                 subtitle = pluralStringResource(CoreUiR.plurals.core_ui_minute_count, state.totalMinutes, state.totalMinutes),
-                onSortClick = { onIntent(LibraryIntent.SortClicked) },
+                onSortClick = { onIntent(LibraryIntent.SortClicked(SortTarget.Tracks)) },
                 onShuffleClick = { onIntent(LibraryIntent.ShuffleClicked) },
             )
         }

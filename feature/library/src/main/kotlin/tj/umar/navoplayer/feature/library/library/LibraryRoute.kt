@@ -50,6 +50,8 @@ internal fun LibraryRoute(
             LibraryEffect.NavigateToFavorites -> currentOnFavoritesClick()
             LibraryEffect.NavigateToSettings -> currentOnSettingsClick()
             is LibraryEffect.OpenAddToPlaylist -> currentOnAddToPlaylist(effect.trackIds)
+            LibraryEffect.ShowSortSaveFailed ->
+                Toast.makeText(context, R.string.library_sort_save_failed, Toast.LENGTH_SHORT).show()
             LibraryEffect.ShowCreatePlaylistFailed ->
                 Toast.makeText(context, R.string.library_create_playlist_failed, Toast.LENGTH_SHORT).show()
         }

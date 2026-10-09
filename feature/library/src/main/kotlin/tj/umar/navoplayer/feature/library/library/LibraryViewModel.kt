@@ -9,13 +9,20 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import tj.umar.navoplayer.core.common.result.onError
 import tj.umar.navoplayer.core.common.result.onSuccess
+import tj.umar.navoplayer.core.common.result.NavoResult
+import tj.umar.navoplayer.core.domain.model.GroupSortField
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
+import tj.umar.navoplayer.core.domain.model.SortDirection
+import tj.umar.navoplayer.core.domain.model.TrackSortField
 import tj.umar.navoplayer.core.domain.model.totalDurationMinutes
 import tj.umar.navoplayer.core.domain.usecase.CreatePlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaylistsOverviewUseCase
-import tj.umar.navoplayer.core.domain.usecase.ObserveLibraryUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObserveSortedLibraryUseCase
+
 import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
+import tj.umar.navoplayer.core.domain.usecase.SetGroupSortUseCase
+import tj.umar.navoplayer.core.domain.usecase.SetTrackSortUseCase
 import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
 import tj.umar.navoplayer.core.ui.mvi.MviViewModel
@@ -23,13 +30,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class LibraryViewModel @Inject constructor(
-    private val observeLibrary: ObserveLibraryUseCase,
+    private val observeSortedLibrary: ObserveSortedLibraryUseCase,
     private val observePlaybackState: ObservePlaybackStateUseCase,
     private val playTracks: PlayTracksUseCase,
     private val shufflePlayTracks: ShufflePlayTracksUseCase,
     private val togglePlayPause: TogglePlayPauseUseCase,
     private val observePlaylistsOverview: ObservePlaylistsOverviewUseCase,
     private val createPlaylist: CreatePlaylistUseCase,
+    private val setTrackSort: SetTrackSortUseCase,
+    private val setGroupSort: SetGroupSortUseCase,
 ) : MviViewModel<LibraryState, LibraryIntent, LibraryEffect>(LibraryState()) {
 
     private var tracksJob: Job? = null
@@ -58,7 +67,36 @@ internal class LibraryViewModel @Inject constructor(
             LibraryIntent.RetryLoadPlaylists -> startObservingPlaylists()
             is LibraryIntent.TrackLongPressed -> sendEffect(LibraryEffect.OpenAddToPlaylist(listOf(intent.trackId)))
             LibraryIntent.SettingsClicked -> sendEffect(LibraryEffect.NavigateToSettings)
-            LibraryIntent.SortClicked -> Unit
+            is LibraryIntent.SortClicked -> setState { copy(sortSheet = intent.target) }
+            LibraryIntent.SortSheetDismissed -> setState { copy(sortSheet = null) }
+            is LibraryIntent.TrackSortFieldSelected -> onTrackSortFieldSelected(intent.field)
+            is LibraryIntent.GroupSortFieldSelected -> onGroupSortFieldSelected(intent.field)
+            is LibraryIntent.SortDirectionSelected -> onSortDirectionSelected(intent.direction)
+        }
+    }
+
+    private fun onTrackSortFieldSelected(field: TrackSortField) {
+        if (field == currentState.trackSort.field) return
+        saveSort { setTrackSort(field) }
+    }
+
+    private fun onGroupSortFieldSelected(field: GroupSortField) {
+        if (field == currentState.groupSort.field) return
+        saveSort { setGroupSort(field) }
+    }
+
+    private fun onSortDirectionSelected(direction: SortDirection) {
+        val state = currentState
+        when (state.sortSheet) {
+            SortTarget.Tracks -> if (direction != state.trackSort.direction) saveSort { setTrackSort(direction) }
+            SortTarget.Groups -> if (direction != state.groupSort.direction) saveSort { setGroupSort(direction) }
+            null -> Unit
+        }
+    }
+
+    private fun saveSort(write: suspend () -> NavoResult<Unit>) {
+        viewModelScope.launch {
+            write().onError { sendEffect(LibraryEffect.ShowSortSaveFailed) }
         }
     }
 
@@ -98,8 +136,9 @@ internal class LibraryViewModel @Inject constructor(
     private fun startObservingTracks() {
         if (tracksJob?.isActive == true) return
         setState { copy(isLoadingTracks = !hasLoadedTracks, tracksLoadFailed = false) }
-        tracksJob = observeLibrary()
-            .onEach { content ->
+        tracksJob = observeSortedLibrary()
+            .onEach { sorted ->
+                val content = sorted.content
                 hasLoadedTracks = true
                 setState {
                     copy(
@@ -109,6 +148,8 @@ internal class LibraryViewModel @Inject constructor(
                         artists = content.artists,
                         folders = content.folders,
                         isLoadingTracks = false,
+                        trackSort = sorted.trackSort,
+                        groupSort = sorted.groupSort,
                     )
                 }
             }

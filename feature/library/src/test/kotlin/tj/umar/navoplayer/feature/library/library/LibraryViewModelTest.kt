@@ -8,15 +8,21 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import tj.umar.navoplayer.core.domain.model.GroupSortField
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
+import tj.umar.navoplayer.core.domain.model.SortDirection
+import tj.umar.navoplayer.core.domain.model.TrackSortField
 import tj.umar.navoplayer.core.domain.model.TrackGroupKey
 import tj.umar.navoplayer.core.domain.model.TrackGroupType
 import tj.umar.navoplayer.core.domain.usecase.CreatePlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaylistsOverviewUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObserveSortedLibraryUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveLibraryUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
+import tj.umar.navoplayer.core.domain.usecase.SetGroupSortUseCase
+import tj.umar.navoplayer.core.domain.usecase.SetTrackSortUseCase
 import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
 import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
@@ -36,12 +42,17 @@ class LibraryViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val repository = FakeTrackRepository()
+    private val settings = FakeSettingsRepository()
     private val playback = FakePlaybackController()
     private val playlists = FakePlaylistRepository(TestPlaylists.all)
     private val playlistTracks = FakeTrackRepository()
     private val favorites = FakeFavoritesRepository(listOf(TestTracks.alpha.id))
     private val viewModel = LibraryViewModel(
-        observeLibrary = ObserveLibraryUseCase(ObserveTracksUseCase(repository, FakeSettingsRepository()), mainDispatcherRule.testDispatcher),
+        observeSortedLibrary = ObserveSortedLibraryUseCase(
+            ObserveLibraryUseCase(ObserveTracksUseCase(repository, settings), mainDispatcherRule.testDispatcher),
+            settings,
+            mainDispatcherRule.testDispatcher,
+        ),
         observePlaybackState = ObservePlaybackStateUseCase(playback),
         playTracks = PlayTracksUseCase(playback),
         shufflePlayTracks = ShufflePlayTracksUseCase(playback),
@@ -53,6 +64,8 @@ class LibraryViewModelTest {
             mainDispatcherRule.testDispatcher,
         ),
         createPlaylist = CreatePlaylistUseCase(playlists),
+        setTrackSort = SetTrackSortUseCase(settings),
+        setGroupSort = SetGroupSortUseCase(settings),
     )
 
     @Test
@@ -187,18 +200,6 @@ class LibraryViewModelTest {
         viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
         assertEquals(2, repository.observeCalls)
         assertEquals(listOf(TestTracks.alpha), viewModel.state.value.tracks)
-    }
-
-    @Test
-    fun `sort click changes nothing yet`() = runTest {
-        val before = viewModel.state.value
-
-        viewModel.effects.test {
-            viewModel.onIntent(LibraryIntent.SortClicked)
-
-            expectNoEvents()
-        }
-        assertEquals(before, viewModel.state.value)
     }
 
     @Test
@@ -458,6 +459,74 @@ class LibraryViewModelTest {
         viewModel.effects.test {
             viewModel.onIntent(LibraryIntent.SettingsClicked)
             assertEquals(LibraryEffect.NavigateToSettings, awaitItem())
+        }
+    }
+
+    @Test
+    fun `sort click opens matching sheet and dismiss hides it`() {
+        viewModel.onIntent(LibraryIntent.SortClicked(SortTarget.Tracks))
+        assertEquals(SortTarget.Tracks, viewModel.state.value.sortSheet)
+
+        viewModel.onIntent(LibraryIntent.SortClicked(SortTarget.Groups))
+        assertEquals(SortTarget.Groups, viewModel.state.value.sortSheet)
+
+        viewModel.onIntent(LibraryIntent.SortSheetDismissed)
+        assertEquals(null, viewModel.state.value.sortSheet)
+    }
+
+    @Test
+    fun `track sort field re-sorts tracks and current field writes nothing`() = runTest {
+        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
+        repository.emit(TestTracks.tracks)
+
+        viewModel.onIntent(LibraryIntent.TrackSortFieldSelected(TrackSortField.Title))
+        assertEquals(0, settings.writeCalls)
+
+        viewModel.onIntent(LibraryIntent.TrackSortFieldSelected(TrackSortField.Duration))
+
+        val state = viewModel.state.value
+        assertEquals(TrackSortField.Duration, state.trackSort.field)
+        assertEquals(TestTracks.tracks.sortedBy { it.durationMs }, state.tracks)
+    }
+
+    @Test
+    fun `direction goes to the open sheet target`() = runTest {
+        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
+        repository.emit(TestTracks.tracks)
+
+        viewModel.onIntent(LibraryIntent.SortDirectionSelected(SortDirection.Descending))
+        assertEquals(0, settings.writeCalls)
+
+        viewModel.onIntent(LibraryIntent.SortClicked(SortTarget.Groups))
+        viewModel.onIntent(LibraryIntent.SortDirectionSelected(SortDirection.Descending))
+        viewModel.onIntent(LibraryIntent.GroupSortFieldSelected(GroupSortField.TrackCount))
+
+        val state = viewModel.state.value
+        assertEquals(SortDirection.Descending, state.groupSort.direction)
+        assertEquals(GroupSortField.TrackCount, state.groupSort.field)
+        assertEquals(SortDirection.Ascending, state.trackSort.direction)
+    }
+
+    @Test
+    fun `shuffle and play use sorted order`() = runTest {
+        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
+        repository.emit(TestTracks.tracks)
+        viewModel.onIntent(LibraryIntent.SortClicked(SortTarget.Tracks))
+        viewModel.onIntent(LibraryIntent.TrackSortFieldSelected(TrackSortField.Duration))
+        val sorted = TestTracks.tracks.sortedBy { it.durationMs }
+
+        viewModel.onIntent(LibraryIntent.TrackClicked(sorted.last().id))
+
+        assertEquals(PlaybackCommand.Play(sorted, sorted.lastIndex, PlaybackSource.AllTracks), playback.commands.single())
+    }
+
+    @Test
+    fun `sort save failure shows message`() = runTest {
+        settings.writeError = IllegalStateException("disk full")
+
+        viewModel.effects.test {
+            viewModel.onIntent(LibraryIntent.TrackSortFieldSelected(TrackSortField.Album))
+            assertEquals(LibraryEffect.ShowSortSaveFailed, awaitItem())
         }
     }
 }

@@ -4,12 +4,17 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import tj.umar.navoplayer.core.domain.model.Album
 import tj.umar.navoplayer.core.domain.model.Artist
-import tj.umar.navoplayer.core.domain.model.Folder
 import tj.umar.navoplayer.core.domain.model.FavoritesSummary
+import tj.umar.navoplayer.core.domain.model.Folder
+import tj.umar.navoplayer.core.domain.model.GroupSort
+import tj.umar.navoplayer.core.domain.model.GroupSortField
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.PlaylistSummary
+import tj.umar.navoplayer.core.domain.model.SortDirection
 import tj.umar.navoplayer.core.domain.model.Track
 import tj.umar.navoplayer.core.domain.model.TrackGroupKey
+import tj.umar.navoplayer.core.domain.model.TrackSort
+import tj.umar.navoplayer.core.domain.model.TrackSortField
 import tj.umar.navoplayer.feature.library.R
 
 internal enum class LibraryTab(
@@ -40,10 +45,15 @@ internal data class LibraryState(
     val currentTrackId: Long? = null,
     val currentSource: PlaybackSource? = null,
     val isPlaying: Boolean = false,
+    val trackSort: TrackSort = TrackSort.Default,
+    val groupSort: GroupSort = GroupSort.Default,
+    val sortSheet: SortTarget? = null,
 ) {
     val hasActivePlayback: Boolean
         get() = currentTrackId != null
 }
+
+internal enum class SortTarget { Tracks, Groups }
 
 internal sealed interface LibraryIntent {
     data class TabSelected(val tab: LibraryTab) : LibraryIntent
@@ -54,7 +64,11 @@ internal sealed interface LibraryIntent {
     data class GroupClicked(val key: TrackGroupKey) : LibraryIntent
     data object SearchClicked : LibraryIntent
     data object SettingsClicked : LibraryIntent
-    data object SortClicked : LibraryIntent
+    data class SortClicked(val target: SortTarget) : LibraryIntent
+    data object SortSheetDismissed : LibraryIntent
+    data class TrackSortFieldSelected(val field: TrackSortField) : LibraryIntent
+    data class GroupSortFieldSelected(val field: GroupSortField) : LibraryIntent
+    data class SortDirectionSelected(val direction: SortDirection) : LibraryIntent
     data object ShuffleClicked : LibraryIntent
     data class PlaylistClicked(val playlistId: Long) : LibraryIntent
     data object FavoritesClicked : LibraryIntent
@@ -73,5 +87,6 @@ internal sealed interface LibraryEffect {
     data object NavigateToFavorites : LibraryEffect
     data object NavigateToSettings : LibraryEffect
     data object ShowCreatePlaylistFailed : LibraryEffect
+    data object ShowSortSaveFailed : LibraryEffect
     data class OpenAddToPlaylist(val trackIds: List<Long>) : LibraryEffect
 }
