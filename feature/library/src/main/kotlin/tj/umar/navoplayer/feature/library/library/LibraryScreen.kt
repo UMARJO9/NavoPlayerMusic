@@ -92,7 +92,7 @@ internal fun LibraryScreen(
         }
     }
     state.sortSheet?.let { target ->
-        LibrarySortSheet(target = target, trackSort = state.trackSort, groupSort = state.groupSort, onIntent = onIntent)
+        LibrarySortSheet(target = target, trackSort = state.shownTrackSort, groupSort = state.shownGroupSort, onIntent = onIntent)
     }
 }
 

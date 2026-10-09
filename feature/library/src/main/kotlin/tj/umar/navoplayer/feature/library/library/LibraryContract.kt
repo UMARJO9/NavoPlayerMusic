@@ -48,9 +48,17 @@ internal data class LibraryState(
     val trackSort: TrackSort = TrackSort.Default,
     val groupSort: GroupSort = GroupSort.Default,
     val sortSheet: SortTarget? = null,
+    val pendingTrackSort: TrackSort? = null,
+    val pendingGroupSort: GroupSort? = null,
 ) {
     val hasActivePlayback: Boolean
         get() = currentTrackId != null
+
+    val shownTrackSort: TrackSort
+        get() = pendingTrackSort ?: trackSort
+
+    val shownGroupSort: GroupSort
+        get() = pendingGroupSort ?: groupSort
 }
 
 internal enum class SortTarget { Tracks, Groups }
@@ -68,7 +76,7 @@ internal sealed interface LibraryIntent {
     data object SortSheetDismissed : LibraryIntent
     data class TrackSortFieldSelected(val field: TrackSortField) : LibraryIntent
     data class GroupSortFieldSelected(val field: GroupSortField) : LibraryIntent
-    data class SortDirectionSelected(val direction: SortDirection) : LibraryIntent
+    data class SortDirectionSelected(val target: SortTarget, val direction: SortDirection) : LibraryIntent
     data object ShuffleClicked : LibraryIntent
     data class PlaylistClicked(val playlistId: Long) : LibraryIntent
     data object FavoritesClicked : LibraryIntent

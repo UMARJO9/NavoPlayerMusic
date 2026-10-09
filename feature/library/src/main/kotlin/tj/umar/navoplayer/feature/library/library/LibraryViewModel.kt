@@ -10,9 +10,11 @@ import kotlinx.coroutines.launch
 import tj.umar.navoplayer.core.common.result.onError
 import tj.umar.navoplayer.core.common.result.onSuccess
 import tj.umar.navoplayer.core.common.result.NavoResult
+import tj.umar.navoplayer.core.domain.model.GroupSort
 import tj.umar.navoplayer.core.domain.model.GroupSortField
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.SortDirection
+import tj.umar.navoplayer.core.domain.model.TrackSort
 import tj.umar.navoplayer.core.domain.model.TrackSortField
 import tj.umar.navoplayer.core.domain.model.totalDurationMinutes
 import tj.umar.navoplayer.core.domain.usecase.CreatePlaylistUseCase
@@ -71,32 +73,51 @@ internal class LibraryViewModel @Inject constructor(
             LibraryIntent.SortSheetDismissed -> setState { copy(sortSheet = null) }
             is LibraryIntent.TrackSortFieldSelected -> onTrackSortFieldSelected(intent.field)
             is LibraryIntent.GroupSortFieldSelected -> onGroupSortFieldSelected(intent.field)
-            is LibraryIntent.SortDirectionSelected -> onSortDirectionSelected(intent.direction)
+            is LibraryIntent.SortDirectionSelected -> onSortDirectionSelected(intent.target, intent.direction)
         }
     }
 
     private fun onTrackSortFieldSelected(field: TrackSortField) {
-        if (field == currentState.trackSort.field) return
-        saveSort { setTrackSort(field) }
+        val shown = currentState.shownTrackSort
+        if (field == shown.field) return
+        selectTrackSort(shown.copy(field = field)) { setTrackSort(field) }
     }
 
     private fun onGroupSortFieldSelected(field: GroupSortField) {
-        if (field == currentState.groupSort.field) return
-        saveSort { setGroupSort(field) }
+        val shown = currentState.shownGroupSort
+        if (field == shown.field) return
+        selectGroupSort(shown.copy(field = field)) { setGroupSort(field) }
     }
 
-    private fun onSortDirectionSelected(direction: SortDirection) {
+    private fun onSortDirectionSelected(target: SortTarget, direction: SortDirection) {
         val state = currentState
-        when (state.sortSheet) {
-            SortTarget.Tracks -> if (direction != state.trackSort.direction) saveSort { setTrackSort(direction) }
-            SortTarget.Groups -> if (direction != state.groupSort.direction) saveSort { setGroupSort(direction) }
-            null -> Unit
+        when (target) {
+            SortTarget.Tracks -> if (direction != state.shownTrackSort.direction) {
+                selectTrackSort(state.shownTrackSort.copy(direction = direction)) { setTrackSort(direction) }
+            }
+            SortTarget.Groups -> if (direction != state.shownGroupSort.direction) {
+                selectGroupSort(state.shownGroupSort.copy(direction = direction)) { setGroupSort(direction) }
+            }
         }
     }
 
-    private fun saveSort(write: suspend () -> NavoResult<Unit>) {
+    private fun selectTrackSort(sort: TrackSort, write: suspend () -> NavoResult<Unit>) {
+        setState { copy(pendingTrackSort = sort) }
         viewModelScope.launch {
-            write().onError { sendEffect(LibraryEffect.ShowSortSaveFailed) }
+            write().onError {
+                setState { copy(pendingTrackSort = null) }
+                sendEffect(LibraryEffect.ShowSortSaveFailed)
+            }
+        }
+    }
+
+    private fun selectGroupSort(sort: GroupSort, write: suspend () -> NavoResult<Unit>) {
+        setState { copy(pendingGroupSort = sort) }
+        viewModelScope.launch {
+            write().onError {
+                setState { copy(pendingGroupSort = null) }
+                sendEffect(LibraryEffect.ShowSortSaveFailed)
+            }
         }
     }
 
@@ -150,6 +171,8 @@ internal class LibraryViewModel @Inject constructor(
                         isLoadingTracks = false,
                         trackSort = sorted.trackSort,
                         groupSort = sorted.groupSort,
+                        pendingTrackSort = pendingTrackSort?.takeIf { it != sorted.trackSort },
+                        pendingGroupSort = pendingGroupSort?.takeIf { it != sorted.groupSort },
                     )
                 }
             }

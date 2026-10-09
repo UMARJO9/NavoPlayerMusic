@@ -490,24 +490,6 @@ class LibraryViewModelTest {
     }
 
     @Test
-    fun `direction goes to the open sheet target`() = runTest {
-        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
-        repository.emit(TestTracks.tracks)
-
-        viewModel.onIntent(LibraryIntent.SortDirectionSelected(SortDirection.Descending))
-        assertEquals(0, settings.writeCalls)
-
-        viewModel.onIntent(LibraryIntent.SortClicked(SortTarget.Groups))
-        viewModel.onIntent(LibraryIntent.SortDirectionSelected(SortDirection.Descending))
-        viewModel.onIntent(LibraryIntent.GroupSortFieldSelected(GroupSortField.TrackCount))
-
-        val state = viewModel.state.value
-        assertEquals(SortDirection.Descending, state.groupSort.direction)
-        assertEquals(GroupSortField.TrackCount, state.groupSort.field)
-        assertEquals(SortDirection.Ascending, state.trackSort.direction)
-    }
-
-    @Test
     fun `shuffle and play use sorted order`() = runTest {
         viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
         repository.emit(TestTracks.tracks)
@@ -528,5 +510,49 @@ class LibraryViewModelTest {
             viewModel.onIntent(LibraryIntent.TrackSortFieldSelected(TrackSortField.Album))
             assertEquals(LibraryEffect.ShowSortSaveFailed, awaitItem())
         }
+    }
+
+    @Test
+    fun `direction goes to its own target`() = runTest {
+        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
+        repository.emit(TestTracks.tracks)
+
+        viewModel.onIntent(LibraryIntent.SortDirectionSelected(SortTarget.Groups, SortDirection.Descending))
+        viewModel.onIntent(LibraryIntent.GroupSortFieldSelected(GroupSortField.TrackCount))
+        viewModel.onIntent(LibraryIntent.GroupSortFieldSelected(GroupSortField.TrackCount))
+
+        val state = viewModel.state.value
+        assertEquals(SortDirection.Descending, state.groupSort.direction)
+        assertEquals(GroupSortField.TrackCount, state.groupSort.field)
+        assertEquals(SortDirection.Ascending, state.trackSort.direction)
+        assertEquals(2, settings.writeCalls)
+    }
+
+    @Test
+    fun `quick taps keep the last choice while writes are pending`() = runTest {
+        viewModel.onIntent(LibraryIntent.ScreenStarted(hasPermission = true))
+        repository.emit(TestTracks.tracks)
+        val gate = CompletableDeferred<Unit>()
+        settings.writeGate = gate
+
+        viewModel.onIntent(LibraryIntent.TrackSortFieldSelected(TrackSortField.Artist))
+        assertEquals(TrackSortField.Artist, viewModel.state.value.shownTrackSort.field)
+        viewModel.onIntent(LibraryIntent.TrackSortFieldSelected(TrackSortField.Title))
+        assertEquals(TrackSortField.Title, viewModel.state.value.shownTrackSort.field)
+        gate.complete(Unit)
+
+        assertEquals(TrackSortField.Title, settings.current.trackSort.field)
+        assertEquals(TrackSortField.Title, viewModel.state.value.trackSort.field)
+        assertEquals(null, viewModel.state.value.pendingTrackSort)
+    }
+
+    @Test
+    fun `failed sort write restores shown choice`() = runTest {
+        settings.writeError = IllegalStateException("disk full")
+
+        viewModel.onIntent(LibraryIntent.GroupSortFieldSelected(GroupSortField.TrackCount))
+
+        assertEquals(null, viewModel.state.value.pendingGroupSort)
+        assertEquals(GroupSortField.Name, viewModel.state.value.shownGroupSort.field)
     }
 }

@@ -71,7 +71,7 @@ internal fun LibrarySortContent(
                 text = stringResource(R.string.library_sort_groups_hint),
                 style = NavoTheme.typography.secondary,
                 color = NavoTheme.colors.contentSecondary,
-                modifier = Modifier.padding(horizontal = NavoSpacing.ScreenHorizontal, vertical = 4.dp),
+                modifier = Modifier.padding(horizontal = NavoSpacing.ScreenHorizontal, vertical = NavoSpacing.ExtraSmall),
             )
         }
         Column(modifier = Modifier.padding(top = NavoSpacing.Small).selectableGroup()) {
@@ -104,7 +104,7 @@ internal fun LibrarySortContent(
                 NavoChip(
                     label = stringResource(option.labelRes),
                     selected = option == direction,
-                    onClick = { onIntent(LibraryIntent.SortDirectionSelected(option)) },
+                    onClick = { onIntent(LibraryIntent.SortDirectionSelected(target, option)) },
                     role = Role.RadioButton,
                 )
             }

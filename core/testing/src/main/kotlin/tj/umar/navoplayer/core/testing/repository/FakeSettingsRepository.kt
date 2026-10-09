@@ -1,5 +1,6 @@
 package tj.umar.navoplayer.core.testing.repository
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emitAll
@@ -22,6 +23,8 @@ class FakeSettingsRepository(initial: UserSettings = UserSettings()) : SettingsR
     var observeError: Throwable? = null
 
     var writeError: Throwable? = null
+
+    var writeGate: CompletableDeferred<Unit>? = null
 
     var writeCalls: Int = 0
         private set
@@ -67,8 +70,9 @@ class FakeSettingsRepository(initial: UserSettings = UserSettings()) : SettingsR
         settings.value = value
     }
 
-    private fun write(transform: UserSettings.() -> UserSettings) {
+    private suspend fun write(transform: UserSettings.() -> UserSettings) {
         writeCalls++
+        writeGate?.await()
         writeError?.let { throw it }
         settings.update(transform)
     }
