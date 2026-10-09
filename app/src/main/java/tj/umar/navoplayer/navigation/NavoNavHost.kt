@@ -2,9 +2,6 @@ package tj.umar.navoplayer.navigation
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
@@ -48,9 +45,6 @@ import tj.umar.navoplayer.feature.welcome.navigation.WelcomeDestination
 import tj.umar.navoplayer.feature.welcome.navigation.navigateToWelcome
 import tj.umar.navoplayer.feature.welcome.navigation.welcomeScreen
 
-private const val ENTER_FADE_MILLIS = 300
-private const val EXIT_FADE_MILLIS = 200
-
 @Composable
 fun NavoNavHost(
     navController: NavHostController,
@@ -71,22 +65,22 @@ fun NavoNavHost(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier,
-        enterTransition = { fadeIn(tween(ENTER_FADE_MILLIS)) },
+        enterTransition = { sharedAxisForwardEnter() },
         exitTransition = {
             if (targetState.destination.hasRoute<NowPlayingDestination>()) {
                 ExitTransition.KeepUntilTransitionsFinished
             } else {
-                fadeOut(tween(EXIT_FADE_MILLIS))
+                sharedAxisForwardExit()
             }
         },
         popEnterTransition = {
             if (initialState.destination.hasRoute<NowPlayingDestination>()) {
                 EnterTransition.None
             } else {
-                fadeIn(tween(ENTER_FADE_MILLIS))
+                sharedAxisBackwardEnter()
             }
         },
-        popExitTransition = { fadeOut(tween(EXIT_FADE_MILLIS)) },
+        popExitTransition = { sharedAxisBackwardExit() },
     ) {
         welcomeScreen(
             onPermissionGranted = {
