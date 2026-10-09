@@ -48,7 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
-import tj.umar.navoplayer.core.designsystem.component.NavoSlider
+import tj.umar.navoplayer.core.designsystem.component.NavoSeekBar
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
 import tj.umar.navoplayer.core.designsystem.medallion.Medallion
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
@@ -243,10 +243,11 @@ private fun SeekBar(state: NowPlayingState, onIntent: (NowPlayingIntent) -> Unit
     val positionText = formatDuration(position)
     val durationText = formatDuration(duration)
     Column {
-        NavoSlider(
+        NavoSeekBar(
             value = if (duration > 0) position.toFloat() / duration else 0f,
             onValueChange = { fraction -> onIntent(NowPlayingIntent.SeekChanged((fraction * duration).toLong())) },
             onValueChangeFinished = { onIntent(NowPlayingIntent.SeekFinished) },
+            playing = state.isPlaying,
             stateDescription = stringResource(R.string.player_seek_state, positionText, durationText),
             contentDescription = stringResource(R.string.player_seek),
         )
