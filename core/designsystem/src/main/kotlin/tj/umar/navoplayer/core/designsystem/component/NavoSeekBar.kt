@@ -3,13 +3,13 @@ package tj.umar.navoplayer.core.designsystem.component
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,6 +20,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.FloatState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +30,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -65,13 +68,14 @@ fun NavoSeekBar(
     val pressed by interactionSource.collectIsPressedAsState()
     val touched = dragged || pressed
     val motionEnabled = rememberMotionEnabled()
-    val waving = playing && enabled && !touched && motionEnabled
-    val amplitude by animateDpAsState(
+    val waving = playing && enabled && !touched && motionEnabled && value > 0f
+    val amplitude = animateDpAsState(
         targetValue = if (waving) SeekWaveAmplitude else 0.dp,
         animationSpec = tween(AMPLITUDE_ANIMATION_MILLIS),
         label = "seekWaveAmplitude",
     )
-    val phase = rememberWavePhase(running = waving)
+    val settling by remember { derivedStateOf { amplitude.value > 0.dp } }
+    val phase = rememberWavePhase(running = waving || settling)
     val thumbScale by animateFloatAsState(
         targetValue = if (touched) THUMB_ACTIVE_SCALE else 1f,
         label = "seekThumbScale",
@@ -102,21 +106,28 @@ fun NavoSeekBar(
             )
         },
         track = { sliderState ->
-            Canvas(
+            Spacer(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(SeekCanvasHeight),
-            ) {
-                drawWavyTrack(
-                    fraction = sliderState.value,
-                    amplitude = amplitude.toPx(),
-                    phase = phase.floatValue,
-                    wavelength = SeekWavelength.toPx(),
-                    strokeWidth = SeekStrokeWidth.toPx(),
-                    activeColor = activeColor,
-                    inactiveColor = colors.line,
-                )
-            }
+                    .height(SeekCanvasHeight)
+                    .drawWithCache {
+                        val path = Path()
+                        val wavelength = SeekWavelength.toPx()
+                        val strokeWidth = SeekStrokeWidth.toPx()
+                        onDrawBehind {
+                            drawWavyTrack(
+                                path = path,
+                                fraction = sliderState.value,
+                                amplitude = amplitude.value.toPx(),
+                                phase = phase.floatValue,
+                                wavelength = wavelength,
+                                strokeWidth = strokeWidth,
+                                activeColor = activeColor,
+                                inactiveColor = colors.line,
+                            )
+                        }
+                    },
+            )
         },
     )
 }
@@ -163,16 +174,16 @@ private fun NavoSeekBarPreview() {
                 onValueChange = {},
                 onValueChangeFinished = {},
                 playing = true,
-                stateDescription = "1:37 из 4:12",
-                contentDescription = "Позиция в треке",
+                stateDescription = "1:37 / 4:12",
+                contentDescription = "Seek",
             )
             NavoSeekBar(
                 value = 0.38f,
                 onValueChange = {},
                 onValueChangeFinished = {},
                 playing = false,
-                stateDescription = "1:37 из 4:12",
-                contentDescription = "Позиция в треке",
+                stateDescription = "1:37 / 4:12",
+                contentDescription = "Seek",
             )
         }
     }

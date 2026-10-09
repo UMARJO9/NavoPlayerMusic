@@ -18,6 +18,7 @@ internal fun waveOffset(x: Float, wavelength: Float, amplitude: Float, phase: Fl
     amplitude * sin(WAVE_FULL_TURN * x / wavelength - phase)
 
 internal fun DrawScope.drawWavyTrack(
+    path: Path,
     fraction: Float,
     amplitude: Float,
     phase: Float,
@@ -46,7 +47,8 @@ internal fun DrawScope.drawWavyTrack(
         )
         return
     }
-    val path = Path().apply {
+    path.rewind()
+    path.apply {
         moveTo(0f, centerY + waveOffset(0f, wavelength, amplitude, phase))
         var x = WAVE_STEP_PX
         while (x < activeEnd) {
