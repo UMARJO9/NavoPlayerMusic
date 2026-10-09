@@ -1,6 +1,7 @@
 package tj.umar.navoplayer.core.player.sleeptimer
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -16,10 +17,11 @@ internal class SleepTimerExecutor(
     private val fadeMs: Long = SLEEP_TIMER_FADE_MILLIS,
 ) {
     private var volumeToRestore: Float? = null
+    private val jobs = mutableListOf<Job>()
 
     fun start(scope: CoroutineScope) {
-        scope.launch { store.schedule.collectLatest(::run) }
-        scope.launch {
+        jobs += scope.launch { store.schedule.collectLatest(::run) }
+        jobs += scope.launch {
             player.events.collect { event ->
                 when (event) {
                     SleepTimerPlayerEvent.QueueCleared -> store.cancel()
@@ -32,6 +34,8 @@ internal class SleepTimerExecutor(
     }
 
     fun release() {
+        jobs.forEach { it.cancel() }
+        jobs.clear()
         volumeToRestore?.let { player.volume = it }
         volumeToRestore = null
         player.setPauseAtEndOfMediaItems(false)
@@ -80,6 +84,10 @@ internal class SleepTimerExecutor(
     }
 
     private suspend fun runEndOfTrack(schedule: SleepTimerSchedule.EndOfTrack) {
+        if (player.hasEnded) {
+            store.complete(schedule)
+            return
+        }
         player.setPauseAtEndOfMediaItems(true)
         try {
             player.events.first {

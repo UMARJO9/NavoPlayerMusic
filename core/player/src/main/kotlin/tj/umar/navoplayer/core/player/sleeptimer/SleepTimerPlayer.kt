@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 
 internal interface SleepTimerPlayer {
     val isPlaying: Boolean
+    val hasEnded: Boolean
     var volume: Float
     val events: Flow<SleepTimerPlayerEvent>
     fun pause()

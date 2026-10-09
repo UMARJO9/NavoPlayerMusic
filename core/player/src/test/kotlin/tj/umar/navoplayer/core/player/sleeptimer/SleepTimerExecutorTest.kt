@@ -14,6 +14,7 @@ import tj.umar.navoplayer.core.common.time.NavoClock
 
 private class FakeSleepTimerPlayer : SleepTimerPlayer {
     override var isPlaying: Boolean = true
+    override var hasEnded: Boolean = false
     override var volume: Float = 0.8f
         set(value) {
             field = value
@@ -224,6 +225,18 @@ class SleepTimerExecutorTest {
         runCurrent()
 
         player.events.emit(SleepTimerPlayerEvent.PlaybackEnded)
+        runCurrent()
+
+        assertFalse(player.pauseAtEnd)
+        assertEquals(SleepTimerSchedule.Off, store.schedule.value)
+    }
+
+    @Test
+    fun `end of track after playback ended completes at once`() = runTest {
+        val (store, _) = startExecutor()
+        player.hasEnded = true
+
+        store.startEndOfTrack()
         runCurrent()
 
         assertFalse(player.pauseAtEnd)
