@@ -79,4 +79,11 @@ class EnqueueTracksUseCaseTest {
         assertTrue(result is NavoResult.Error)
         assertTrue(controller.commands.isEmpty())
     }
+
+    @Test
+    fun `rejected enqueue is an error`() = runTest {
+        controller.rejectQueueCommands = true
+
+        assertTrue(enqueue(listOf(alpha.id), QueueInsertion.Next) is NavoResult.Error)
+    }
 }

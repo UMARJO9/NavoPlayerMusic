@@ -3,6 +3,7 @@ package tj.umar.navoplayer.core.domain.usecase
 import app.cash.turbine.test
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import tj.umar.navoplayer.core.domain.model.QueueItemId
@@ -86,5 +87,23 @@ class QueueUseCasesTest {
         move(QueueItemId("q2"), 1)
 
         assertTrue(controller.commands.isEmpty())
+    }
+
+    @Test
+    fun `remove and move report rejection`() = runTest {
+        controller.queue.emit(queue)
+        controller.rejectQueueCommands = true
+
+        assertFalse(RemoveQueueItemUseCase(controller)(QueueItemId("q2")))
+        assertFalse(MoveQueueItemUseCase(controller)(QueueItemId("q3"), 0))
+    }
+
+    @Test
+    fun `remove reports ignored current item and move reports unchanged position`() = runTest {
+        controller.queue.emit(queue)
+
+        assertFalse(RemoveQueueItemUseCase(controller)(QueueItemId("q1")))
+        assertTrue(MoveQueueItemUseCase(controller)(QueueItemId("q2"), 1))
+        assertTrue(RemoveQueueItemUseCase(controller)(QueueItemId("q2")))
     }
 }

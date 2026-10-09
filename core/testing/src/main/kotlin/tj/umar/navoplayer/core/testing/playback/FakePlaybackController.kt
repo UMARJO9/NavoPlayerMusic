@@ -35,6 +35,8 @@ class FakePlaybackController : PlaybackController {
     val progress = MutableSharedFlow<PlaybackProgress>(replay = 1)
     val queue = MutableSharedFlow<PlaybackQueue>(replay = 1)
 
+    var rejectQueueCommands: Boolean = false
+
     private val recorded = mutableListOf<PlaybackCommand>()
     val commands: List<PlaybackCommand> get() = recorded.toList()
 
@@ -93,15 +95,18 @@ class FakePlaybackController : PlaybackController {
         recorded += PlaybackCommand.SkipToQueueItem(id)
     }
 
-    override suspend fun removeQueueItem(id: QueueItemId) {
+    override suspend fun removeQueueItem(id: QueueItemId): Boolean {
         recorded += PlaybackCommand.RemoveQueueItem(id)
+        return !rejectQueueCommands
     }
 
-    override suspend fun moveQueueItem(id: QueueItemId, toIndex: Int) {
+    override suspend fun moveQueueItem(id: QueueItemId, toIndex: Int): Boolean {
         recorded += PlaybackCommand.MoveQueueItem(id, toIndex)
+        return !rejectQueueCommands
     }
 
-    override suspend fun enqueue(tracks: List<Track>, insertion: QueueInsertion) {
+    override suspend fun enqueue(tracks: List<Track>, insertion: QueueInsertion): Boolean {
         recorded += PlaybackCommand.Enqueue(tracks, insertion)
+        return !rejectQueueCommands
     }
 }

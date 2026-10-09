@@ -168,6 +168,27 @@ class QueueViewModelTest {
     }
 
     @Test
+    fun `rejected remove restores queue`() = runTest {
+        start()
+        controller.rejectQueueCommands = true
+
+        viewModel.onIntent(QueueIntent.RemoveClicked(second.id))
+
+        assertEquals(queue.items, viewModel.state.value.items)
+        assertEquals(first.id, viewModel.state.value.currentItemId)
+    }
+
+    @Test
+    fun `rejected move restores queue`() = runTest {
+        start()
+        controller.rejectQueueCommands = true
+
+        viewModel.onIntent(QueueIntent.MoveItem(third.id, 0))
+
+        assertEquals(queue.items, viewModel.state.value.items)
+    }
+
+    @Test
     fun `close clicked closes`() = runTest {
         viewModel.effects.test {
             viewModel.onIntent(QueueIntent.CloseClicked)

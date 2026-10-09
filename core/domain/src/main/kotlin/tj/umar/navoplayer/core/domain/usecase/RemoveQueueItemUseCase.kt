@@ -8,10 +8,10 @@ import javax.inject.Inject
 class RemoveQueueItemUseCase @Inject constructor(
     private val playbackController: PlaybackController,
 ) {
-    suspend operator fun invoke(id: QueueItemId) {
+    suspend operator fun invoke(id: QueueItemId): Boolean {
         val queue = playbackController.observeQueue().first()
         val index = queue.indexOf(id)
-        if (index < 0 || index == queue.currentIndex) return
-        playbackController.removeQueueItem(id)
+        if (index < 0 || index == queue.currentIndex) return false
+        return playbackController.removeQueueItem(id)
     }
 }

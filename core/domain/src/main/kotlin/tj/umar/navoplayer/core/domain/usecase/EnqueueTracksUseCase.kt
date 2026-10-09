@@ -24,7 +24,7 @@ class EnqueueTracksUseCase @Inject constructor(
                 playbackController.play(tracks, 0, PlaybackSource.Queue)
                 EnqueueOutcome.StartedPlayback(tracks.size)
             } else {
-                playbackController.enqueue(tracks, insertion)
+                check(playbackController.enqueue(tracks, insertion)) { "Queue rejected tracks" }
                 EnqueueOutcome.Enqueued(tracks.size, insertion)
             }
         }

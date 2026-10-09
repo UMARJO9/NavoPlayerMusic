@@ -23,7 +23,7 @@ interface PlaybackController {
     suspend fun setShuffleEnabled(enabled: Boolean)
     suspend fun setRepeatMode(mode: RepeatMode)
     suspend fun skipToQueueItem(id: QueueItemId)
-    suspend fun removeQueueItem(id: QueueItemId)
-    suspend fun moveQueueItem(id: QueueItemId, toIndex: Int)
-    suspend fun enqueue(tracks: List<Track>, insertion: QueueInsertion)
+    suspend fun removeQueueItem(id: QueueItemId): Boolean
+    suspend fun moveQueueItem(id: QueueItemId, toIndex: Int): Boolean
+    suspend fun enqueue(tracks: List<Track>, insertion: QueueInsertion): Boolean
 }

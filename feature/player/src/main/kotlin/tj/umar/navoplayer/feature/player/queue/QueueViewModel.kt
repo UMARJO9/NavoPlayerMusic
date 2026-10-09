@@ -31,6 +31,7 @@ internal class QueueViewModel @Inject constructor(
     private var queueJob: Job? = null
     private var stateJob: Job? = null
     private var closeRequested = false
+    private var lastQueue: PlaybackQueue? = null
 
     override fun onIntent(intent: QueueIntent) {
         when (intent) {
@@ -45,7 +46,7 @@ internal class QueueViewModel @Inject constructor(
 
     private fun startObserving() {
         if (queueJob?.isActive != true) {
-            queueJob = observePlaybackQueue().onEach(::onQueue).catch { }.launchIn(viewModelScope)
+            queueJob = observePlaybackQueue().onEach(::onQueue).catch { requestClose() }.launchIn(viewModelScope)
         }
         if (stateJob?.isActive != true) {
             stateJob = observePlaybackState()
@@ -75,6 +76,11 @@ internal class QueueViewModel @Inject constructor(
             requestClose()
             return
         }
+        lastQueue = queue
+        showQueue(queue)
+    }
+
+    private fun showQueue(queue: PlaybackQueue) {
         setState { copy(isLoading = false, items = queue.items, currentItemId = queue.current?.id) }
     }
 
@@ -91,7 +97,7 @@ internal class QueueViewModel @Inject constructor(
         val state = currentState
         if (id == state.currentItemId || state.items.none { it.id == id }) return
         setState { copy(items = items.filterNot { it.id == id }) }
-        viewModelScope.launch { removeQueueItem(id) }
+        viewModelScope.launch { if (!removeQueueItem(id)) restoreQueue() }
     }
 
     private fun onMoveItem(id: QueueItemId, toIndex: Int) {
@@ -102,7 +108,11 @@ internal class QueueViewModel @Inject constructor(
         if (target == from) return
         val reordered = items.toMutableList().apply { add(target, removeAt(from)) }
         setState { copy(items = reordered) }
-        viewModelScope.launch { moveQueueItem(id, target) }
+        viewModelScope.launch { if (!moveQueueItem(id, target)) restoreQueue() }
+    }
+
+    private fun restoreQueue() {
+        lastQueue?.let(::showQueue)
     }
 
     private fun requestClose() {

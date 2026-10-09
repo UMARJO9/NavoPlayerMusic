@@ -183,30 +183,26 @@ internal class DefaultPlaybackController @Inject constructor(
         }
     }
 
-    override suspend fun removeQueueItem(id: QueueItemId) {
+    override suspend fun removeQueueItem(id: QueueItemId): Boolean =
         sendQueueCommand { QueueRequest.Remove(id.value) }
-    }
 
-    override suspend fun moveQueueItem(id: QueueItemId, toIndex: Int) {
+    override suspend fun moveQueueItem(id: QueueItemId, toIndex: Int): Boolean =
         sendQueueCommand { QueueRequest.Move(id.value, toIndex) }
-    }
 
-    override suspend fun enqueue(tracks: List<Track>, insertion: QueueInsertion) {
+    override suspend fun enqueue(tracks: List<Track>, insertion: QueueInsertion): Boolean =
         sendQueueCommand { QueueRequest.Enqueue(tracks.map { it.toMediaItem(idFactory.create()) }, insertion) }
-    }
 
-    private suspend fun sendQueueCommand(request: () -> QueueRequest) {
-        try {
-            val encoded = withContext(defaultDispatcher) { QueueSessionCommands.encode(request()) }
-            val result = connection.command { it.sendCustomCommand(encoded.command, encoded.args) }.await()
-            if (result.resultCode != SessionResult.RESULT_SUCCESS) {
-                Log.w(TAG, "Queue command rejected with code ${result.resultCode}")
-            }
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (failure: Exception) {
-            Log.w(TAG, "Queue command failed", failure)
-        }
+    private suspend fun sendQueueCommand(request: () -> QueueRequest): Boolean = try {
+        val encoded = withContext(defaultDispatcher) { QueueSessionCommands.encode(request()) }
+        val result = connection.command { it.sendCustomCommand(encoded.command, encoded.args) }.await()
+        val accepted = result.resultCode == SessionResult.RESULT_SUCCESS
+        if (!accepted) Log.w(TAG, "Queue command rejected with code ${result.resultCode}")
+        accepted
+    } catch (cancellation: CancellationException) {
+        throw cancellation
+    } catch (failure: Exception) {
+        Log.w(TAG, "Queue command failed", failure)
+        false
     }
 
     private suspend fun runCommand(block: (MediaController) -> Unit) {

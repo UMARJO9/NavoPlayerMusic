@@ -8,12 +8,12 @@ import javax.inject.Inject
 class MoveQueueItemUseCase @Inject constructor(
     private val playbackController: PlaybackController,
 ) {
-    suspend operator fun invoke(id: QueueItemId, toIndex: Int) {
+    suspend operator fun invoke(id: QueueItemId, toIndex: Int): Boolean {
         val queue = playbackController.observeQueue().first()
         val from = queue.indexOf(id)
-        if (from < 0) return
+        if (from < 0) return false
         val target = toIndex.coerceIn(0, queue.items.lastIndex)
-        if (target == from) return
-        playbackController.moveQueueItem(id, target)
+        if (target == from) return true
+        return playbackController.moveQueueItem(id, target)
     }
 }
