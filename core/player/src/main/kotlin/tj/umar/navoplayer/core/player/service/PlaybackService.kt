@@ -4,8 +4,8 @@ import android.app.PendingIntent
 import android.content.Intent
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSessionService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -45,7 +45,7 @@ import javax.inject.Inject
 private const val EQUALIZER_RETRY_DELAY_MILLIS = 5_000L
 
 @AndroidEntryPoint
-class PlaybackService : MediaSessionService() {
+class PlaybackService : MediaLibraryService() {
 
     @Inject
     lateinit var player: ExoPlayer
@@ -98,7 +98,7 @@ class PlaybackService : MediaSessionService() {
 
     private var queuePersister: QueuePersister? = null
 
-    private var mediaSession: MediaSession? = null
+    private var mediaSession: MediaLibraryService.MediaLibrarySession? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -114,7 +114,7 @@ class PlaybackService : MediaSessionService() {
             resumption = { restorer.resumption(scope) },
             preview = { restorer.preview(scope) },
         )
-        val builder = MediaSession.Builder(this, player).setCallback(callback)
+        val builder = MediaLibraryService.MediaLibrarySession.Builder(this, player, callback)
         launchIntent()?.let(builder::setSessionActivity)
         mediaSession = builder.build()
         player.addListener(ShuffleOrderListener(player, pending = pendingShuffleOrder))
@@ -139,7 +139,8 @@ class PlaybackService : MediaSessionService() {
         }
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibraryService.MediaLibrarySession? =
+        mediaSession
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         queuePersister?.flush()
