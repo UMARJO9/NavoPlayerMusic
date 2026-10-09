@@ -5,4 +5,5 @@ import tj.umar.navoplayer.core.domain.model.Track
 
 interface TrackRepository {
     fun observeTracks(): Flow<List<Track>>
+    suspend fun getTracks(ids: List<Long>): List<Track>
 }

@@ -38,4 +38,10 @@ internal class MediaStoreTrackRepository @Inject constructor(
             }
             .distinctUntilChanged()
             .flowOn(ioDispatcher)
+
+    override suspend fun getTracks(ids: List<Long>): List<Track> {
+        if (ids.isEmpty()) return emptyList()
+        val byId = audioSource.queryAudio(ids).associate { it.id to it.toTrack() }
+        return ids.mapNotNull(byId::get)
+    }
 }

@@ -106,4 +106,20 @@ class MediaStoreTrackRepositoryTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+
+    @Test
+    fun `get tracks keeps requested order and drops missing ids`() = runTest {
+        source.rows = listOf(audioRow(1, "One"), audioRow(2, "Two"), audioRow(3, "Three"))
+
+        val tracks = repository().getTracks(listOf(3, 9, 1))
+
+        assertEquals(listOf("Three", "One"), tracks.map { it.title })
+        assertEquals(0, source.queryCount)
+    }
+
+    @Test
+    fun `get tracks without ids skips query`() = runTest {
+        assertTrue(repository().getTracks(emptyList()).isEmpty())
+        assertEquals(0, source.idQueryCount)
+    }
 }

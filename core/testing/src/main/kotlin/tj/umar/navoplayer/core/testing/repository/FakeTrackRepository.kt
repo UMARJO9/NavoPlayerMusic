@@ -22,6 +22,14 @@ class FakeTrackRepository : TrackRepository {
         emitAll(tracks)
     }
 
+    var getTracksError: Throwable? = null
+
+    override suspend fun getTracks(ids: List<Long>): List<Track> {
+        getTracksError?.let { throw it }
+        val byId = tracks.replayCache.lastOrNull().orEmpty().associateBy { it.id }
+        return ids.mapNotNull(byId::get)
+    }
+
     suspend fun emit(value: List<Track>) {
         tracks.emit(value)
     }
