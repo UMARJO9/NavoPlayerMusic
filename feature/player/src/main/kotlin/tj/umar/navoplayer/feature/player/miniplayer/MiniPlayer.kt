@@ -31,6 +31,7 @@ import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
 import tj.umar.navoplayer.core.designsystem.medallion.Medallion
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
+import tj.umar.navoplayer.core.designsystem.medallion.rememberMedallionRotation
 import tj.umar.navoplayer.core.designsystem.theme.NavoShadows
 import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
@@ -79,7 +80,11 @@ internal fun MiniPlayer(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Medallion(palette = palette, modifier = Modifier.size(46.dp))
+            Medallion(
+                palette = palette,
+                modifier = Modifier.size(46.dp),
+                rotationDegrees = rememberMedallionRotation(running = isPlaying),
+            )
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     text = track.title.ifBlank { stringResource(CoreUiR.string.core_ui_unknown_title) },
