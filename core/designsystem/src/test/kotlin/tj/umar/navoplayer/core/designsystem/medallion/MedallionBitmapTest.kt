@@ -71,4 +71,12 @@ class MedallionBitmapTest {
         assertEquals(0, bitmap.getPixel(0, 0))
         assertEquals(Ivory.toArgb(), bitmap.getPixel(64, 64))
     }
+
+    @Test
+    fun `simple khotam medallion has star point on top and ivory center`() {
+        val bitmap = palette.renderBitmap(100)
+
+        assertEquals(palette.petals.toArgb(), bitmap.getPixel(50, 7))
+        assertEquals(Ivory.toArgb(), bitmap.getPixel(50, 50))
+    }
 }

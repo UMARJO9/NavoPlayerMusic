@@ -15,12 +15,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.animation.rememberPausableElapsedMillis
+import tj.umar.navoplayer.core.designsystem.theme.Ivory
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 
 enum class MedallionVariant { Simple, Detailed }
@@ -46,7 +48,10 @@ fun Medallion(
                     MedallionVariant.Detailed
                 }
                 when (resolved) {
-                    MedallionVariant.Simple -> onDrawBehind { drawSimpleMedallion(palette) }
+                    MedallionVariant.Simple -> {
+                        val star = simpleKhotamStar(size)
+                        onDrawBehind { drawSimpleMedallion(palette, star) }
+                    }
                     MedallionVariant.Detailed -> {
                         val ornament = SuzaniOrnament(size)
                         onDrawBehind { drawSuzaniMedallion(palette, ornament, rotationDegrees()) }
@@ -69,21 +74,35 @@ fun rememberMedallionRotation(
     }
 }
 
-internal fun DrawScope.drawSimpleMedallion(palette: MedallionPalette) {
-    val scale = size.minDimension / 100f
+internal fun simpleKhotamStar(size: Size): Path {
+    val unit = size.minDimension / 100f
     val center = Offset(size.width / 2f, size.height / 2f)
-    drawCircle(palette.background, radius = 50f * scale, center = center)
+    return starPath(
+        starVertices(
+            points = PETAL_COUNT,
+            outerRadius = 46f * unit,
+            innerRadius = khotamInnerRadius(46f * unit),
+            center = center,
+        ),
+    )
+}
+
+internal fun DrawScope.drawSimpleMedallion(palette: MedallionPalette, star: Path = simpleKhotamStar(size)) {
+    val unit = size.minDimension / 100f
+    val center = Offset(size.width / 2f, size.height / 2f)
+    drawCircle(palette.background, radius = 50f * unit, center = center)
+    drawPath(star, color = palette.petals)
+    drawCircle(palette.center, radius = 22f * unit, center = center)
     repeat(PETAL_COUNT) { index ->
         rotate(index * PETAL_STEP_DEGREES, pivot = center) {
             drawOval(
                 color = palette.petals,
-                topLeft = center + Offset(-10f * scale, -46f * scale),
-                size = Size(20f * scale, 40f * scale),
+                topLeft = center + Offset(-3.5f * unit, -19f * unit),
+                size = Size(7f * unit, 12f * unit),
             )
         }
     }
-    drawCircle(palette.center, radius = 17f * scale, center = center)
-    drawCircle(palette.background, radius = 7f * scale, center = center)
+    drawCircle(Ivory, radius = 5f * unit, center = center)
 }
 
 @OptIn(ExperimentalLayoutApi::class)
