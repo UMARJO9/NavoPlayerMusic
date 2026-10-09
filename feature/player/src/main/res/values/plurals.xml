@@ -11,4 +11,8 @@
         <item quantity="one">%d minute</item>
         <item quantity="other">%d minutes</item>
     </plurals>
+    <plurals name="player_sleep_timer_active_minutes">
+        <item quantity="one">Sleep timer, %d minute left</item>
+        <item quantity="other">Sleep timer, %d minutes left</item>
+    </plurals>
 </resources>

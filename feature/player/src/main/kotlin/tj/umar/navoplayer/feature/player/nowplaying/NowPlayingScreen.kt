@@ -59,6 +59,7 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.RepeatMode
+import tj.umar.navoplayer.core.domain.model.SleepTimer
 import tj.umar.navoplayer.core.domain.model.Track
 import tj.umar.navoplayer.core.ui.format.formatDuration
 import tj.umar.navoplayer.feature.player.R
@@ -133,7 +134,7 @@ internal fun NowPlayingScreen(
                 onIntent = onIntent,
             )
             Spacer(modifier = Modifier.height(28.dp))
-            BottomRow(nextTrack = state.nextTrack, onIntent = onIntent)
+            BottomRow(nextTrack = state.nextTrack, sleepTimer = state.sleepTimer, onIntent = onIntent)
         }
     }
     if (state.isSleepTimerSheetVisible) {
@@ -257,7 +258,7 @@ private fun SeekBar(state: NowPlayingState, onIntent: (NowPlayingIntent) -> Unit
 }
 
 @Composable
-private fun BottomRow(nextTrack: Track?, onIntent: (NowPlayingIntent) -> Unit) {
+private fun BottomRow(nextTrack: Track?, sleepTimer: SleepTimer, onIntent: (NowPlayingIntent) -> Unit) {
     val colors = NavoTheme.colors
     val typography = NavoTheme.typography
     val queueLabel = stringResource(R.string.player_open_queue)
@@ -295,13 +296,7 @@ private fun BottomRow(nextTrack: Track?, onIntent: (NowPlayingIntent) -> Unit) {
                 )
             }
         }
-        NavoIconButton(
-            icon = NavoIcons.Timer,
-            contentDescription = stringResource(R.string.player_sleep_timer),
-            onClick = { onIntent(NowPlayingIntent.SleepTimerClicked) },
-            containerColor = colors.raised,
-            size = 56.dp,
-        )
+        SleepTimerButton(sleepTimer = sleepTimer, onClick = { onIntent(NowPlayingIntent.SleepTimerClicked) })
     }
 }
 
@@ -333,5 +328,13 @@ private fun NowPlayingScreenRepeatOnePreview() {
             state = previewNowPlayingState.copy(isPlaying = false, shuffleEnabled = true, isFavorite = true, repeatMode = RepeatMode.One),
             onIntent = {},
         )
+    }
+}
+
+@Preview(widthDp = 390, heightDp = 844)
+@Composable
+private fun NowPlayingScreenSleepTimerPreview() {
+    NavoTheme {
+        NowPlayingScreen(state = previewNowPlayingState.copy(sleepTimer = SleepTimer.Countdown(872_000, 900_000)), onIntent = {})
     }
 }

@@ -17,4 +17,10 @@
         <item quantity="many">%d минут</item>
         <item quantity="other">%d минуты</item>
     </plurals>
+    <plurals name="player_sleep_timer_active_minutes">
+        <item quantity="one">Таймер сна, осталась %d минута</item>
+        <item quantity="few">Таймер сна, осталось %d минуты</item>
+        <item quantity="many">Таймер сна, осталось %d минут</item>
+        <item quantity="other">Таймер сна, осталось %d минуты</item>
+    </plurals>
 </resources>
