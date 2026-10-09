@@ -11,11 +11,19 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import tj.umar.navoplayer.core.common.dispatchers.MainDispatcher
 import tj.umar.navoplayer.core.common.time.ElapsedRealtimeClock
 import tj.umar.navoplayer.core.common.time.NavoClock
+import tj.umar.navoplayer.core.domain.model.EqualizerStatus
+import tj.umar.navoplayer.core.domain.usecase.ObserveEqualizerUseCase
+import tj.umar.navoplayer.core.player.equalizer.AndroidSoundEffects
+import tj.umar.navoplayer.core.player.equalizer.EqualizerApplier
+import tj.umar.navoplayer.core.player.equalizer.EqualizerCapabilitiesStore
+import tj.umar.navoplayer.core.player.equalizer.audioSessionIds
 import tj.umar.navoplayer.core.player.sleeptimer.ExoSleepTimerPlayer
 import tj.umar.navoplayer.core.player.sleeptimer.SleepTimerExecutor
 import tj.umar.navoplayer.core.player.sleeptimer.SleepTimerStore
@@ -41,9 +49,17 @@ class PlaybackService : MediaSessionService() {
     @field:ElapsedRealtimeClock
     lateinit var elapsedClock: NavoClock
 
+    @Inject
+    lateinit var observeEqualizer: ObserveEqualizerUseCase
+
+    @Inject
+    internal lateinit var equalizerStore: EqualizerCapabilitiesStore
+
     private var serviceScope: CoroutineScope? = null
 
     private var sleepTimerExecutor: SleepTimerExecutor? = null
+
+    private var equalizerApplier: EqualizerApplier? = null
 
     private var mediaSession: MediaSession? = null
 
@@ -58,6 +74,13 @@ class PlaybackService : MediaSessionService() {
         noisyPolicy.pauseOnDisconnect().onEach(player::setHandleAudioBecomingNoisy).launchIn(scope)
         sleepTimerStore.attach()
         sleepTimerExecutor = SleepTimerExecutor(sleepTimerStore, ExoSleepTimerPlayer(player), elapsedClock).also { it.start(scope) }
+        scope.launch { equalizerStore.ensureProbed() }
+        equalizerApplier = EqualizerApplier(
+            status = observeEqualizer().catch { emit(EqualizerStatus.Probing) },
+            sessionIds = player.audioSessionIds(),
+            factory = ::AndroidSoundEffects,
+            store = equalizerStore,
+        ).also { it.start(scope) }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
@@ -73,6 +96,8 @@ class PlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        equalizerApplier?.release()
+        equalizerApplier = null
         sleepTimerExecutor?.release()
         sleepTimerExecutor = null
         sleepTimerStore.detach()
