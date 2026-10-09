@@ -14,6 +14,11 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import tj.umar.navoplayer.core.common.dispatchers.MainDispatcher
+import tj.umar.navoplayer.core.common.time.ElapsedRealtimeClock
+import tj.umar.navoplayer.core.common.time.NavoClock
+import tj.umar.navoplayer.core.player.sleeptimer.ExoSleepTimerPlayer
+import tj.umar.navoplayer.core.player.sleeptimer.SleepTimerExecutor
+import tj.umar.navoplayer.core.player.sleeptimer.SleepTimerStore
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -29,7 +34,16 @@ class PlaybackService : MediaSessionService() {
     @field:MainDispatcher
     lateinit var mainDispatcher: CoroutineDispatcher
 
+    @Inject
+    internal lateinit var sleepTimerStore: SleepTimerStore
+
+    @Inject
+    @field:ElapsedRealtimeClock
+    lateinit var elapsedClock: NavoClock
+
     private var serviceScope: CoroutineScope? = null
+
+    private var sleepTimerExecutor: SleepTimerExecutor? = null
 
     private var mediaSession: MediaSession? = null
 
@@ -42,6 +56,8 @@ class PlaybackService : MediaSessionService() {
         val scope = CoroutineScope(SupervisorJob() + mainDispatcher)
         serviceScope = scope
         noisyPolicy.pauseOnDisconnect().onEach(player::setHandleAudioBecomingNoisy).launchIn(scope)
+        sleepTimerStore.attach()
+        sleepTimerExecutor = SleepTimerExecutor(sleepTimerStore, ExoSleepTimerPlayer(player), elapsedClock).also { it.start(scope) }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
@@ -57,6 +73,9 @@ class PlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        sleepTimerExecutor?.release()
+        sleepTimerExecutor = null
+        sleepTimerStore.detach()
         serviceScope?.cancel()
         serviceScope = null
         mediaSession?.run {
