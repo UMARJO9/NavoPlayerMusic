@@ -39,6 +39,7 @@ dependencies {
     implementation(projects.feature.search)
     implementation(projects.feature.settings)
     implementation(projects.feature.welcome)
+    implementation(projects.feature.widget)
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
