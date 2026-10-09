@@ -24,6 +24,7 @@ import tj.umar.navoplayer.core.common.time.NavoClock
 import tj.umar.navoplayer.core.domain.model.EqualizerStatus
 import tj.umar.navoplayer.core.domain.usecase.LoadResumableQueueUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveEqualizerUseCase
+import tj.umar.navoplayer.core.player.artwork.ResumptionArtwork
 import tj.umar.navoplayer.core.player.equalizer.AndroidSoundEffects
 import tj.umar.navoplayer.core.player.equalizer.EqualizerApplier
 import tj.umar.navoplayer.core.player.equalizer.EqualizerCapabilitiesStore
@@ -86,6 +87,9 @@ class PlaybackService : MediaLibraryService() {
     @field:DefaultDispatcher
     lateinit var defaultDispatcher: CoroutineDispatcher
 
+    @Inject
+    lateinit var resumptionArtwork: ResumptionArtwork
+
     private var serviceScope: CoroutineScope? = null
 
     private var sleepTimerExecutor: SleepTimerExecutor? = null
@@ -106,7 +110,8 @@ class PlaybackService : MediaLibraryService() {
         serviceScope = scope
         val pendingShuffleOrder = PendingShuffleOrder()
         val queuePlayer = ExoQueuePlayer(player, sourceStore, pendingShuffleOrder)
-        val restorer = QueueRestorer(loadResumableQueue, queuePlayer, defaultDispatcher).also { queueRestorer = it }
+        val restorer = QueueRestorer(loadResumableQueue, queuePlayer, defaultDispatcher, resumptionArtwork)
+            .also { queueRestorer = it }
         val persister = QueuePersister(queuePlayer, queueWriter, defaultDispatcher).also { queuePersister = it }
         val callback = PlaybackSessionCallback(
             ownPackage = packageName,
