@@ -32,6 +32,7 @@ fun EqualizerCapabilities.normalizeLevels(levels: List<Int>): List<Int> =
     bands.indices.map { index -> snapLevel(levels.getOrElse(index) { 0 }) }
 
 fun EqualizerCapabilities.snapLevel(levelMb: Int): Int {
-    val snapped = (levelMb.toFloat() / EQUALIZER_LEVEL_STEP_MB).roundToInt() * EQUALIZER_LEVEL_STEP_MB
+    val offset = (levelMb - minLevelMb).toFloat() / EQUALIZER_LEVEL_STEP_MB
+    val snapped = minLevelMb + offset.roundToInt() * EQUALIZER_LEVEL_STEP_MB
     return snapped.coerceIn(minLevelMb, maxLevelMb)
 }

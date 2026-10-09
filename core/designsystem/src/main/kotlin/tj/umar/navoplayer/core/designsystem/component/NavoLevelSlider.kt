@@ -52,7 +52,10 @@ fun NavoLevelSlider(
     val steps = ((valueRange.last - valueRange.first) / step.coerceAtLeast(1) - 1).coerceAtLeast(0)
     Slider(
         value = value.toFloat().coerceIn(start, end),
-        onValueChange = { raw -> onValueChange((raw / step).roundToInt() * step) },
+        onValueChange = { raw ->
+            val snapped = valueRange.first + ((raw - start) / step).roundToInt() * step
+            onValueChange(snapped.coerceIn(valueRange))
+        },
         onValueChangeFinished = onValueChangeFinished,
         valueRange = start..end,
         steps = steps,

@@ -57,4 +57,13 @@ class EqualizerResolutionTest {
             EqualizerSettings(bassBoostStrength = 500).resolve(capabilities.copy(bassBoostSupported = false)).bassBoostStrength,
         )
     }
+
+    @Test
+    fun `levels snap from range start and stay in range`() {
+        val odd = capabilities.copy(minLevelMb = -1250, maxLevelMb = 1250)
+
+        assertEquals(-1250, odd.snapLevel(-1300))
+        assertEquals(1250, odd.snapLevel(1300))
+        assertEquals(-150, odd.snapLevel(-140))
+    }
 }
