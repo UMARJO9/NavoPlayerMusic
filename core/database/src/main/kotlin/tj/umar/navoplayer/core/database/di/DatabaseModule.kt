@@ -10,6 +10,7 @@ import dagger.hilt.components.SingletonComponent
 import tj.umar.navoplayer.core.database.NAVO_DATABASE_NAME
 import tj.umar.navoplayer.core.database.NavoDatabase
 import tj.umar.navoplayer.core.database.dao.FavoriteDao
+import tj.umar.navoplayer.core.database.dao.PlaybackQueueDao
 import tj.umar.navoplayer.core.database.dao.PlaylistDao
 import javax.inject.Singleton
 
@@ -27,4 +28,7 @@ internal object DatabaseModule {
 
     @Provides
     fun provideFavoriteDao(database: NavoDatabase): FavoriteDao = database.favoriteDao()
+
+    @Provides
+    fun providePlaybackQueueDao(database: NavoDatabase): PlaybackQueueDao = database.playbackQueueDao()
 }

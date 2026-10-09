@@ -7,6 +7,7 @@ import kotlinx.coroutines.test.runTest
 import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,8 +31,8 @@ class NavoDatabaseMigrationTest {
         context.deleteDatabase(databaseFile.name)
     }
 
-    private fun createVersionOne() {
-        val schema = JSONObject(File("schemas/tj.umar.navoplayer.core.database.NavoDatabase/1.json").readText())
+    private fun createFromSchema(version: Int) {
+        val schema = JSONObject(File("schemas/tj.umar.navoplayer.core.database.NavoDatabase/$version.json").readText())
             .getJSONObject("database")
         databaseFile.parentFile?.mkdirs()
         SQLiteDatabase.openOrCreateDatabase(databaseFile, null).use { db ->
@@ -49,13 +50,14 @@ class NavoDatabaseMigrationTest {
             for (i in 0 until setup.length()) db.execSQL(setup.getString(i))
             db.execSQL("INSERT INTO playlists (id, name, created_at, updated_at) VALUES (1, 'Mix', 10, 20)")
             db.execSQL("INSERT INTO playlist_tracks (playlist_id, track_id, position) VALUES (1, 7, 0), (1, 8, 1)")
-            db.version = 1
+            if (version >= 2) db.execSQL("INSERT INTO favorites (track_id, added_at) VALUES (8, 15)")
+            db.version = version
         }
     }
 
     @Test
     fun `migration from 1 to 2 keeps playlists and adds favorites`() = runTest {
-        createVersionOne()
+        createFromSchema(1)
 
         val migrated = Room.databaseBuilder(context, NavoDatabase::class.java, databaseFile.absolutePath)
             .allowMainThreadQueries()
@@ -69,6 +71,22 @@ class NavoDatabaseMigrationTest {
 
         migrated.favoriteDao().insert(FavoriteEntity(trackId = 7, addedAt = 30))
         assertEquals(listOf(7L), migrated.favoriteDao().observeFavoriteIds().first())
-        assertEquals(2, migrated.openHelper.readableDatabase.version)
+        assertEquals(3, migrated.openHelper.readableDatabase.version)
+    }
+
+    @Test
+    fun `migration from 2 to 3 keeps data and adds queue tables`() = runTest {
+        createFromSchema(2)
+
+        val migrated = Room.databaseBuilder(context, NavoDatabase::class.java, databaseFile.absolutePath)
+            .allowMainThreadQueries()
+            .build()
+            .also { database = it }
+
+        assertEquals("Mix", migrated.playlistDao().observePlaylist(1).first()!!.playlist.name)
+        assertEquals(listOf(8L), migrated.favoriteDao().observeFavoriteIds().first())
+        assertNull(migrated.playbackQueueDao().state())
+        assertTrue(migrated.playbackQueueDao().items().isEmpty())
+        assertEquals(3, migrated.openHelper.readableDatabase.version)
     }
 }
