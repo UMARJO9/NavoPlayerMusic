@@ -25,6 +25,9 @@ import tj.umar.navoplayer.core.player.equalizer.AndroidSoundEffects
 import tj.umar.navoplayer.core.player.equalizer.EqualizerApplier
 import tj.umar.navoplayer.core.player.equalizer.EqualizerCapabilitiesStore
 import tj.umar.navoplayer.core.player.equalizer.audioSessionIds
+import tj.umar.navoplayer.core.player.nowplaying.NowPlayingPublisher
+import tj.umar.navoplayer.core.player.nowplaying.SessionNowPlayingStore
+import tj.umar.navoplayer.core.player.nowplaying.nowPlayingChanges
 import tj.umar.navoplayer.core.player.sleeptimer.ExoSleepTimerPlayer
 import tj.umar.navoplayer.core.player.sleeptimer.SleepTimerExecutor
 import tj.umar.navoplayer.core.player.sleeptimer.SleepTimerStore
@@ -58,11 +61,16 @@ class PlaybackService : MediaSessionService() {
     @Inject
     internal lateinit var equalizerStore: EqualizerCapabilitiesStore
 
+    @Inject
+    internal lateinit var nowPlayingStore: SessionNowPlayingStore
+
     private var serviceScope: CoroutineScope? = null
 
     private var sleepTimerExecutor: SleepTimerExecutor? = null
 
     private var equalizerApplier: EqualizerApplier? = null
+
+    private var nowPlayingPublisher: NowPlayingPublisher? = null
 
     private var mediaSession: MediaSession? = null
 
@@ -87,6 +95,7 @@ class PlaybackService : MediaSessionService() {
             sessionIds = player.audioSessionIds(),
             factory = ::AndroidSoundEffects,
         ).also { it.start(scope) }
+        nowPlayingPublisher = NowPlayingPublisher(player.nowPlayingChanges(), nowPlayingStore).also { it.start(scope) }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
@@ -102,6 +111,8 @@ class PlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        nowPlayingPublisher?.release()
+        nowPlayingPublisher = null
         equalizerApplier?.release()
         equalizerApplier = null
         sleepTimerExecutor?.release()
