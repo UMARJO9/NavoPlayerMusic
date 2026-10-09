@@ -182,7 +182,7 @@ class QueueRestorerTest {
         val result = restorer.preview(backgroundScope).await()
 
         val item = result.mediaItems.single()
-        assertEquals("q2", item.queueItemId())
+        assertEquals(TestTracks.beta.id.toString(), item.mediaId)
         assertEquals(0, result.startIndex)
         assertEquals(12_000L, result.startPositionMs)
         assertEquals(true, item.mediaMetadata.isPlayable)
@@ -213,7 +213,7 @@ class QueueRestorerTest {
 
         val result = restorer.preview(backgroundScope).await()
 
-        assertEquals("q9", result.mediaItems.single().queueItemId())
+        assertEquals(TestTracks.alpha.id.toString(), result.mediaItems.single().mediaId)
         assertEquals(3_000L, result.startPositionMs)
         assertEquals(listOf(TestTracks.alpha.id), renderedIds)
     }
@@ -254,7 +254,7 @@ class QueueRestorerTest {
 
         val item = restorer.preview(backgroundScope).await().mediaItems.single()
 
-        assertEquals("q2", item.queueItemId())
+        assertEquals(TestTracks.beta.id.toString(), item.mediaId)
         assertNull(item.mediaMetadata.artworkData)
     }
 

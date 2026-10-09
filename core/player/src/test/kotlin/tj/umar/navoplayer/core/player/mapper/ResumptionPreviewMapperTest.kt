@@ -17,15 +17,19 @@ class ResumptionPreviewMapperTest {
     private val item = TestTracks.alpha.toMediaItem("q1")
 
     @Test
-    fun `preview is playable music and keeps track data`() {
+    fun `preview is playable music with display fields only`() {
         val preview = item.toResumptionPreview(null)
 
         assertEquals(true, preview.mediaMetadata.isPlayable)
         assertEquals(false, preview.mediaMetadata.isBrowsable)
         assertEquals(MediaMetadata.MEDIA_TYPE_MUSIC, preview.mediaMetadata.mediaType)
         assertEquals(item.mediaId, preview.mediaId)
-        assertEquals(TestTracks.alpha, preview.toTrack())
-        assertEquals("q1", preview.queueItemId())
+        assertEquals(item.mediaMetadata.title, preview.mediaMetadata.title)
+        assertEquals(item.mediaMetadata.artist, preview.mediaMetadata.artist)
+        assertEquals(item.mediaMetadata.artworkUri, preview.mediaMetadata.artworkUri)
+        assertNull(preview.localConfiguration)
+        assertNull(preview.requestMetadata.mediaUri)
+        assertNull(preview.mediaMetadata.extras)
         assertNull(preview.mediaMetadata.artworkData)
     }
 
