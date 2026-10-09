@@ -16,17 +16,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-private const val AUTO_SCROLL_FRAME_MILLIS = 16L
 private const val AUTO_SCROLL_EDGE_FRACTION = 0.1f
 private const val AUTO_SCROLL_MAX_STEP = 24f
 
@@ -49,8 +48,10 @@ internal class ReorderableListState<T>(
     private var initialOffset = 0
     private var startIndex = -1
     private var autoScrollJob: Job? = null
+    private var latestSource: List<T> = initialItems
 
     fun sync(newItems: List<T>) {
+        latestSource = newItems
         if (draggingKey == null) items = newItems
     }
 
@@ -65,15 +66,15 @@ internal class ReorderableListState<T>(
         draggingKey = key
         initialOffset = info.offset
         draggedDelta = 0f
-        startIndex = info.index
+        startIndex = items.indexOfFirst { keyOf(it) == key }
         autoScrollJob = scope.launch {
             while (isActive) {
+                withFrameNanos { }
                 val step = autoScrollStep()
                 if (step != 0f) {
                     listState.scrollBy(step)
                     swapIfNeeded()
                 }
-                delay(AUTO_SCROLL_FRAME_MILLIS)
             }
         }
     }
@@ -86,12 +87,24 @@ internal class ReorderableListState<T>(
 
     fun onDragEnd() {
         val key = draggingKey ?: return
+        val finalIndex = items.indexOfFirst { keyOf(it) == key }
+        val moved = finalIndex >= 0 && finalIndex != startIndex
+        val movedItem = if (moved) items[finalIndex] else null
+        finishDrag()
+        if (movedItem != null) onMove(movedItem, finalIndex) else items = latestSource
+    }
+
+    fun cancelDrag(key: Any) {
+        if (draggingKey != key) return
+        finishDrag()
+        items = latestSource
+    }
+
+    private fun finishDrag() {
         autoScrollJob?.cancel()
         autoScrollJob = null
         draggingKey = null
         draggedDelta = 0f
-        val finalIndex = items.indexOfFirst { keyOf(it) == key }
-        if (finalIndex >= 0 && finalIndex != startIndex) onMove(items[finalIndex], finalIndex)
         startIndex = -1
     }
 
@@ -100,7 +113,7 @@ internal class ReorderableListState<T>(
         val current = visible(key) ?: return
         val middle = (initialOffset + draggedDelta + current.size / 2f).toInt()
         val target = listState.layoutInfo.visibleItemsInfo.firstOrNull {
-            it.key != key && middle in it.offset..(it.offset + it.size)
+            it.key != key && middle >= it.offset && middle < it.offset + it.size
         } ?: return
         val fromIndex = items.indexOfFirst { keyOf(it) == key }
         val toIndex = items.indexOfFirst { keyOf(it) == target.key }
@@ -153,15 +166,19 @@ internal fun <T> rememberReorderableListState(
 
 internal fun Modifier.reorderHandle(state: ReorderableListState<*>, key: Any): Modifier =
     pointerInput(state, key) {
-        detectDragGestures(
-            onDragStart = { state.onDragStart(key) },
-            onDragEnd = state::onDragEnd,
-            onDragCancel = state::onDragEnd,
-            onDrag = { change, amount ->
-                change.consume()
-                state.onDrag(amount.y)
-            },
-        )
+        try {
+            detectDragGestures(
+                onDragStart = { state.onDragStart(key) },
+                onDragEnd = state::onDragEnd,
+                onDragCancel = { state.cancelDrag(key) },
+                onDrag = { change, amount ->
+                    change.consume()
+                    state.onDrag(amount.y)
+                },
+            )
+        } finally {
+            state.cancelDrag(key)
+        }
     }
 
 @Composable
