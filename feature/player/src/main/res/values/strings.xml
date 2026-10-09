@@ -25,6 +25,7 @@
     <string name="player_sleep_timer_unavailable">Couldn’t set sleep timer</string>
     <string name="player_sleep_timer_end_of_track">End of current track</string>
     <string name="player_sleep_timer_turn_off">Turn off timer</string>
+    <string name="player_sleep_timer_change">Change sleep timer</string>
     <string name="player_sleep_timer_remaining">%1$s left</string>
     <string name="player_sleep_timer_end_of_track_short">Track end</string>
     <string name="player_sleep_timer_active_end_of_track">Sleep timer, until end of track</string>

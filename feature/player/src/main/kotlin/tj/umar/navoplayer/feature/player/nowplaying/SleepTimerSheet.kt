@@ -11,6 +11,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -19,6 +20,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import tj.umar.navoplayer.core.designsystem.component.SettingsInfoRow
 import tj.umar.navoplayer.core.designsystem.component.SettingsRadioRow
 import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
@@ -29,21 +31,37 @@ import tj.umar.navoplayer.feature.player.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun SleepTimerSheet(sleepTimer: SleepTimer, onIntent: (NowPlayingIntent) -> Unit) {
+internal fun SleepTimerSheet(
+    sleepTimer: SleepTimer,
+    onIntent: (NowPlayingIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
     ModalBottomSheet(
         onDismissRequest = { onIntent(NowPlayingIntent.SleepTimerSheetDismissed) },
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetState = sheetState,
+        modifier = modifier,
         containerColor = NavoTheme.colors.raised,
         contentColor = NavoTheme.colors.content,
     ) {
-        SleepTimerSheetContent(sleepTimer = sleepTimer, onIntent = onIntent)
+        SleepTimerSheetContent(
+            sleepTimer = sleepTimer,
+            onIntent = { intent ->
+                scope.launch { sheetState.hide() }.invokeOnCompletion { onIntent(intent) }
+            },
+        )
     }
 }
 
 @Composable
-internal fun SleepTimerSheetContent(sleepTimer: SleepTimer, onIntent: (NowPlayingIntent) -> Unit) {
+internal fun SleepTimerSheetContent(
+    sleepTimer: SleepTimer,
+    onIntent: (NowPlayingIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val colors = NavoTheme.colors
-    Column(modifier = Modifier.fillMaxWidth().padding(bottom = NavoSpacing.Large)) {
+    Column(modifier = modifier.fillMaxWidth().padding(bottom = NavoSpacing.Large)) {
         Text(
             text = stringResource(R.string.player_sleep_timer),
             style = NavoTheme.typography.titleS,

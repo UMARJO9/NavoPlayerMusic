@@ -30,8 +30,6 @@ import tj.umar.navoplayer.core.domain.model.SleepTimer
 import tj.umar.navoplayer.core.ui.format.formatDuration
 import tj.umar.navoplayer.feature.player.R
 
-private const val MINUTE_MILLIS = 60_000L
-
 @Composable
 internal fun SleepTimerButton(sleepTimer: SleepTimer, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = NavoTheme.colors
@@ -47,6 +45,7 @@ internal fun SleepTimerButton(sleepTimer: SleepTimer, onClick: () -> Unit, modif
         return
     }
     val label = sleepTimer.accessibilityLabel()
+    val changeLabel = stringResource(R.string.player_sleep_timer_change)
     val text = when (sleepTimer) {
         is SleepTimer.Countdown -> formatDuration(sleepTimer.remainingMs.ceilToSecond())
         else -> stringResource(R.string.player_sleep_timer_end_of_track_short)
@@ -56,7 +55,7 @@ internal fun SleepTimerButton(sleepTimer: SleepTimer, onClick: () -> Unit, modif
             .height(56.dp)
             .clip(CircleShape)
             .background(colors.raised)
-            .clickable(role = Role.Button, onClick = onClick)
+            .clickable(onClickLabel = changeLabel, role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) { contentDescription = label }
             .animateContentSize()
             .padding(start = 16.dp, end = 18.dp),

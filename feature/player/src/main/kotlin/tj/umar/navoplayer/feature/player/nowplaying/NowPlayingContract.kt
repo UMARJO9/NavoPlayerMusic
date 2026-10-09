@@ -6,7 +6,7 @@ import tj.umar.navoplayer.core.domain.model.RepeatMode
 import tj.umar.navoplayer.core.domain.model.SleepTimer
 import tj.umar.navoplayer.core.domain.model.Track
 
-private const val MINUTE_MILLIS = 60_000L
+internal const val MINUTE_MILLIS = 60_000L
 
 @Immutable
 internal data class NowPlayingState(

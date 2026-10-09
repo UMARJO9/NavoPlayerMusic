@@ -25,6 +25,7 @@
     <string name="player_sleep_timer_unavailable">Не удалось включить таймер сна</string>
     <string name="player_sleep_timer_end_of_track">До конца текущего трека</string>
     <string name="player_sleep_timer_turn_off">Выключить таймер</string>
+    <string name="player_sleep_timer_change">Изменить таймер сна</string>
     <string name="player_sleep_timer_remaining">Осталось %1$s</string>
     <string name="player_sleep_timer_end_of_track_short">Конец трека</string>
     <string name="player_sleep_timer_active_end_of_track">Таймер сна, до конца трека</string>
