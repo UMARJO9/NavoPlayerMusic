@@ -7,6 +7,7 @@ import androidx.media3.common.MediaMetadata
 import tj.umar.navoplayer.core.domain.model.QueueItem
 import tj.umar.navoplayer.core.domain.model.QueueItemId
 import tj.umar.navoplayer.core.domain.model.Track
+import tj.umar.navoplayer.core.player.artwork.trackArtworkUri
 
 private const val EXTRA_ALBUM_ID = "navo.album_id"
 private const val EXTRA_ARTIST_ID = "navo.artist_id"
@@ -31,6 +32,7 @@ internal fun Track.toMediaItem(queueItemId: String): MediaItem {
         .setTrackNumber(trackNumber)
         .setDiscNumber(discNumber)
         .setDurationMs(durationMs)
+        .setArtworkUri(trackArtworkUri(id))
         .setExtras(extras)
         .build()
     return MediaItem.Builder()

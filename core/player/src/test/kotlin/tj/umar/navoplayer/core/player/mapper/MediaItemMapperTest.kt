@@ -9,6 +9,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import tj.umar.navoplayer.core.domain.model.QueueItem
 import tj.umar.navoplayer.core.domain.model.QueueItemId
+import tj.umar.navoplayer.core.player.artwork.artworkTrackId
 import tj.umar.navoplayer.core.testing.data.TestTracks
 
 @RunWith(RobolectricTestRunner::class)
@@ -23,6 +24,11 @@ class MediaItemMapperTest {
     @Test
     fun `track with missing tags survives round trip`() {
         assertEquals(TestTracks.beta, TestTracks.beta.toMediaItem("q1").toTrack())
+    }
+
+    @Test
+    fun `artwork uri points at track medallion`() {
+        assertEquals(TestTracks.alpha.id, TestTracks.alpha.toMediaItem("q1").mediaMetadata.artworkUri?.artworkTrackId())
     }
 
     @Test

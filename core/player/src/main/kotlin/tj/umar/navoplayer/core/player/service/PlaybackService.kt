@@ -2,8 +2,13 @@ package tj.umar.navoplayer.core.player.service
 
 import android.app.PendingIntent
 import android.content.Intent
+import androidx.annotation.OptIn
 import androidx.media3.common.Player
+import androidx.media3.common.util.BitmapLoader
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DataSourceBitmapLoader
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.CacheBitmapLoader
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,6 +30,7 @@ import tj.umar.navoplayer.core.domain.model.EqualizerStatus
 import tj.umar.navoplayer.core.domain.usecase.LoadResumableQueueUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveEqualizerUseCase
 import tj.umar.navoplayer.core.player.artwork.ResumptionArtwork
+import tj.umar.navoplayer.core.player.artwork.TrackArtworkBitmapLoader
 import tj.umar.navoplayer.core.player.equalizer.AndroidSoundEffects
 import tj.umar.navoplayer.core.player.equalizer.EqualizerApplier
 import tj.umar.navoplayer.core.player.equalizer.EqualizerCapabilitiesStore
@@ -104,6 +110,7 @@ class PlaybackService : MediaLibraryService() {
 
     private var mediaSession: MediaLibraryService.MediaLibrarySession? = null
 
+    @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
         val scope = CoroutineScope(SupervisorJob() + mainDispatcher)
@@ -120,6 +127,7 @@ class PlaybackService : MediaLibraryService() {
             preview = { restorer.preview(scope) },
         )
         val builder = MediaLibraryService.MediaLibrarySession.Builder(this, player, callback)
+            .setBitmapLoader(CacheBitmapLoader(trackArtworkBitmapLoader()))
         launchIntent()?.let(builder::setSessionActivity)
         mediaSession = builder.build()
         player.addListener(ShuffleOrderListener(player, pending = pendingShuffleOrder))
@@ -179,6 +187,13 @@ class PlaybackService : MediaLibraryService() {
         mediaSession = null
         super.onDestroy()
     }
+
+    @OptIn(UnstableApi::class)
+    private fun trackArtworkBitmapLoader(): BitmapLoader = TrackArtworkBitmapLoader(
+        artwork = resumptionArtwork,
+        fallback = DataSourceBitmapLoader.Builder(this).build(),
+        executor = DataSourceBitmapLoader.DEFAULT_EXECUTOR_SERVICE.get(),
+    )
 
     private fun launchIntent(): PendingIntent? {
         val intent = packageManager.getLaunchIntentForPackage(packageName) ?: return null
