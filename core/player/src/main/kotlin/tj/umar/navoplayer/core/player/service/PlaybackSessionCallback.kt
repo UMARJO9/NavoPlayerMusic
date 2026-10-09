@@ -6,6 +6,8 @@ import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.LibraryResult
+import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionCommands
@@ -27,14 +29,21 @@ internal class PlaybackSessionCallback(
         Futures.immediateFailedFuture(UnsupportedOperationException())
     },
     private val newQueueItemId: () -> String = { UUID.randomUUID().toString() },
-) : MediaSession.Callback {
+) : MediaLibraryService.MediaLibrarySession.Callback {
 
     override fun onConnect(
         session: MediaSession,
         controller: MediaSession.ControllerInfo,
     ): MediaSession.ConnectionResult = MediaSession.ConnectionResult.AcceptedResultBuilder(session)
-        .setAvailableSessionCommands(sessionCommandsFor(controller.packageName, ownPackage))
+        .setAvailableSessionCommands(sessionCommandsFor(controller.packageName, controller.isTrusted, ownPackage))
         .build()
+
+    override fun onGetLibraryRoot(
+        session: MediaLibraryService.MediaLibrarySession,
+        browser: MediaSession.ControllerInfo,
+        params: MediaLibraryService.LibraryParams?,
+    ): ListenableFuture<LibraryResult<MediaItem>> =
+        Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_NOT_SUPPORTED))
 
     override fun onCustomCommand(
         session: MediaSession,
@@ -79,11 +88,24 @@ internal class PlaybackSessionCallback(
 }
 
 @OptIn(UnstableApi::class)
-internal fun sessionCommandsFor(packageName: String, ownPackage: String): SessionCommands {
+internal fun sessionCommandsFor(packageName: String, isTrusted: Boolean, ownPackage: String): SessionCommands {
     val defaults = MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS
-    if (packageName != ownPackage) return defaults
-    return defaults.buildUpon().apply { QueueSessionCommands.all.forEach(::add) }.build()
+    return when {
+        packageName == ownPackage -> defaults.buildUpon().apply { QueueSessionCommands.all.forEach(::add) }.build()
+        packageName == SYSTEM_UI_PACKAGE && isTrusted ->
+            defaults.buildUpon().apply { resumptionLibraryCommands.forEach(::add) }.build()
+        else -> defaults
+    }
 }
+
+private const val SYSTEM_UI_PACKAGE = "com.android.systemui"
+
+private val resumptionLibraryCommands = listOf(
+    SessionCommand.COMMAND_CODE_LIBRARY_GET_LIBRARY_ROOT,
+    SessionCommand.COMMAND_CODE_LIBRARY_SUBSCRIBE,
+    SessionCommand.COMMAND_CODE_LIBRARY_UNSUBSCRIBE,
+    SessionCommand.COMMAND_CODE_LIBRARY_GET_CHILDREN,
+)
 
 internal fun resolvePlayableItems(items: List<MediaItem>): List<MediaItem> = items.mapNotNull { item ->
     val uri = item.requestMetadata.mediaUri ?: item.localConfiguration?.uri

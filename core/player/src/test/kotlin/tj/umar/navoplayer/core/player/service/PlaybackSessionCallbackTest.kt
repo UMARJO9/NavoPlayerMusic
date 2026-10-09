@@ -5,7 +5,9 @@ import android.os.Bundle
 import android.os.Looper
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
@@ -25,6 +27,24 @@ import tj.umar.navoplayer.core.testing.data.TestTracks
 class PlaybackSessionCallbackTest {
 
     private val contentUri = "content://media/external/audio/media/1"
+
+    private val libraryCommands = listOf(
+        SessionCommand.COMMAND_CODE_LIBRARY_GET_LIBRARY_ROOT,
+        SessionCommand.COMMAND_CODE_LIBRARY_SUBSCRIBE,
+        SessionCommand.COMMAND_CODE_LIBRARY_UNSUBSCRIBE,
+        SessionCommand.COMMAND_CODE_LIBRARY_GET_CHILDREN,
+    )
+
+    private fun controller(packageName: String) = MediaSession.ControllerInfo.createTestOnlyControllerInfo(
+        packageName,
+        0,
+        0,
+        0,
+        0,
+        true,
+        Bundle.EMPTY,
+        true,
+    )
 
     @Test
     fun `request uri becomes playback uri`() {
@@ -60,12 +80,46 @@ class PlaybackSessionCallbackTest {
 
     @Test
     fun `queue commands are granted only to own package`() {
-        val own = sessionCommandsFor("tj.umar.navoplayer", ownPackage = "tj.umar.navoplayer")
-        val foreign = sessionCommandsFor("com.example.remote", ownPackage = "tj.umar.navoplayer")
+        val own = sessionCommandsFor("tj.umar.navoplayer", isTrusted = true, ownPackage = "tj.umar.navoplayer")
+        val foreign = sessionCommandsFor("com.example.remote", isTrusted = true, ownPackage = "tj.umar.navoplayer")
+        val systemUi = sessionCommandsFor("com.android.systemui", isTrusted = true, ownPackage = "tj.umar.navoplayer")
 
         QueueSessionCommands.all.forEach { command ->
             assertTrue(own.contains(command))
             assertFalse(foreign.contains(command))
+            assertFalse(systemUi.contains(command))
+        }
+    }
+
+    @Test
+    fun `library commands are granted only to trusted system ui`() {
+        val systemUi = sessionCommandsFor("com.android.systemui", isTrusted = true, ownPackage = "own")
+        val spoofed = sessionCommandsFor("com.android.systemui", isTrusted = false, ownPackage = "own")
+        val foreign = sessionCommandsFor("com.example.remote", isTrusted = true, ownPackage = "own")
+        val own = sessionCommandsFor("own", isTrusted = true, ownPackage = "own")
+
+        libraryCommands.forEach { code ->
+            assertTrue(systemUi.contains(code))
+            assertFalse(spoofed.contains(code))
+            assertFalse(foreign.contains(code))
+            assertFalse(own.contains(code))
+        }
+        assertFalse(systemUi.contains(SessionCommand.COMMAND_CODE_LIBRARY_SEARCH))
+        assertFalse(systemUi.contains(SessionCommand.COMMAND_CODE_LIBRARY_GET_ITEM))
+    }
+
+    @Test
+    fun `library root is refused`() {
+        val player = ExoPlayer.Builder(RuntimeEnvironment.getApplication()).setLooper(Looper.getMainLooper()).build()
+        val callback = PlaybackSessionCallback("own", QueueEditor(player))
+        val session = MediaLibraryService.MediaLibrarySession.Builder(RuntimeEnvironment.getApplication(), player, callback).build()
+        try {
+            val result = callback.onGetLibraryRoot(session, controller("com.example.remote"), null).get()
+
+            assertEquals(SessionError.ERROR_NOT_SUPPORTED, result.resultCode)
+        } finally {
+            session.release()
+            player.release()
         }
     }
 
@@ -82,19 +136,10 @@ class PlaybackSessionCallbackTest {
                 resumption = { Futures.immediateFuture(full) },
                 preview = { Futures.immediateFuture(single) },
             )
-            val controller = MediaSession.ControllerInfo.createTestOnlyControllerInfo(
-                "com.android.systemui",
-                0,
-                0,
-                0,
-                0,
-                true,
-                Bundle.EMPTY,
-                true,
-            )
+            val systemUi = controller("com.android.systemui")
 
-            assertEquals(full, callback.onPlaybackResumption(session, controller, true).get())
-            assertEquals(single, callback.onPlaybackResumption(session, controller, false).get())
+            assertEquals(full, callback.onPlaybackResumption(session, systemUi, true).get())
+            assertEquals(single, callback.onPlaybackResumption(session, systemUi, false).get())
         } finally {
             session.release()
             player.release()
