@@ -76,6 +76,11 @@ internal class ExoQueuePlayer(
         player.shuffleModeEnabled = queue.shuffleEnabled
     }
 
+    override fun currentPreview(): MediaSession.MediaItemsWithStartPosition? {
+        val item = player.currentMediaItem ?: return null
+        return MediaSession.MediaItemsWithStartPosition(listOf(item), 0, player.currentPosition)
+    }
+
     override fun currentResumption(): MediaSession.MediaItemsWithStartPosition? {
         if (player.mediaItemCount == 0) return null
         val items = (0 until player.mediaItemCount).map(player::getMediaItemAt)

@@ -13,6 +13,7 @@ internal interface QueuePlayer {
     fun apply(queue: RestoredMediaQueue)
     fun prepareForResumption(queue: RestoredMediaQueue)
     fun currentResumption(): MediaSession.MediaItemsWithStartPosition?
+    fun currentPreview(): MediaSession.MediaItemsWithStartPosition?
 }
 
 internal sealed interface QueuePlayerEvent {

@@ -27,6 +27,7 @@ private class RecordingQueuePlayer : QueuePlayer {
     val applied = mutableListOf<RestoredMediaQueue>()
     val prepared = mutableListOf<RestoredMediaQueue>()
     var current: MediaSession.MediaItemsWithStartPosition? = null
+    var preview: MediaSession.MediaItemsWithStartPosition? = null
     override var hasCurrentItem: Boolean = false
     override val isPlaying: Boolean = false
     override val events = MutableSharedFlow<QueuePlayerEvent>()
@@ -39,6 +40,7 @@ private class RecordingQueuePlayer : QueuePlayer {
         prepared += queue
     }
     override fun currentResumption(): MediaSession.MediaItemsWithStartPosition? = current
+    override fun currentPreview(): MediaSession.MediaItemsWithStartPosition? = preview
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)

@@ -87,4 +87,23 @@ class ExoQueuePlayerTest {
         assertEquals(3, resumption.startIndex)
         assertEquals(listOf(3, 0, 4, 2, 1), pending.take(player)?.toList())
     }
+
+    @Test
+    fun `current preview holds only current item without side effects`() {
+        queuePlayer.apply(restored(shuffleOrder = intArrayOf(3, 0, 4, 2, 1)))
+        idle()
+        pending.take(player)
+
+        val preview = queuePlayer.currentPreview()!!
+
+        assertEquals(listOf("q4"), preview.mediaItems.map { it.queueItemId() })
+        assertEquals(0, preview.startIndex)
+        assertEquals(20_000L, preview.startPositionMs)
+        assertEquals(null, pending.take(player))
+    }
+
+    @Test
+    fun `empty player has no preview`() {
+        assertEquals(null, queuePlayer.currentPreview())
+    }
 }

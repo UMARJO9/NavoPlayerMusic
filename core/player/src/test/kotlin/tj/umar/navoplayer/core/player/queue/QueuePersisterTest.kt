@@ -35,6 +35,7 @@ private class FakeQueuePlayer : QueuePlayer {
     override fun apply(queue: RestoredMediaQueue) = Unit
     override fun prepareForResumption(queue: RestoredMediaQueue) = Unit
     override fun currentResumption(): MediaSession.MediaItemsWithStartPosition? = null
+    override fun currentPreview(): MediaSession.MediaItemsWithStartPosition? = null
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
