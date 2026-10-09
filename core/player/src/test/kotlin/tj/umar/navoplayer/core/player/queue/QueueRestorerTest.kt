@@ -9,6 +9,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -16,7 +17,9 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import tj.umar.navoplayer.core.domain.usecase.LoadResumableQueueUseCase
+import tj.umar.navoplayer.core.player.artwork.ResumptionArtwork
 import tj.umar.navoplayer.core.player.mapper.queueItemId
+import tj.umar.navoplayer.core.player.mapper.toMediaItem
 import tj.umar.navoplayer.core.testing.app.FakeAudioAccessChecker
 import tj.umar.navoplayer.core.testing.data.TestSavedQueues
 import tj.umar.navoplayer.core.testing.data.TestTracks
@@ -52,10 +55,20 @@ class QueueRestorerTest {
     private val tracks = FakeTrackRepository()
     private val access = FakeAudioAccessChecker()
     private val player = RecordingQueuePlayer()
+    private val renderedIds = mutableListOf<Long>()
+    private val artwork = ResumptionArtwork { id ->
+        renderedIds += id
+        byteArrayOf(id.toByte())
+    }
 
     private suspend fun TestScope.restorer(): QueueRestorer {
         tracks.emit(listOf(TestTracks.alpha, TestTracks.beta))
-        return QueueRestorer(LoadResumableQueueUseCase(queues, tracks, access), player, StandardTestDispatcher(testScheduler))
+        return QueueRestorer(
+            LoadResumableQueueUseCase(queues, tracks, access),
+            player,
+            StandardTestDispatcher(testScheduler),
+            artwork,
+        )
     }
 
     @Test
@@ -159,5 +172,84 @@ class QueueRestorerTest {
         val result = restorer.resumption(backgroundScope).await()
 
         assertEquals(2, result.mediaItems.size)
+    }
+
+    @Test
+    fun `preview before restore shows start item without claiming queue`() = runTest {
+        val restorer = restorer()
+
+        val result = restorer.preview(backgroundScope).await()
+
+        val item = result.mediaItems.single()
+        assertEquals("q2", item.queueItemId())
+        assertEquals(0, result.startIndex)
+        assertEquals(12_000L, result.startPositionMs)
+        assertEquals(true, item.mediaMetadata.isPlayable)
+        assertEquals(listOf(TestTracks.beta.id), renderedIds)
+        assertArrayEquals(byteArrayOf(TestTracks.beta.id.toByte()), item.mediaMetadata.artworkData)
+        assertTrue(player.prepared.isEmpty())
+        assertTrue(player.applied.isEmpty())
+    }
+
+    @Test
+    fun `preview does not prevent start from applying queue`() = runTest {
+        val restorer = restorer()
+
+        restorer.preview(backgroundScope)
+        restorer.start(backgroundScope)
+        runCurrent()
+
+        assertEquals(1, player.applied.size)
+        assertTrue(restorer.settled.value)
+    }
+
+    @Test
+    fun `preview after restore uses current player item`() = runTest {
+        val restorer = restorer()
+        restorer.start(backgroundScope)
+        runCurrent()
+        player.preview = MediaSession.MediaItemsWithStartPosition(listOf(TestTracks.alpha.toMediaItem("q9")), 0, 3_000)
+
+        val result = restorer.preview(backgroundScope).await()
+
+        assertEquals("q9", result.mediaItems.single().queueItemId())
+        assertEquals(3_000L, result.startPositionMs)
+        assertEquals(listOf(TestTracks.alpha.id), renderedIds)
+    }
+
+    @Test
+    fun `preview without saved queue fails`() = runTest {
+        val restorer = QueueRestorer(
+            LoadResumableQueueUseCase(FakePlaybackQueueRepository(), tracks, access),
+            player,
+            StandardTestDispatcher(testScheduler),
+            artwork,
+        )
+
+        val failure = runCatching { restorer.preview(backgroundScope).await() }.exceptionOrNull()
+
+        assertTrue(failure is UnsupportedOperationException)
+    }
+
+    @Test
+    fun `preview with denied access fails`() = runTest {
+        access.granted = false
+        val restorer = restorer()
+
+        val failure = runCatching { restorer.preview(backgroundScope).await() }.exceptionOrNull()
+
+        assertTrue(failure is UnsupportedOperationException)
+    }
+
+    @Test
+    fun `resumption after preview returns full queue`() = runTest {
+        val restorer = restorer()
+        restorer.preview(backgroundScope).await()
+
+        val result = restorer.resumption(backgroundScope).await()
+
+        assertEquals(2, result.mediaItems.size)
+        assertEquals(1, result.startIndex)
+        assertEquals(1, player.prepared.size)
     }
 }

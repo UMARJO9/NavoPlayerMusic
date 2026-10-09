@@ -16,13 +16,16 @@ import kotlinx.coroutines.withContext
 import tj.umar.navoplayer.core.domain.model.QueueResumeResult
 import tj.umar.navoplayer.core.domain.model.ResumableQueue
 import tj.umar.navoplayer.core.domain.usecase.LoadResumableQueueUseCase
+import tj.umar.navoplayer.core.player.artwork.ResumptionArtwork
 import tj.umar.navoplayer.core.player.mapper.toMediaItem
 import tj.umar.navoplayer.core.player.mapper.toPlayerRepeatMode
+import tj.umar.navoplayer.core.player.mapper.toResumptionPreview
 
 internal class QueueRestorer(
     private val loadResumableQueue: LoadResumableQueueUseCase,
     private val player: QueuePlayer,
     private val mappingDispatcher: CoroutineDispatcher,
+    private val artwork: ResumptionArtwork = ResumptionArtwork { null },
 ) {
     private val settledState = MutableStateFlow(false)
     private var loaded: Deferred<RestoredMediaQueue?>? = null
@@ -43,11 +46,17 @@ internal class QueueRestorer(
         }
     }
 
-    fun resumption(scope: CoroutineScope): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
-        val result = SettableFuture.create<MediaSession.MediaItemsWithStartPosition>()
+    fun resumption(scope: CoroutineScope): ListenableFuture<MediaSession.MediaItemsWithStartPosition> =
+        futureOf(scope) { resolveResumption(scope) }
+
+    fun preview(scope: CoroutineScope): ListenableFuture<MediaSession.MediaItemsWithStartPosition> =
+        futureOf(scope) { resolvePreview(scope) }
+
+    private fun <T : Any> futureOf(scope: CoroutineScope, block: suspend () -> T?): ListenableFuture<T> {
+        val result = SettableFuture.create<T>()
         val job = scope.launch {
             try {
-                val value = resolveResumption(scope)
+                val value = block()
                 if (value != null) result.set(value) else result.setException(UnsupportedOperationException())
             } catch (cancellation: CancellationException) {
                 result.setException(cancellation)
@@ -60,6 +69,15 @@ internal class QueueRestorer(
             if (!result.isDone) result.setException(cause ?: CancellationException())
         }
         return result
+    }
+
+    private suspend fun resolvePreview(scope: CoroutineScope): MediaSession.MediaItemsWithStartPosition? {
+        val (item, position) = player.currentPreview()
+            ?.let { it.mediaItems.first() to it.startPositionMs }
+            ?: load(scope).await()?.let { it.items[it.startIndex] to it.startPositionMs }
+            ?: return null
+        val png = withContext(mappingDispatcher) { item.mediaId.toLongOrNull()?.let(artwork::render) }
+        return MediaSession.MediaItemsWithStartPosition(listOf(item.toResumptionPreview(png)), 0, position)
     }
 
     private suspend fun resolveResumption(scope: CoroutineScope): MediaSession.MediaItemsWithStartPosition? {
