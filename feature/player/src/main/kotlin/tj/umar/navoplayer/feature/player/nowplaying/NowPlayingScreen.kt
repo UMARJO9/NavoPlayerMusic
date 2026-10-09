@@ -39,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -149,7 +150,14 @@ internal fun NowPlayingScreen(
                     transitionSpec = { trackInfoTransition(state.trackChangeDirection) },
                     label = "trackInfoChange",
                 ) { shownTrack ->
-                    TrackInfo(track = shownTrack, isFavorite = state.isFavorite, onIntent = onIntent)
+                    val isCurrent = shownTrack.id == state.track?.id
+                    val shownFavorite = remember { mutableStateOf(state.isFavorite) }
+                    if (isCurrent) shownFavorite.value = state.isFavorite
+                    TrackInfo(
+                        track = shownTrack,
+                        isFavorite = shownFavorite.value,
+                        onIntent = { intent -> if (isCurrent) onIntent(intent) },
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
@@ -181,7 +189,7 @@ private fun medallionTransition(direction: TrackChangeDirection): ContentTransfo
     return ContentTransform(
         targetContentEnter = enter,
         initialContentExit = exit,
-        sizeTransform = SizeTransform(clip = false),
+        sizeTransform = SizeTransform(clip = false) { _, _ -> tween(TRACK_CHANGE_MILLIS) },
     )
 }
 
@@ -194,7 +202,7 @@ private fun trackInfoTransition(direction: TrackChangeDirection): ContentTransfo
     return ContentTransform(
         targetContentEnter = enter,
         initialContentExit = exit,
-        sizeTransform = SizeTransform(clip = false),
+        sizeTransform = SizeTransform(clip = false) { _, _ -> tween(TRACK_CHANGE_MILLIS) },
     )
 }
 
