@@ -2,6 +2,7 @@ package tj.umar.navoplayer.core.designsystem.medallion
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.compose.ui.graphics.toArgb
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,5 +47,19 @@ class MedallionBitmapTest {
         val png = palette.renderPng()
 
         assertEquals(MAX_MEDALLION_BITMAP_PX, BitmapFactory.decodeByteArray(png, 0, png.size).width)
+    }
+
+    @Test
+    fun `png corners are filled with palette background`() {
+        val png = palette.renderPng(64)
+
+        val decoded = BitmapFactory.decodeByteArray(png, 0, png.size)
+
+        assertEquals(palette.background.toArgb(), decoded.getPixel(0, 0))
+    }
+
+    @Test
+    fun `plain bitmap keeps transparent corners`() {
+        assertEquals(0, palette.renderBitmap(64).getPixel(0, 0))
     }
 }
