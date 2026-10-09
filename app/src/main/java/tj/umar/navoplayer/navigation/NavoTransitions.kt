@@ -12,7 +12,8 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.ui.unit.IntOffset
 
 private const val SHARED_AXIS_MILLIS = 320
-private const val SHARED_AXIS_FADE_IN_MILLIS = 200
+private const val SHARED_AXIS_FADE_IN_MILLIS = 220
+private const val SHARED_AXIS_FADE_IN_DELAY_MILLIS = 90
 private const val SHARED_AXIS_FADE_OUT_MILLIS = 120
 private const val SHARED_AXIS_OFFSET_FRACTION = 0.3f
 private const val FADE_THROUGH_IN_MILLIS = 210
@@ -25,7 +26,7 @@ private fun offset(width: Int): Int = (width * SHARED_AXIS_OFFSET_FRACTION).toIn
 
 internal fun sharedAxisForwardEnter(): EnterTransition =
     slideInHorizontally(slideSpec()) { width -> offset(width) } +
-        fadeIn(tween(SHARED_AXIS_FADE_IN_MILLIS, delayMillis = SHARED_AXIS_FADE_OUT_MILLIS))
+        fadeIn(tween(SHARED_AXIS_FADE_IN_MILLIS, delayMillis = SHARED_AXIS_FADE_IN_DELAY_MILLIS))
 
 internal fun sharedAxisForwardExit(): ExitTransition =
     slideOutHorizontally(slideSpec()) { width -> -offset(width) } +
@@ -33,11 +34,11 @@ internal fun sharedAxisForwardExit(): ExitTransition =
 
 internal fun sharedAxisBackwardEnter(): EnterTransition =
     slideInHorizontally(slideSpec()) { width -> -offset(width) } +
-        fadeIn(tween(SHARED_AXIS_FADE_IN_MILLIS, delayMillis = SHARED_AXIS_FADE_OUT_MILLIS))
+        fadeIn(tween(SHARED_AXIS_MILLIS))
 
 internal fun sharedAxisBackwardExit(): ExitTransition =
     slideOutHorizontally(slideSpec()) { width -> offset(width) } +
-        fadeOut(tween(SHARED_AXIS_FADE_OUT_MILLIS))
+        fadeOut(tween(SHARED_AXIS_MILLIS))
 
 internal fun fadeThroughEnter(): EnterTransition =
     fadeIn(tween(FADE_THROUGH_IN_MILLIS, delayMillis = FADE_THROUGH_OUT_MILLIS)) +
