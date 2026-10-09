@@ -94,11 +94,11 @@ internal fun TrackActionsContent(state: TrackActionsState, onIntent: (TrackActio
 private fun TrackActionsHeader(state: TrackActionsState) {
     val colors = NavoTheme.colors
     val track = state.track
-    val title = track?.title ?: pluralStringResource(
-        R.plurals.player_queue_track_count,
-        state.trackIds.size,
-        state.trackIds.size,
-    )
+    val title = when {
+        track != null -> track.title
+        state.isLoading -> ""
+        else -> pluralStringResource(R.plurals.player_queue_track_count, state.trackIds.size, state.trackIds.size)
+    }
     val paletteKey = track?.id ?: state.trackIds.firstOrNull() ?: 0L
     val palette = remember(paletteKey) { MedallionPalettes.forKey(paletteKey) }
     Row(

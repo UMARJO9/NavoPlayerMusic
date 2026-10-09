@@ -38,6 +38,7 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.QueueItemId
 import tj.umar.navoplayer.feature.player.R
+import tj.umar.navoplayer.core.ui.R as CoreUiR
 
 @Composable
 internal fun QueueScreen(
@@ -90,7 +91,7 @@ private fun QueueTopBar(trackCount: Int, isShuffled: Boolean, onClose: () -> Uni
             val count = pluralStringResource(R.plurals.player_queue_track_count, trackCount, trackCount)
             val shuffled = stringResource(R.string.player_queue_shuffled)
             Text(
-                text = if (isShuffled) "$count · $shuffled" else count,
+                text = if (isShuffled) stringResource(CoreUiR.string.core_ui_group_subtitle, count, shuffled) else count,
                 style = NavoTheme.typography.caption,
                 color = colors.contentSecondary,
             )
