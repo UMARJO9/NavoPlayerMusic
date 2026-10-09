@@ -4,13 +4,17 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import tj.umar.navoplayer.core.data.app.AndroidAudioAccessChecker
 import tj.umar.navoplayer.core.data.repository.DataStoreEqualizerSettingsRepository
 import tj.umar.navoplayer.core.data.repository.DataStoreSettingsRepository
 import tj.umar.navoplayer.core.data.repository.MediaStoreTrackRepository
 import tj.umar.navoplayer.core.data.repository.RoomFavoritesRepository
+import tj.umar.navoplayer.core.data.repository.RoomPlaybackQueueRepository
 import tj.umar.navoplayer.core.data.repository.RoomPlaylistRepository
+import tj.umar.navoplayer.core.domain.app.AudioAccessChecker
 import tj.umar.navoplayer.core.domain.repository.EqualizerSettingsRepository
 import tj.umar.navoplayer.core.domain.repository.FavoritesRepository
+import tj.umar.navoplayer.core.domain.repository.PlaybackQueueRepository
 import tj.umar.navoplayer.core.domain.repository.PlaylistRepository
 import tj.umar.navoplayer.core.domain.repository.SettingsRepository
 import tj.umar.navoplayer.core.domain.repository.TrackRepository
@@ -33,4 +37,10 @@ internal interface DataModule {
 
     @Binds
     fun bindsEqualizerSettingsRepository(repository: DataStoreEqualizerSettingsRepository): EqualizerSettingsRepository
+
+    @Binds
+    fun bindsPlaybackQueueRepository(repository: RoomPlaybackQueueRepository): PlaybackQueueRepository
+
+    @Binds
+    fun bindsAudioAccessChecker(checker: AndroidAudioAccessChecker): AudioAccessChecker
 }
