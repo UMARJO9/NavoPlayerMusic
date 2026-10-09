@@ -5,6 +5,7 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import tj.umar.navoplayer.core.domain.playback.EqualizerController
+import tj.umar.navoplayer.core.domain.playback.NowPlayingMonitor
 import tj.umar.navoplayer.core.domain.playback.PlaybackController
 import tj.umar.navoplayer.core.domain.playback.SleepTimerController
 import tj.umar.navoplayer.core.player.controller.DefaultPlaybackController
@@ -13,6 +14,7 @@ import tj.umar.navoplayer.core.player.controller.UuidQueueItemIdFactory
 import tj.umar.navoplayer.core.player.equalizer.AndroidEqualizerProbe
 import tj.umar.navoplayer.core.player.equalizer.DefaultEqualizerController
 import tj.umar.navoplayer.core.player.equalizer.EqualizerProbe
+import tj.umar.navoplayer.core.player.nowplaying.SessionNowPlayingStore
 import tj.umar.navoplayer.core.player.sleeptimer.DefaultSleepTimerController
 
 @Module
@@ -33,4 +35,7 @@ internal interface PlayerModule {
 
     @Binds
     fun bindsEqualizerProbe(probe: AndroidEqualizerProbe): EqualizerProbe
+
+    @Binds
+    fun bindsNowPlayingMonitor(store: SessionNowPlayingStore): NowPlayingMonitor
 }
