@@ -6,3 +6,9 @@ data class LibraryContent(
     val artists: List<Artist>,
     val folders: List<Folder>,
 )
+
+data class SortedLibrary(
+    val content: LibraryContent,
+    val trackSort: TrackSort,
+    val groupSort: GroupSort,
+)
