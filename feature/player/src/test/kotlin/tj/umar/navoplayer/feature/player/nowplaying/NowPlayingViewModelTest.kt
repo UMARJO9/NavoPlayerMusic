@@ -298,6 +298,18 @@ class NowPlayingViewModelTest {
     }
 
     @Test
+    fun `screen restart forgets previous click`() = runTest {
+        startWith(TestPlaybackStates.playingAlpha.copy(nextTrack = null))
+
+        viewModel.onIntent(NowPlayingIntent.PreviousClicked)
+        viewModel.onIntent(NowPlayingIntent.ScreenStopped)
+        controller.state.emit(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.beta, nextTrack = null))
+        viewModel.onIntent(NowPlayingIntent.ScreenStarted)
+
+        assertEquals(TrackChangeDirection.Forward, viewModel.state.value.trackChangeDirection)
+    }
+
+    @Test
     fun `heart follows track changes`() = runTest {
         favorites.addFavorite(TestTracks.alpha.id)
         startWith()

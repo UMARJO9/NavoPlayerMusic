@@ -122,6 +122,7 @@ internal class NowPlayingViewModel @Inject constructor(
         sleepTimerJob?.cancel()
         sleepTimerJob = null
         lastFavorite = null
+        previousRequested = false
     }
 
     private fun onPlaybackState(playback: PlaybackState) {
@@ -148,7 +149,7 @@ internal class NowPlayingViewModel @Inject constructor(
     }
 
     private fun changeDirectionTo(track: Track): TrackChangeDirection {
-        val current = state.value
+        val current = currentState
         val previousTrack = current.track
         if (previousTrack == null || previousTrack.id == track.id) return current.trackChangeDirection
         val backward = previousRequested && track.id != current.nextTrack?.id
