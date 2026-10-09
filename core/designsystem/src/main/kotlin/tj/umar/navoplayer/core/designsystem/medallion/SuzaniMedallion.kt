@@ -7,7 +7,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
-import tj.umar.navoplayer.core.designsystem.theme.Ivory
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -54,13 +53,14 @@ internal fun DrawScope.drawSuzaniMedallion(
     val center = ornament.center
     drawCircle(palette.background, radius = 100f * unit, center = center)
     drawOuterBand(palette, ornament)
+    val starDot = ivoryOn(palette.center, palette.background)
     rotate(STAR_LAYER_TURN * turnDegrees, pivot = center) {
         drawPath(ornament.star, color = palette.center)
         drawPath(ornament.star, color = palette.petals, style = ornament.starStroke)
         repeat(STAR_POINTS) { index ->
             rotate(index * STAR_STEP_DEGREES, pivot = center) {
                 drawPath(ornament.tulip, color = palette.petals)
-                drawCircle(Ivory, radius = 2.5f * unit, center = center + Offset(0f, -62f * unit))
+                drawCircle(starDot, radius = 2.5f * unit, center = center + Offset(0f, -62f * unit))
             }
         }
     }
@@ -78,12 +78,13 @@ internal fun DrawScope.drawSuzaniMedallion(
                 }
             }
             drawCircle(palette.center, radius = 9f * unit, center = center)
-            drawCircle(Ivory, radius = 3.5f * unit, center = center)
+            drawCircle(ivoryOn(palette.center, palette.background), radius = 3.5f * unit, center = center)
         }
     }
 }
 
 private fun DrawScope.drawOuterBand(palette: MedallionPalette, ornament: SuzaniOrnament) {
+    val bandDot = ivoryOn(palette.background, palette.center)
     val unit = ornament.unit
     val center = ornament.center
     drawCircle(palette.petals, radius = 96f * unit, center = center, style = ornament.outerRingStroke)
@@ -92,7 +93,7 @@ private fun DrawScope.drawOuterBand(palette: MedallionPalette, ornament: SuzaniO
             drawPath(ornament.bodom, color = if (index % 2 == 0) palette.petals else palette.center)
         }
         rotate(index * BAND_STEP_DEGREES + BAND_STEP_DEGREES / 2f, pivot = center) {
-            drawCircle(Ivory, radius = 2f * unit, center = center + Offset(0f, -84f * unit))
+            drawCircle(bandDot, radius = 2f * unit, center = center + Offset(0f, -84f * unit))
         }
     }
     drawCircle(palette.petals, radius = 73f * unit, center = center, style = ornament.innerRingStroke)

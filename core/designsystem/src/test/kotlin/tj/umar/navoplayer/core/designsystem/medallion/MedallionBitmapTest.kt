@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import androidx.compose.ui.graphics.toArgb
 import tj.umar.navoplayer.core.designsystem.theme.Ivory
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -73,10 +74,12 @@ class MedallionBitmapTest {
     }
 
     @Test
-    fun `simple khotam medallion has star point on top and ivory center`() {
-        val bitmap = palette.renderBitmap(100)
+    fun `simple khotam medallion has star point on top and visible center dot for every palette`() {
+        MedallionPalettes.all.forEach { each ->
+            val bitmap = each.renderBitmap(100)
 
-        assertEquals(palette.petals.toArgb(), bitmap.getPixel(50, 7))
-        assertEquals(Ivory.toArgb(), bitmap.getPixel(50, 50))
+            assertEquals(each.petals.toArgb(), bitmap.getPixel(50, 7))
+            assertNotEquals(bitmap.getPixel(55, 36), bitmap.getPixel(50, 50))
+        }
     }
 }

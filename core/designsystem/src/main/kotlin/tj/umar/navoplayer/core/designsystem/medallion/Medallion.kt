@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.animation.rememberPausableElapsedMillis
-import tj.umar.navoplayer.core.designsystem.theme.Ivory
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 
 enum class MedallionVariant { Simple, Detailed }
@@ -87,7 +86,7 @@ internal fun simpleKhotamStar(size: Size): Path {
     )
 }
 
-internal fun DrawScope.drawSimpleMedallion(palette: MedallionPalette, star: Path = simpleKhotamStar(size)) {
+internal fun DrawScope.drawSimpleMedallion(palette: MedallionPalette, star: Path) {
     val unit = size.minDimension / 100f
     val center = Offset(size.width / 2f, size.height / 2f)
     drawCircle(palette.background, radius = 50f * unit, center = center)
@@ -102,7 +101,7 @@ internal fun DrawScope.drawSimpleMedallion(palette: MedallionPalette, star: Path
             )
         }
     }
-    drawCircle(Ivory, radius = 5f * unit, center = center)
+    drawCircle(ivoryOn(palette.center, palette.background), radius = 5f * unit, center = center)
 }
 
 @OptIn(ExperimentalLayoutApi::class)

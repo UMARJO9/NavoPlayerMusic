@@ -23,7 +23,7 @@ fun MedallionPalette.renderBitmap(
     CanvasDrawScope().draw(Density(1f), LayoutDirection.Ltr, Canvas(image), size) {
         if (opaque) drawRect(this@renderBitmap.background)
         when (variant) {
-            MedallionVariant.Simple -> drawSimpleMedallion(this@renderBitmap)
+            MedallionVariant.Simple -> drawSimpleMedallion(this@renderBitmap, simpleKhotamStar(size))
             MedallionVariant.Detailed -> drawSuzaniMedallion(this@renderBitmap)
         }
     }

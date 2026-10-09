@@ -2,6 +2,7 @@ package tj.umar.navoplayer.core.designsystem.medallion
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
+import tj.umar.navoplayer.core.designsystem.theme.Ivory
 import kotlin.math.abs
 
 @Immutable
@@ -25,3 +26,5 @@ object MedallionPalettes {
 
     fun forKey(key: Long): MedallionPalette = all[abs(key.hashCode() % all.size)]
 }
+
+internal fun ivoryOn(surface: Color, fallback: Color): Color = if (surface == Ivory) fallback else Ivory
