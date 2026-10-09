@@ -124,6 +124,7 @@ internal fun NowPlayingScreen(
         ) {
             TopBar(source = state.source, onIntent = onIntent)
             val track = state.track
+            val medallionRotation = rememberMedallionRotation(running = state.isPlaying)
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -139,7 +140,7 @@ internal fun NowPlayingScreen(
                         transitionSpec = { medallionTransition(state.trackChangeDirection) },
                         label = "medallionChange",
                     ) { shownTrack ->
-                        RotatingMedallion(trackId = shownTrack.id, isPlaying = state.isPlaying)
+                        RotatingMedallion(trackId = shownTrack.id, rotationDegrees = medallionRotation)
                     }
                 }
             }
@@ -249,7 +250,7 @@ private fun TopBar(source: PlaybackSource?, onIntent: (NowPlayingIntent) -> Unit
 }
 
 @Composable
-private fun RotatingMedallion(trackId: Long, isPlaying: Boolean) {
+private fun RotatingMedallion(trackId: Long, rotationDegrees: () -> Float) {
     val palette = remember(trackId) { MedallionPalettes.forKey(trackId) }
     Box(
         modifier = Modifier
@@ -261,7 +262,7 @@ private fun RotatingMedallion(trackId: Long, isPlaying: Boolean) {
             palette = palette,
             modifier = Modifier.fillMaxSize(),
             variant = MedallionVariant.Detailed,
-            rotationDegrees = rememberMedallionRotation(running = isPlaying),
+            rotationDegrees = rotationDegrees,
         )
     }
 }
