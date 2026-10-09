@@ -108,7 +108,12 @@ class PlaybackService : MediaSessionService() {
         val queuePlayer = ExoQueuePlayer(player, sourceStore, pendingShuffleOrder)
         val restorer = QueueRestorer(loadResumableQueue, queuePlayer, defaultDispatcher).also { queueRestorer = it }
         val persister = QueuePersister(queuePlayer, queueWriter, defaultDispatcher).also { queuePersister = it }
-        val builder = MediaSession.Builder(this, player).setCallback(PlaybackSessionCallback(packageName, QueueEditor(player)))
+        val callback = PlaybackSessionCallback(
+            ownPackage = packageName,
+            editor = QueueEditor(player),
+            resumption = { forPlayback -> restorer.resumption(scope, forPlayback) },
+        )
+        val builder = MediaSession.Builder(this, player).setCallback(callback)
         launchIntent()?.let(builder::setSessionActivity)
         mediaSession = builder.build()
         player.addListener(ShuffleOrderListener(player, pending = pendingShuffleOrder))
