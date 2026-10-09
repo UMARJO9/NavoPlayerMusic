@@ -33,7 +33,6 @@ import androidx.glance.preview.Preview
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import tj.umar.navoplayer.core.designsystem.R as DesignR
 import tj.umar.navoplayer.core.ui.R as CoreUiR
 
@@ -112,7 +111,7 @@ private fun TrackText(state: NavoWidgetUiState, titleLines: Int) {
             text = title,
             maxLines = titleLines,
             style = TextStyle(
-                color = ColorProvider(R.color.navo_widget_content),
+                color = NavoWidgetColors.content,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
             ),
@@ -120,7 +119,7 @@ private fun TrackText(state: NavoWidgetUiState, titleLines: Int) {
         Text(
             text = subtitle,
             maxLines = 1,
-            style = TextStyle(color = ColorProvider(R.color.navo_widget_content_secondary), fontSize = 12.sp),
+            style = TextStyle(color = NavoWidgetColors.contentSecondary, fontSize = 12.sp),
         )
     }
 }
@@ -146,7 +145,7 @@ private fun Controls(state: NavoWidgetUiState, actions: NavoWidgetActions, showP
         Image(
             provider = ImageProvider(if (isPlaying) DesignR.drawable.navo_ic_pause else DesignR.drawable.navo_ic_play),
             contentDescription = context.getString(if (isPlaying) R.string.navo_widget_pause else R.string.navo_widget_play),
-            colorFilter = ColorFilter.tint(ColorProvider(R.color.navo_widget_on_accent)),
+            colorFilter = ColorFilter.tint(NavoWidgetColors.onAccent),
             modifier = GlanceModifier.size(playSize / 2),
         )
     }
@@ -165,7 +164,7 @@ private fun TransportButton(icon: Int, description: String, action: Action?) {
         provider = ImageProvider(icon),
         contentDescription = description,
         colorFilter = ColorFilter.tint(
-            ColorProvider(if (enabled) R.color.navo_widget_content else R.color.navo_widget_disabled),
+            if (enabled) NavoWidgetColors.content else NavoWidgetColors.disabled,
         ),
         modifier = if (action != null) modifier.clickable(action) else modifier,
     )
