@@ -13,7 +13,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
@@ -39,6 +38,7 @@ import tj.umar.navoplayer.core.domain.playback.PlaybackController
 import tj.umar.navoplayer.core.player.mapper.queueItemId
 import tj.umar.navoplayer.core.player.mapper.toMediaItem
 import tj.umar.navoplayer.core.player.mapper.toPlayerRepeatMode
+import tj.umar.navoplayer.core.player.queue.PlaybackSourceStore
 import tj.umar.navoplayer.core.player.service.QueueRequest
 import tj.umar.navoplayer.core.player.service.QueueSessionCommands
 import javax.inject.Inject
@@ -54,11 +54,11 @@ private const val RETRY_BACKOFF_MILLIS = 1_000L
 internal class DefaultPlaybackController @Inject constructor(
     private val connection: MediaControllerConnection,
     private val idFactory: QueueItemIdFactory,
+    private val sourceStore: PlaybackSourceStore,
     @param:DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
     @param:ApplicationScope scope: CoroutineScope,
 ) : PlaybackController {
 
-    private val source = MutableStateFlow<PlaybackSource?>(null)
 
     private val sharing = SharingStarted.WhileSubscribed(
         stopTimeoutMillis = STOP_SHARING_DELAY_MILLIS,
@@ -68,7 +68,7 @@ internal class DefaultPlaybackController @Inject constructor(
     private val playbackState: Flow<PlaybackState> = connection
         .withController { controller ->
             controller.events { _, _ -> true }
-                .combine(source) { _, currentSource -> controller.toPlaybackState(currentSource) }
+                .combine(sourceStore.source) { _, currentSource -> controller.toPlaybackState(currentSource) }
         }
         .retryConnecting()
         .catch { failure ->
@@ -128,7 +128,7 @@ internal class DefaultPlaybackController @Inject constructor(
         val items = withContext(defaultDispatcher) { queue.map { it.toMediaItem(idFactory.create()) } }
         runCommand { controller ->
             controller.setMediaItems(items, startIndex, 0L)
-            this.source.value = source
+            sourceStore.set(source)
             controller.prepare()
             controller.play()
         }
@@ -140,7 +140,7 @@ internal class DefaultPlaybackController @Inject constructor(
         runCommand { controller ->
             controller.shuffleModeEnabled = true
             controller.setMediaItems(items, startIndex, 0L)
-            this.source.value = source
+            sourceStore.set(source)
             controller.prepare()
             controller.play()
         }
