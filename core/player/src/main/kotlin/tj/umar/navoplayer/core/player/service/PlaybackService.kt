@@ -12,14 +12,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.launch
+import tj.umar.navoplayer.core.common.dispatchers.DefaultDispatcher
 import tj.umar.navoplayer.core.common.dispatchers.MainDispatcher
 import tj.umar.navoplayer.core.common.time.ElapsedRealtimeClock
 import tj.umar.navoplayer.core.common.time.NavoClock
 import tj.umar.navoplayer.core.domain.model.EqualizerStatus
+import tj.umar.navoplayer.core.domain.usecase.LoadResumableQueueUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveEqualizerUseCase
 import tj.umar.navoplayer.core.player.equalizer.AndroidSoundEffects
 import tj.umar.navoplayer.core.player.equalizer.EqualizerApplier
@@ -28,6 +31,12 @@ import tj.umar.navoplayer.core.player.equalizer.audioSessionIds
 import tj.umar.navoplayer.core.player.nowplaying.NowPlayingPublisher
 import tj.umar.navoplayer.core.player.nowplaying.SessionNowPlayingStore
 import tj.umar.navoplayer.core.player.nowplaying.nowPlayingChanges
+import tj.umar.navoplayer.core.player.queue.ExoQueuePlayer
+import tj.umar.navoplayer.core.player.queue.PendingShuffleOrder
+import tj.umar.navoplayer.core.player.queue.PlaybackSourceStore
+import tj.umar.navoplayer.core.player.queue.QueuePersister
+import tj.umar.navoplayer.core.player.queue.QueueRestorer
+import tj.umar.navoplayer.core.player.queue.QueueStateWriter
 import tj.umar.navoplayer.core.player.sleeptimer.ExoSleepTimerPlayer
 import tj.umar.navoplayer.core.player.sleeptimer.SleepTimerExecutor
 import tj.umar.navoplayer.core.player.sleeptimer.SleepTimerStore
@@ -64,6 +73,19 @@ class PlaybackService : MediaSessionService() {
     @Inject
     internal lateinit var nowPlayingStore: SessionNowPlayingStore
 
+    @Inject
+    lateinit var loadResumableQueue: LoadResumableQueueUseCase
+
+    @Inject
+    internal lateinit var queueWriter: QueueStateWriter
+
+    @Inject
+    internal lateinit var sourceStore: PlaybackSourceStore
+
+    @Inject
+    @field:DefaultDispatcher
+    lateinit var defaultDispatcher: CoroutineDispatcher
+
     private var serviceScope: CoroutineScope? = null
 
     private var sleepTimerExecutor: SleepTimerExecutor? = null
@@ -72,16 +94,24 @@ class PlaybackService : MediaSessionService() {
 
     private var nowPlayingPublisher: NowPlayingPublisher? = null
 
+    private var queueRestorer: QueueRestorer? = null
+
+    private var queuePersister: QueuePersister? = null
+
     private var mediaSession: MediaSession? = null
 
     override fun onCreate() {
         super.onCreate()
+        val scope = CoroutineScope(SupervisorJob() + mainDispatcher)
+        serviceScope = scope
+        val pendingShuffleOrder = PendingShuffleOrder()
+        val queuePlayer = ExoQueuePlayer(player, sourceStore, pendingShuffleOrder)
+        val restorer = QueueRestorer(loadResumableQueue, queuePlayer, defaultDispatcher).also { queueRestorer = it }
+        val persister = QueuePersister(queuePlayer, queueWriter, defaultDispatcher).also { queuePersister = it }
         val builder = MediaSession.Builder(this, player).setCallback(PlaybackSessionCallback(packageName, QueueEditor(player)))
         launchIntent()?.let(builder::setSessionActivity)
         mediaSession = builder.build()
-        player.addListener(ShuffleOrderListener(player))
-        val scope = CoroutineScope(SupervisorJob() + mainDispatcher)
-        serviceScope = scope
+        player.addListener(ShuffleOrderListener(player, pending = pendingShuffleOrder))
         noisyPolicy.pauseOnDisconnect().onEach(player::setHandleAudioBecomingNoisy).launchIn(scope)
         sleepTimerStore.attach()
         sleepTimerExecutor = SleepTimerExecutor(sleepTimerStore, ExoSleepTimerPlayer(player), elapsedClock).also { it.start(scope) }
@@ -96,11 +126,17 @@ class PlaybackService : MediaSessionService() {
             factory = ::AndroidSoundEffects,
         ).also { it.start(scope) }
         nowPlayingPublisher = NowPlayingPublisher(player.nowPlayingChanges(), nowPlayingStore).also { it.start(scope) }
+        restorer.start(scope)
+        scope.launch {
+            restorer.settled.first { it }
+            persister.start(scope, saveNow = queuePlayer.hasCurrentItem)
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        queuePersister?.flush()
         val sessionPlayer = mediaSession?.player
         val stillPlaying = sessionPlayer != null &&
             sessionPlayer.playWhenReady &&
@@ -111,6 +147,10 @@ class PlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        if (queueRestorer?.settled?.value == true) queuePersister?.flush()
+        queuePersister?.release()
+        queuePersister = null
+        queueRestorer = null
         nowPlayingPublisher?.release()
         nowPlayingPublisher = null
         equalizerApplier?.release()
