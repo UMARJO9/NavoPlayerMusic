@@ -317,6 +317,18 @@ class NowPlayingViewModelTest {
     }
 
     @Test
+    fun `previous that restarted track in two track loop does not reverse auto advance`() = runTest {
+        startWith(alphaInTwoTrackLoop)
+        controller.progress.emit(PlaybackProgress(positionMs = 30_000, durationMs = 185_000))
+
+        viewModel.onIntent(NowPlayingIntent.PreviousClicked)
+        controller.progress.emit(PlaybackProgress(positionMs = 0, durationMs = 185_000))
+        controller.state.emit(betaInTwoTrackLoop)
+
+        assertEquals(TrackChangeDirection.Forward, viewModel.state.value.trackChangeDirection)
+    }
+
+    @Test
     fun `jump to unrelated track moves forward`() = runTest {
         startWith(betaAfterAlpha)
 

@@ -37,6 +37,7 @@ import kotlin.time.Duration.Companion.minutes
 
 private const val SEEK_TOLERANCE_MILLIS = 1_500L
 private const val MAX_STALE_TICKS = 4
+private const val PREVIOUS_RESTARTS_AFTER_MILLIS = 3_000L
 
 @HiltViewModel
 internal class NowPlayingViewModel @Inject constructor(
@@ -79,7 +80,7 @@ internal class NowPlayingViewModel @Inject constructor(
                 launchCommand { skipToNext() }
             }
             NowPlayingIntent.PreviousClicked -> {
-                previousRequested = true
+                previousRequested = currentState.positionMs <= PREVIOUS_RESTARTS_AFTER_MILLIS
                 launchCommand { skipToPrevious() }
             }
             NowPlayingIntent.ShuffleClicked -> launchCommand { toggleShuffle() }
