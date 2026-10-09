@@ -1,5 +1,7 @@
 package tj.umar.navoplayer.core.player.queue
 
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
@@ -21,6 +23,7 @@ import tj.umar.navoplayer.core.player.mapper.toMediaItem
 import tj.umar.navoplayer.core.player.mapper.toPlayerRepeatMode
 import tj.umar.navoplayer.core.player.mapper.toResumptionPreview
 
+@OptIn(UnstableApi::class)
 internal class QueueRestorer(
     private val loadResumableQueue: LoadResumableQueueUseCase,
     private val player: QueuePlayer,

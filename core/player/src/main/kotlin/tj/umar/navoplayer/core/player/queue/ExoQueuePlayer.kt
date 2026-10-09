@@ -1,8 +1,10 @@
 package tj.umar.navoplayer.core.player.queue
 
+import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import kotlinx.coroutines.channels.Channel
@@ -13,6 +15,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import tj.umar.navoplayer.core.player.mapper.queueItemId
 import tj.umar.navoplayer.core.player.service.playOrder
 
+@OptIn(UnstableApi::class)
 internal class ExoQueuePlayer(
     private val player: ExoPlayer,
     private val sourceStore: PlaybackSourceStore,

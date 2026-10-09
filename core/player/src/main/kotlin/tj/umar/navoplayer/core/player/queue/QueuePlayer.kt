@@ -1,10 +1,13 @@
 package tj.umar.navoplayer.core.player.queue
 
+import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
 import kotlinx.coroutines.flow.Flow
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
 
+@OptIn(UnstableApi::class)
 internal interface QueuePlayer {
     val hasCurrentItem: Boolean
     val isPlaying: Boolean

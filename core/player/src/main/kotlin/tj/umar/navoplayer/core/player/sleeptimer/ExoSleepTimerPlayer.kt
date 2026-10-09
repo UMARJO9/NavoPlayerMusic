@@ -1,11 +1,14 @@
 package tj.umar.navoplayer.core.player.sleeptimer
 
+import androidx.annotation.OptIn
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
+@OptIn(UnstableApi::class)
 internal class ExoSleepTimerPlayer(private val player: ExoPlayer) : SleepTimerPlayer {
 
     override val hasEnded: Boolean
