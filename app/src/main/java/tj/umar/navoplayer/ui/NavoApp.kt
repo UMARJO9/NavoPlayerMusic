@@ -19,6 +19,8 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.ui.permission.hasAudioReadPermission
 import tj.umar.navoplayer.feature.library.navigation.LibraryDestination
@@ -37,6 +39,7 @@ import tj.umar.navoplayer.navigation.showsMiniPlayer
 fun NavoApp(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
+    openNowPlayingRequests: Flow<Unit> = emptyFlow(),
 ) {
     val context = LocalContext.current
     val startOnWelcome = rememberSaveable { !context.hasAudioReadPermission() }
@@ -54,6 +57,13 @@ fun NavoApp(
         if (isOnWelcome) {
             addToPlaylistRequest = null
             trackActionsRequest = null
+        }
+    }
+    LaunchedEffect(navController, openNowPlayingRequests) {
+        openNowPlayingRequests.collect {
+            if (navController.currentDestination?.hasRoute<WelcomeDestination>() != true) {
+                navController.navigateToNowPlaying()
+            }
         }
     }
     Box(
