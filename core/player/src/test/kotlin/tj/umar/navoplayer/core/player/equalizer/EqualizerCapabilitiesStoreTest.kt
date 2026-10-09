@@ -22,7 +22,7 @@ class EqualizerCapabilitiesStoreTest {
             probeCalls++
             probeResult
         },
-        mainDispatcher = StandardTestDispatcher(testScheduler),
+        ioDispatcher = StandardTestDispatcher(testScheduler),
     )
 
     @Test
