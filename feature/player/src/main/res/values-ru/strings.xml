@@ -24,4 +24,11 @@
     <string name="player_seek_state">%1$s из %2$s</string>
     <string name="player_open_now_playing">Открыть плеер</string>
     <string name="player_favorite_failed">Не удалось обновить избранное</string>
+    <string name="player_queue_title">Очередь</string>
+    <string name="player_queue_close">Закрыть очередь</string>
+    <string name="player_queue_shuffled">Перемешано</string>
+    <string name="player_queue_remove">Убрать из очереди</string>
+    <string name="player_queue_move_up">Переместить выше</string>
+    <string name="player_queue_move_down">Переместить ниже</string>
+    <string name="player_queue_play_item">Воспроизвести</string>
 </resources>

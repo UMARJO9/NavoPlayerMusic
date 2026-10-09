@@ -1,0 +1,6 @@
+<resources>
+    <plurals name="player_queue_track_count">
+        <item quantity="one">%d track</item>
+        <item quantity="other">%d tracks</item>
+    </plurals>
+</resources>

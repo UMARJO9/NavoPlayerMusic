@@ -25,4 +25,11 @@
     <string name="player_open_now_playing">Open player</string>
     <string name="player_repeat_one_badge" translatable="false">1</string>
     <string name="player_favorite_failed">Couldn’t update favorites</string>
+    <string name="player_queue_title">Queue</string>
+    <string name="player_queue_close">Close queue</string>
+    <string name="player_queue_shuffled">Shuffled</string>
+    <string name="player_queue_remove">Remove from queue</string>
+    <string name="player_queue_move_up">Move up</string>
+    <string name="player_queue_move_down">Move down</string>
+    <string name="player_queue_play_item">Play</string>
 </resources>

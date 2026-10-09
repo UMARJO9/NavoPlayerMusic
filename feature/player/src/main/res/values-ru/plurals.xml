@@ -1,0 +1,8 @@
+<resources>
+    <plurals name="player_queue_track_count">
+        <item quantity="one">%d трек</item>
+        <item quantity="few">%d трека</item>
+        <item quantity="many">%d треков</item>
+        <item quantity="other">%d трека</item>
+    </plurals>
+</resources>
