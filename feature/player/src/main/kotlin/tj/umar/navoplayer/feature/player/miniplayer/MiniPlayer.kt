@@ -10,6 +10,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -40,6 +42,7 @@ import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
 import tj.umar.navoplayer.core.designsystem.medallion.Medallion
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.medallion.rememberMedallionRotation
+import tj.umar.navoplayer.core.designsystem.modifier.pressScale
 import tj.umar.navoplayer.core.designsystem.theme.NavoShadows
 import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
@@ -50,6 +53,7 @@ import tj.umar.navoplayer.core.ui.R as CoreUiR
 private val MiniPlayerHeight = 68.dp
 private val ProgressLineHeight = 3.dp
 private const val TRACK_CHANGE_MILLIS = 300
+private const val MINI_PLAYER_PRESSED_SCALE = 0.98f
 
 @Composable
 internal fun MiniPlayer(
@@ -61,11 +65,13 @@ internal fun MiniPlayer(
 ) {
     val colors = NavoTheme.colors
     val rotation = rememberMedallionRotation(running = isPlaying)
+    val openInteraction = remember { MutableInteractionSource() }
     val openLabel = stringResource(R.string.player_open_now_playing)
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(MiniPlayerHeight)
+            .pressScale(openInteraction, pressedScale = MINI_PLAYER_PRESSED_SCALE)
             .dropShadow(NavoShapes.MiniPlayer, NavoShadows.MiniPlayer)
             .clip(NavoShapes.MiniPlayer)
             .background(colors.high)
@@ -84,7 +90,12 @@ internal fun MiniPlayer(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .clickable(onClickLabel = openLabel, role = Role.Button) { onIntent(MiniPlayerIntent.OpenClicked) }
+                .clickable(
+                    interactionSource = openInteraction,
+                    indication = ripple(color = colors.content),
+                    onClickLabel = openLabel,
+                    role = Role.Button,
+                ) { onIntent(MiniPlayerIntent.OpenClicked) }
                 .padding(start = 12.dp, end = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

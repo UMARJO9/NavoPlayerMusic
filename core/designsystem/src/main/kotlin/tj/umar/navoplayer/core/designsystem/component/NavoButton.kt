@@ -1,5 +1,12 @@
 package tj.umar.navoplayer.core.designsystem.component
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -34,6 +41,8 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 
 private const val DISABLED_ALPHA = 0.4f
+private const val ICON_SWAP_MILLIS = 220
+private const val ICON_SWAP_SCALE = 0.6f
 
 @Composable
 fun NavoButton(
@@ -111,12 +120,23 @@ fun NavoIconButton(
             ),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = contentDescription,
-            tint = tint,
-            modifier = Modifier.size(iconSize),
-        )
+        AnimatedContent(
+            targetState = icon,
+            transitionSpec = {
+                val spec = tween<Float>(ICON_SWAP_MILLIS)
+                val enter = scaleIn(spec, initialScale = ICON_SWAP_SCALE) + fadeIn(spec)
+                val exit = scaleOut(spec, targetScale = ICON_SWAP_SCALE) + fadeOut(spec)
+                enter togetherWith exit
+            },
+            label = "iconSwap",
+        ) { shownIcon ->
+            Icon(
+                imageVector = shownIcon,
+                contentDescription = contentDescription,
+                tint = tint,
+                modifier = Modifier.size(iconSize),
+            )
+        }
     }
 }
 
