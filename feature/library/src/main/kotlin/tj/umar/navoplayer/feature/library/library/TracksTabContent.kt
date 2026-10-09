@@ -64,6 +64,7 @@ internal fun LibraryPhasedContent(
 private fun TrackList(state: LibraryState, onIntent: (LibraryIntent) -> Unit) {
     val addToPlaylistLabel = stringResource(CoreUiR.string.core_ui_add_to_playlist)
     LazyColumn(
+        state = rememberSortAwareListState(state.trackSort),
         modifier = Modifier.fillMaxSize(),
         contentPadding = navoListPadding(state.hasActivePlayback),
         verticalArrangement = Arrangement.spacedBy(2.dp),

@@ -50,6 +50,7 @@ private fun GroupTabContent(
 ) {
     LibraryPhasedContent(state = state, onIntent = onIntent, modifier = modifier) {
         LazyColumn(
+            state = rememberSortAwareListState(state.groupSort),
             modifier = Modifier.fillMaxSize(),
             contentPadding = navoListPadding(state.hasActivePlayback),
             verticalArrangement = Arrangement.spacedBy(2.dp),
