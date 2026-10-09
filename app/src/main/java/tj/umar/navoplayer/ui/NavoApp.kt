@@ -25,6 +25,7 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.ui.permission.hasAudioReadPermission
 import tj.umar.navoplayer.feature.library.navigation.LibraryDestination
 import tj.umar.navoplayer.feature.player.miniplayer.MiniPlayerRoute
+import tj.umar.navoplayer.feature.player.navigation.NowPlayingDestination
 import tj.umar.navoplayer.feature.player.navigation.navigateToNowPlaying
 import tj.umar.navoplayer.feature.player.trackactions.TrackActionsRequest
 import tj.umar.navoplayer.feature.player.trackactions.TrackActionsSheetRoute
@@ -62,7 +63,11 @@ fun NavoApp(
     LaunchedEffect(navController, openNowPlayingRequests) {
         openNowPlayingRequests.collect {
             if (navController.currentDestination?.hasRoute<WelcomeDestination>() != true) {
-                navController.navigateToNowPlaying()
+                addToPlaylistRequest = null
+                trackActionsRequest = null
+                if (!navController.popBackStack<NowPlayingDestination>(inclusive = false)) {
+                    navController.navigateToNowPlaying()
+                }
             }
         }
     }

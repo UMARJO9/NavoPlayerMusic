@@ -1,5 +1,6 @@
 package tj.umar.navoplayer
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -17,6 +18,7 @@ import tj.umar.navoplayer.ui.NavoApp
 class MainActivity : ComponentActivity() {
 
     private val openNowPlayingRequests = Channel<Unit>(Channel.CONFLATED)
+    private val openNowPlayingFlow = openNowPlayingRequests.receiveAsFlow()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,13 +26,16 @@ class MainActivity : ComponentActivity() {
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
-        if (savedInstanceState == null && intent.isOpenNowPlayingRequest()) openNowPlayingRequests.trySend(Unit)
+        val fromHistory = (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0
+        if (savedInstanceState == null && !fromHistory && intent.isOpenNowPlayingRequest()) {
+            openNowPlayingRequests.trySend(Unit)
+        }
         addOnNewIntentListener { newIntent ->
             if (newIntent.isOpenNowPlayingRequest()) openNowPlayingRequests.trySend(Unit)
         }
         setContent {
             NavoTheme {
-                NavoApp(openNowPlayingRequests = openNowPlayingRequests.receiveAsFlow())
+                NavoApp(openNowPlayingRequests = openNowPlayingFlow)
             }
         }
     }
