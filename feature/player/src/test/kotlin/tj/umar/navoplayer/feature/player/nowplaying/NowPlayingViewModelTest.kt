@@ -13,14 +13,19 @@ import tj.umar.navoplayer.core.domain.model.PlaybackProgress
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.PlaybackState
 import tj.umar.navoplayer.core.domain.model.RepeatMode
+import tj.umar.navoplayer.core.domain.model.SleepTimer
+import tj.umar.navoplayer.core.domain.usecase.CancelSleepTimerUseCase
 import tj.umar.navoplayer.core.domain.usecase.CycleRepeatModeUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveIsFavoriteUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackProgressUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObserveSleepTimerUseCase
 import tj.umar.navoplayer.core.domain.usecase.SeekToUseCase
 import tj.umar.navoplayer.core.domain.usecase.SetFavoriteUseCase
 import tj.umar.navoplayer.core.domain.usecase.SkipToNextUseCase
 import tj.umar.navoplayer.core.domain.usecase.SkipToPreviousUseCase
+import tj.umar.navoplayer.core.domain.usecase.StartEndOfTrackSleepTimerUseCase
+import tj.umar.navoplayer.core.domain.usecase.StartSleepTimerUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
 import tj.umar.navoplayer.core.domain.usecase.ToggleShuffleUseCase
 import tj.umar.navoplayer.core.testing.MainDispatcherRule
@@ -28,7 +33,10 @@ import tj.umar.navoplayer.core.testing.data.TestPlaybackStates
 import tj.umar.navoplayer.core.testing.data.TestTracks
 import tj.umar.navoplayer.core.testing.playback.FakePlaybackController
 import tj.umar.navoplayer.core.testing.playback.PlaybackCommand
+import tj.umar.navoplayer.core.testing.playback.FakeSleepTimerController
+import tj.umar.navoplayer.core.testing.playback.SleepTimerCommand
 import tj.umar.navoplayer.core.testing.repository.FakeFavoritesRepository
+import kotlin.time.Duration.Companion.minutes
 
 class NowPlayingViewModelTest {
 
@@ -37,6 +45,7 @@ class NowPlayingViewModelTest {
 
     private val controller = FakePlaybackController()
     private val favorites = FakeFavoritesRepository()
+    private val sleepTimer = FakeSleepTimerController()
     private val viewModel = NowPlayingViewModel(
         observePlaybackState = ObservePlaybackStateUseCase(controller),
         observePlaybackProgress = ObservePlaybackProgressUseCase(controller),
@@ -48,6 +57,10 @@ class NowPlayingViewModelTest {
         cycleRepeatMode = CycleRepeatModeUseCase(controller),
         observeIsFavorite = ObserveIsFavoriteUseCase(favorites),
         setFavorite = SetFavoriteUseCase(favorites),
+        observeSleepTimer = ObserveSleepTimerUseCase(sleepTimer),
+        startSleepTimer = StartSleepTimerUseCase(sleepTimer),
+        startEndOfTrackSleepTimer = StartEndOfTrackSleepTimerUseCase(sleepTimer),
+        cancelSleepTimer = CancelSleepTimerUseCase(sleepTimer),
     )
 
     private suspend fun startWith(state: PlaybackState = TestPlaybackStates.playingAlpha) {
@@ -169,12 +182,11 @@ class NowPlayingViewModelTest {
     }
 
     @Test
-    fun `placeholder buttons change nothing`() = runTest {
+    fun `more click changes nothing`() = runTest {
         startWith()
         val before = viewModel.state.value
 
         viewModel.onIntent(NowPlayingIntent.MoreClicked)
-        viewModel.onIntent(NowPlayingIntent.SleepTimerClicked)
 
         assertEquals(before, viewModel.state.value)
         assertTrue(controller.commands.isEmpty())
@@ -319,5 +331,85 @@ class NowPlayingViewModelTest {
         viewModel.onIntent(NowPlayingIntent.ScreenStarted)
 
         assertTrue(viewModel.state.value.isFavorite)
+    }
+
+    @Test
+    fun `sleep timer click opens sheet and dismiss closes it`() = runTest {
+        startWith()
+
+        viewModel.onIntent(NowPlayingIntent.SleepTimerClicked)
+        assertTrue(viewModel.state.value.isSleepTimerSheetVisible)
+
+        viewModel.onIntent(NowPlayingIntent.SleepTimerSheetDismissed)
+        assertFalse(viewModel.state.value.isSleepTimerSheetVisible)
+    }
+
+    @Test
+    fun `selecting minutes starts countdown`() = runTest {
+        startWith()
+        viewModel.onIntent(NowPlayingIntent.SleepTimerClicked)
+
+        viewModel.effects.test {
+            viewModel.onIntent(NowPlayingIntent.SleepTimerOptionSelected(SleepTimerOption.Minutes(15)))
+            assertEquals(NowPlayingEffect.ShowMessage(NowPlayingMessage.SleepTimerSet(15)), awaitItem())
+        }
+        assertEquals(listOf(SleepTimerCommand.Start(15.minutes)), sleepTimer.commands)
+        assertFalse(viewModel.state.value.isSleepTimerSheetVisible)
+        assertEquals(SleepTimer.Countdown(900_000, 900_000), viewModel.state.value.sleepTimer)
+    }
+
+    @Test
+    fun `selecting end of track starts end of track timer`() = runTest {
+        startWith()
+
+        viewModel.effects.test {
+            viewModel.onIntent(NowPlayingIntent.SleepTimerOptionSelected(SleepTimerOption.EndOfTrack))
+            assertEquals(NowPlayingEffect.ShowMessage(NowPlayingMessage.SleepTimerEndOfTrack), awaitItem())
+        }
+        assertEquals(SleepTimer.EndOfTrack, viewModel.state.value.sleepTimer)
+    }
+
+    @Test
+    fun `cancel turns timer off`() = runTest {
+        startWith()
+        viewModel.onIntent(NowPlayingIntent.SleepTimerOptionSelected(SleepTimerOption.EndOfTrack))
+
+        viewModel.effects.test {
+            awaitItem()
+            viewModel.onIntent(NowPlayingIntent.SleepTimerCancelClicked)
+            assertEquals(NowPlayingEffect.ShowMessage(NowPlayingMessage.SleepTimerOff), awaitItem())
+        }
+        assertEquals(SleepTimerCommand.Cancel, sleepTimer.commands.last())
+        assertEquals(SleepTimer.Off, viewModel.state.value.sleepTimer)
+    }
+
+    @Test
+    fun `rejected start reports unavailable`() = runTest {
+        startWith()
+        sleepTimer.acceptStart = false
+
+        viewModel.effects.test {
+            viewModel.onIntent(NowPlayingIntent.SleepTimerOptionSelected(SleepTimerOption.Minutes(5)))
+            assertEquals(NowPlayingEffect.ShowMessage(NowPlayingMessage.SleepTimerUnavailable), awaitItem())
+        }
+        assertEquals(SleepTimer.Off, viewModel.state.value.sleepTimer)
+    }
+
+    @Test
+    fun `screen stopped stops observing timer`() = runTest {
+        startWith()
+        assertEquals(1, sleepTimer.subscribers)
+
+        viewModel.onIntent(NowPlayingIntent.ScreenStopped)
+
+        assertEquals(0, sleepTimer.subscribers)
+    }
+
+    @Test
+    fun `selected option matches presets only`() {
+        assertEquals(SleepTimerOption.Minutes(30), SleepTimer.Countdown(10_000, 1_800_000).selectedOption())
+        assertEquals(SleepTimerOption.EndOfTrack, SleepTimer.EndOfTrack.selectedOption())
+        assertEquals(null, SleepTimer.Countdown(10_000, 1_000).selectedOption())
+        assertEquals(null, SleepTimer.Off.selectedOption())
     }
 }

@@ -20,6 +20,9 @@
     <string name="player_up_next_track">%1$s, %2$s</string>
     <string name="player_up_next_none">Конец очереди</string>
     <string name="player_sleep_timer">Таймер сна</string>
+    <string name="player_sleep_timer_set_end_of_track">Воспроизведение остановится после этого трека</string>
+    <string name="player_sleep_timer_off">Таймер сна выключен</string>
+    <string name="player_sleep_timer_unavailable">Не удалось включить таймер сна</string>
     <string name="player_seek">Позиция в треке</string>
     <string name="player_seek_state">%1$s из %2$s</string>
     <string name="player_open_now_playing">Открыть плеер</string>

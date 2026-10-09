@@ -1,5 +1,6 @@
 package tj.umar.navoplayer.feature.player.nowplaying
 
+import android.content.res.Resources
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,7 +35,7 @@ internal fun NowPlayingRoute(
             NowPlayingEffect.Collapse -> currentOnCollapse()
             NowPlayingEffect.OpenQueue -> currentOnOpenQueue()
             is NowPlayingEffect.ShowMessage ->
-                Toast.makeText(context, effect.message.textRes(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, effect.message.text(context.resources), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -45,6 +46,11 @@ internal fun NowPlayingRoute(
     )
 }
 
-private fun NowPlayingMessage.textRes(): Int = when (this) {
-    NowPlayingMessage.FavoriteFailed -> R.string.player_favorite_failed
+private fun NowPlayingMessage.text(resources: Resources): String = when (this) {
+    NowPlayingMessage.FavoriteFailed -> resources.getString(R.string.player_favorite_failed)
+    is NowPlayingMessage.SleepTimerSet ->
+        resources.getQuantityString(R.plurals.player_sleep_timer_set_minutes, minutes, minutes)
+    NowPlayingMessage.SleepTimerEndOfTrack -> resources.getString(R.string.player_sleep_timer_set_end_of_track)
+    NowPlayingMessage.SleepTimerOff -> resources.getString(R.string.player_sleep_timer_off)
+    NowPlayingMessage.SleepTimerUnavailable -> resources.getString(R.string.player_sleep_timer_unavailable)
 }

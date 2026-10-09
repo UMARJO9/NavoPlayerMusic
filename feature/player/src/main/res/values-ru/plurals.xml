@@ -5,4 +5,10 @@
         <item quantity="many">%d треков</item>
         <item quantity="other">%d трека</item>
     </plurals>
+    <plurals name="player_sleep_timer_set_minutes">
+        <item quantity="one">Таймер сна установлен на %d минуту</item>
+        <item quantity="few">Таймер сна установлен на %d минуты</item>
+        <item quantity="many">Таймер сна установлен на %d минут</item>
+        <item quantity="other">Таймер сна установлен на %d минуты</item>
+    </plurals>
 </resources>

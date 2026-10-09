@@ -3,7 +3,10 @@ package tj.umar.navoplayer.feature.player.nowplaying
 import androidx.compose.runtime.Immutable
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.RepeatMode
+import tj.umar.navoplayer.core.domain.model.SleepTimer
 import tj.umar.navoplayer.core.domain.model.Track
+
+private const val MINUTE_MILLIS = 60_000L
 
 @Immutable
 internal data class NowPlayingState(
@@ -18,9 +21,28 @@ internal data class NowPlayingState(
     val shuffleEnabled: Boolean = false,
     val repeatMode: RepeatMode = RepeatMode.Off,
     val isFavorite: Boolean = false,
+    val sleepTimer: SleepTimer = SleepTimer.Off,
+    val isSleepTimerSheetVisible: Boolean = false,
 ) {
     val displayedPositionMs: Long
         get() = seekPreviewMs ?: positionMs
+}
+
+internal sealed interface SleepTimerOption {
+    data class Minutes(val minutes: Int) : SleepTimerOption
+    data object EndOfTrack : SleepTimerOption
+
+    companion object {
+        val presets: List<SleepTimerOption> = listOf(5, 15, 30, 45, 60).map(::Minutes) + EndOfTrack
+    }
+}
+
+internal fun SleepTimer.selectedOption(): SleepTimerOption? = when (this) {
+    SleepTimer.Off -> null
+    SleepTimer.EndOfTrack -> SleepTimerOption.EndOfTrack
+    is SleepTimer.Countdown -> SleepTimerOption.presets.firstOrNull {
+        it is SleepTimerOption.Minutes && it.minutes * MINUTE_MILLIS == durationMs
+    }
 }
 
 internal sealed interface NowPlayingIntent {
@@ -38,6 +60,9 @@ internal sealed interface NowPlayingIntent {
     data object MoreClicked : NowPlayingIntent
     data object QueueClicked : NowPlayingIntent
     data object SleepTimerClicked : NowPlayingIntent
+    data object SleepTimerSheetDismissed : NowPlayingIntent
+    data class SleepTimerOptionSelected(val option: SleepTimerOption) : NowPlayingIntent
+    data object SleepTimerCancelClicked : NowPlayingIntent
 }
 
 internal sealed interface NowPlayingEffect {
@@ -46,4 +71,10 @@ internal sealed interface NowPlayingEffect {
     data class ShowMessage(val message: NowPlayingMessage) : NowPlayingEffect
 }
 
-internal enum class NowPlayingMessage { FavoriteFailed }
+internal sealed interface NowPlayingMessage {
+    data object FavoriteFailed : NowPlayingMessage
+    data class SleepTimerSet(val minutes: Int) : NowPlayingMessage
+    data object SleepTimerEndOfTrack : NowPlayingMessage
+    data object SleepTimerOff : NowPlayingMessage
+    data object SleepTimerUnavailable : NowPlayingMessage
+}

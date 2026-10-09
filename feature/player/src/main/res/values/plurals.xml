@@ -3,4 +3,8 @@
         <item quantity="one">%d track</item>
         <item quantity="other">%d tracks</item>
     </plurals>
+    <plurals name="player_sleep_timer_set_minutes">
+        <item quantity="one">Sleep timer set for %d minute</item>
+        <item quantity="other">Sleep timer set for %d minutes</item>
+    </plurals>
 </resources>

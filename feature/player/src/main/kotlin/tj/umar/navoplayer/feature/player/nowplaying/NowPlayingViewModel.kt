@@ -15,19 +15,24 @@ import kotlinx.coroutines.launch
 import tj.umar.navoplayer.core.common.result.onError
 import tj.umar.navoplayer.core.domain.model.PlaybackProgress
 import tj.umar.navoplayer.core.domain.model.PlaybackState
+import tj.umar.navoplayer.core.domain.usecase.CancelSleepTimerUseCase
 import tj.umar.navoplayer.core.domain.usecase.CycleRepeatModeUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveIsFavoriteUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackProgressUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObserveSleepTimerUseCase
 import tj.umar.navoplayer.core.domain.usecase.SeekToUseCase
 import tj.umar.navoplayer.core.domain.usecase.SetFavoriteUseCase
 import tj.umar.navoplayer.core.domain.usecase.SkipToNextUseCase
 import tj.umar.navoplayer.core.domain.usecase.SkipToPreviousUseCase
+import tj.umar.navoplayer.core.domain.usecase.StartEndOfTrackSleepTimerUseCase
+import tj.umar.navoplayer.core.domain.usecase.StartSleepTimerUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
 import tj.umar.navoplayer.core.domain.usecase.ToggleShuffleUseCase
 import tj.umar.navoplayer.core.ui.mvi.MviViewModel
 import javax.inject.Inject
 import kotlin.math.abs
+import kotlin.time.Duration.Companion.minutes
 
 private const val SEEK_TOLERANCE_MILLIS = 1_500L
 private const val MAX_STALE_TICKS = 4
@@ -44,6 +49,10 @@ internal class NowPlayingViewModel @Inject constructor(
     private val cycleRepeatMode: CycleRepeatModeUseCase,
     private val observeIsFavorite: ObserveIsFavoriteUseCase,
     private val setFavorite: SetFavoriteUseCase,
+    private val observeSleepTimer: ObserveSleepTimerUseCase,
+    private val startSleepTimer: StartSleepTimerUseCase,
+    private val startEndOfTrackSleepTimer: StartEndOfTrackSleepTimerUseCase,
+    private val cancelSleepTimer: CancelSleepTimerUseCase,
 ) : MviViewModel<NowPlayingState, NowPlayingIntent, NowPlayingEffect>(NowPlayingState()) {
 
     private var stateJob: Job? = null
@@ -53,6 +62,7 @@ internal class NowPlayingViewModel @Inject constructor(
     private var staleTicksAfterSeek = 0
     private var favoriteJob: Job? = null
     private var favoriteWriteJob: Job? = null
+    private var sleepTimerJob: Job? = null
     private var lastFavorite: Pair<Long, Boolean>? = null
     private val currentTrackIds = MutableStateFlow<Long?>(null)
 
@@ -70,8 +80,11 @@ internal class NowPlayingViewModel @Inject constructor(
             NowPlayingIntent.FavoriteClicked -> toggleFavorite()
             NowPlayingIntent.CollapseClicked -> requestCollapse()
             NowPlayingIntent.QueueClicked -> sendEffect(NowPlayingEffect.OpenQueue)
-            NowPlayingIntent.MoreClicked,
-            NowPlayingIntent.SleepTimerClicked -> Unit
+            NowPlayingIntent.MoreClicked -> Unit
+            NowPlayingIntent.SleepTimerClicked -> setState { copy(isSleepTimerSheetVisible = true) }
+            NowPlayingIntent.SleepTimerSheetDismissed -> setState { copy(isSleepTimerSheetVisible = false) }
+            is NowPlayingIntent.SleepTimerOptionSelected -> onSleepTimerOptionSelected(intent.option)
+            NowPlayingIntent.SleepTimerCancelClicked -> onSleepTimerCancelled()
         }
     }
 
@@ -83,6 +96,12 @@ internal class NowPlayingViewModel @Inject constructor(
             progressJob = observePlaybackProgress().onEach(::onProgress).catch { }.launchIn(viewModelScope)
         }
         startObservingFavorite()
+        if (sleepTimerJob?.isActive != true) {
+            sleepTimerJob = observeSleepTimer()
+                .onEach { timer -> setState { copy(sleepTimer = timer) } }
+                .catch { }
+                .launchIn(viewModelScope)
+        }
     }
 
     private fun stopObserving() {
@@ -92,6 +111,8 @@ internal class NowPlayingViewModel @Inject constructor(
         stateJob = null
         progressJob = null
         favoriteJob = null
+        sleepTimerJob?.cancel()
+        sleepTimerJob = null
         lastFavorite = null
     }
 
@@ -177,6 +198,23 @@ internal class NowPlayingViewModel @Inject constructor(
             }
             .catch { lastFavorite = null }
             .launchIn(viewModelScope)
+    }
+
+    private fun onSleepTimerOptionSelected(option: SleepTimerOption) {
+        val (started, message) = when (option) {
+            is SleepTimerOption.Minutes ->
+                startSleepTimer(option.minutes.minutes) to NowPlayingMessage.SleepTimerSet(option.minutes)
+            SleepTimerOption.EndOfTrack ->
+                startEndOfTrackSleepTimer() to NowPlayingMessage.SleepTimerEndOfTrack
+        }
+        setState { copy(isSleepTimerSheetVisible = false) }
+        sendEffect(NowPlayingEffect.ShowMessage(if (started) message else NowPlayingMessage.SleepTimerUnavailable))
+    }
+
+    private fun onSleepTimerCancelled() {
+        cancelSleepTimer()
+        setState { copy(isSleepTimerSheetVisible = false) }
+        sendEffect(NowPlayingEffect.ShowMessage(NowPlayingMessage.SleepTimerOff))
     }
 
     private fun requestCollapse() {

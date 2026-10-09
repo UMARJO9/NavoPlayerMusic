@@ -20,6 +20,9 @@
     <string name="player_up_next_track">%1$s, %2$s</string>
     <string name="player_up_next_none">End of queue</string>
     <string name="player_sleep_timer">Sleep timer</string>
+    <string name="player_sleep_timer_set_end_of_track">Playback will pause after this track</string>
+    <string name="player_sleep_timer_off">Sleep timer off</string>
+    <string name="player_sleep_timer_unavailable">Couldn’t set sleep timer</string>
     <string name="player_seek">Position in track</string>
     <string name="player_seek_state">%1$s of %2$s</string>
     <string name="player_open_now_playing">Open player</string>
