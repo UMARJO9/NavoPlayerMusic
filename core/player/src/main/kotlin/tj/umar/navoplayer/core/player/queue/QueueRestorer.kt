@@ -4,6 +4,7 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -68,6 +69,7 @@ internal class QueueRestorer(
                 result.setException(failure)
             }
         }
+        result.addListener({ if (result.isCancelled) job.cancel() }, MoreExecutors.directExecutor())
         job.invokeOnCompletion { cause ->
             if (!result.isDone) result.setException(cause ?: CancellationException())
         }
@@ -77,9 +79,13 @@ internal class QueueRestorer(
     private suspend fun resolvePreview(scope: CoroutineScope): MediaSession.MediaItemsWithStartPosition? {
         val (item, position) = player.currentPreview()
             ?.let { it.mediaItems.first() to it.startPositionMs }
-            ?: load(scope).await()?.let { it.items[it.startIndex] to it.startPositionMs }
+            ?: load(scope).await()?.let { queue ->
+                queue.items.getOrNull(queue.startIndex)?.let { it to queue.startPositionMs }
+            }
             ?: return null
-        val png = withContext(mappingDispatcher) { item.mediaId.toLongOrNull()?.let(artwork::render) }
+        val png = withContext(mappingDispatcher) {
+            item.mediaId.toLongOrNull()?.let { trackId -> runCatching { artwork.render(trackId) }.getOrNull() }
+        }
         return MediaSession.MediaItemsWithStartPosition(listOf(item.toResumptionPreview(png)), 0, position)
     }
 

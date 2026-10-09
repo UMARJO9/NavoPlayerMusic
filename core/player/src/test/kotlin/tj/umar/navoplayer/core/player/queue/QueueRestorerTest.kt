@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -239,6 +240,32 @@ class QueueRestorerTest {
         val failure = runCatching { restorer.preview(backgroundScope).await() }.exceptionOrNull()
 
         assertTrue(failure is UnsupportedOperationException)
+    }
+
+    @Test
+    fun `failing artwork still yields preview without picture`() = runTest {
+        tracks.emit(listOf(TestTracks.alpha, TestTracks.beta))
+        val restorer = QueueRestorer(
+            LoadResumableQueueUseCase(queues, tracks, access),
+            player,
+            StandardTestDispatcher(testScheduler),
+            ResumptionArtwork { error("render failed") },
+        )
+
+        val item = restorer.preview(backgroundScope).await().mediaItems.single()
+
+        assertEquals("q2", item.queueItemId())
+        assertNull(item.mediaMetadata.artworkData)
+    }
+
+    @Test
+    fun `cancelled preview does not render artwork`() = runTest {
+        val restorer = restorer()
+
+        restorer.preview(backgroundScope).cancel(false)
+        runCurrent()
+
+        assertTrue(renderedIds.isEmpty())
     }
 
     @Test
