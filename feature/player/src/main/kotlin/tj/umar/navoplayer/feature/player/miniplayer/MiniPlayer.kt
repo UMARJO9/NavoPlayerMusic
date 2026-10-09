@@ -1,5 +1,13 @@
 package tj.umar.navoplayer.feature.player.miniplayer
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +49,7 @@ import tj.umar.navoplayer.core.ui.R as CoreUiR
 
 private val MiniPlayerHeight = 68.dp
 private val ProgressLineHeight = 3.dp
+private const val TRACK_CHANGE_MILLIS = 300
 
 @Composable
 internal fun MiniPlayer(
@@ -51,7 +60,7 @@ internal fun MiniPlayer(
     modifier: Modifier = Modifier,
 ) {
     val colors = NavoTheme.colors
-    val palette = remember(track.id) { MedallionPalettes.forKey(track.id) }
+    val rotation = rememberMedallionRotation(running = isPlaying)
     val openLabel = stringResource(R.string.player_open_now_playing)
     Row(
         modifier = modifier
@@ -78,28 +87,15 @@ internal fun MiniPlayer(
                 .clickable(onClickLabel = openLabel, role = Role.Button) { onIntent(MiniPlayerIntent.OpenClicked) }
                 .padding(start = 12.dp, end = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Medallion(
-                palette = palette,
-                modifier = Modifier.size(46.dp),
-                rotationDegrees = rememberMedallionRotation(running = isPlaying),
-            )
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    text = track.title.ifBlank { stringResource(CoreUiR.string.core_ui_unknown_title) },
-                    color = colors.content,
-                    style = NavoTheme.typography.label.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = track.artist ?: stringResource(CoreUiR.string.core_ui_unknown_artist),
-                    color = colors.contentOnHigh,
-                    style = NavoTheme.typography.caption,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            AnimatedContent(
+                targetState = track,
+                contentKey = { it.id },
+                contentAlignment = Alignment.CenterStart,
+                transitionSpec = { miniTrackTransition() },
+                label = "miniTrackChange",
+            ) { shownTrack ->
+                MiniTrackInfo(track = shownTrack, rotation = rotation)
             }
         }
         NavoIconButton(
@@ -111,6 +107,42 @@ internal fun MiniPlayer(
         )
     }
 }
+
+@Composable
+private fun MiniTrackInfo(track: Track, rotation: () -> Float) {
+    val colors = NavoTheme.colors
+    val palette = remember(track.id) { MedallionPalettes.forKey(track.id) }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Medallion(palette = palette, modifier = Modifier.size(46.dp), rotationDegrees = rotation)
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = track.title.ifBlank { stringResource(CoreUiR.string.core_ui_unknown_title) },
+                color = colors.content,
+                style = NavoTheme.typography.label.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = track.artist ?: stringResource(CoreUiR.string.core_ui_unknown_artist),
+                color = colors.contentOnHigh,
+                style = NavoTheme.typography.caption,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+private fun miniTrackTransition(): ContentTransform = ContentTransform(
+    targetContentEnter = slideInVertically(tween(TRACK_CHANGE_MILLIS)) { height -> height / 2 } +
+        fadeIn(tween(TRACK_CHANGE_MILLIS)),
+    initialContentExit = slideOutVertically(tween(TRACK_CHANGE_MILLIS)) { height -> -height / 2 } +
+        fadeOut(tween(TRACK_CHANGE_MILLIS)),
+    sizeTransform = SizeTransform(clip = false),
+)
 
 @Preview(widthDp = 390, heightDp = 120)
 @Composable
