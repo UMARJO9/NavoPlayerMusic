@@ -15,16 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.animation.rememberPausableElapsedMillis
-import tj.umar.navoplayer.core.designsystem.theme.Ivory
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 
 enum class MedallionVariant { Simple, Detailed }
@@ -32,7 +28,6 @@ enum class MedallionVariant { Simple, Detailed }
 private val DetailedMinSize = 120.dp
 private const val PETAL_COUNT = 8
 private const val PETAL_STEP_DEGREES = 45f
-private const val PETAL_OFFSET_DEGREES = 22.5f
 
 @Composable
 fun Medallion(
@@ -50,10 +45,11 @@ fun Medallion(
                 } else {
                     MedallionVariant.Detailed
                 }
-                onDrawBehind {
-                    when (resolved) {
-                        MedallionVariant.Simple -> drawSimpleMedallion(palette)
-                        MedallionVariant.Detailed -> drawDetailedMedallion(palette)
+                when (resolved) {
+                    MedallionVariant.Simple -> onDrawBehind { drawSimpleMedallion(palette) }
+                    MedallionVariant.Detailed -> {
+                        val ornament = SuzaniOrnament(size)
+                        onDrawBehind { drawSuzaniMedallion(palette, ornament, rotationDegrees()) }
                     }
                 }
             },
@@ -88,48 +84,6 @@ internal fun DrawScope.drawSimpleMedallion(palette: MedallionPalette) {
     }
     drawCircle(palette.center, radius = 17f * scale, center = center)
     drawCircle(palette.background, radius = 7f * scale, center = center)
-}
-
-internal fun DrawScope.drawDetailedMedallion(palette: MedallionPalette) {
-    val scale = size.minDimension / 200f
-    val center = Offset(size.width / 2f, size.height / 2f)
-    drawCircle(palette.background, radius = 100f * scale, center = center)
-    drawCircle(
-        color = palette.petals,
-        radius = 91f * scale,
-        center = center,
-        style = Stroke(
-            width = 2f * scale,
-            cap = StrokeCap.Round,
-            pathEffect = PathEffect.dashPathEffect(floatArrayOf(1.5f * scale, 6f * scale)),
-        ),
-    )
-    repeat(PETAL_COUNT) { index ->
-        rotate(PETAL_OFFSET_DEGREES + index * PETAL_STEP_DEGREES, pivot = center) {
-            drawOval(
-                color = palette.center,
-                topLeft = center + Offset(-4.5f * scale, -60f * scale),
-                size = Size(9f * scale, 36f * scale),
-            )
-        }
-    }
-    repeat(PETAL_COUNT) { index ->
-        rotate(index * PETAL_STEP_DEGREES, pivot = center) {
-            drawOval(
-                color = palette.petals,
-                topLeft = center + Offset(-15f * scale, -82f * scale),
-                size = Size(30f * scale, 64f * scale),
-            )
-        }
-    }
-    repeat(PETAL_COUNT) { index ->
-        rotate(PETAL_OFFSET_DEGREES + index * PETAL_STEP_DEGREES, pivot = center) {
-            drawCircle(Ivory, radius = 4f * scale, center = center + Offset(0f, -83f * scale))
-        }
-    }
-    drawCircle(palette.center, radius = 32f * scale, center = center)
-    drawCircle(palette.petals, radius = 24f * scale, center = center, style = Stroke(width = 3f * scale))
-    drawCircle(palette.background, radius = 11f * scale, center = center)
 }
 
 @OptIn(ExperimentalLayoutApi::class)

@@ -24,7 +24,7 @@ fun MedallionPalette.renderBitmap(
         if (opaque) drawRect(this@renderBitmap.background)
         when (variant) {
             MedallionVariant.Simple -> drawSimpleMedallion(this@renderBitmap)
-            MedallionVariant.Detailed -> drawDetailedMedallion(this@renderBitmap)
+            MedallionVariant.Detailed -> drawSuzaniMedallion(this@renderBitmap)
         }
     }
     return image.asAndroidBitmap()

@@ -35,4 +35,11 @@ class OrnamentTest {
 
         assertEquals(expected, khotamInnerRadius(60f), 1e-4f)
     }
+
+    @Test
+    fun `rosette breath stays at rest without rotation and peaks within six percent`() {
+        assertEquals(1f, breathScale(0f), 1e-6f)
+        assertEquals(1.06f, breathScale(9f), 1e-4f)
+        assertEquals(0.94f, breathScale(27f), 1e-4f)
+    }
 }
