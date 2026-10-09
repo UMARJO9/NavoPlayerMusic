@@ -100,12 +100,15 @@ internal class ReorderableListState<T>(
         val current = visible(key) ?: return
         val middle = (initialOffset + draggedDelta + current.size / 2f).toInt()
         val target = listState.layoutInfo.visibleItemsInfo.firstOrNull {
-            it.key != key && middle in it.offset..(it.offset + it.size) && it.index in items.indices
+            it.key != key && middle in it.offset..(it.offset + it.size)
         } ?: return
+        val fromIndex = items.indexOfFirst { keyOf(it) == key }
+        val toIndex = items.indexOfFirst { keyOf(it) == target.key }
+        if (fromIndex < 0 || toIndex < 0 || current.index != fromIndex) return
         val firstIndex = listState.firstVisibleItemIndex
         val firstOffset = listState.firstVisibleItemScrollOffset
-        items = items.toMutableList().apply { add(target.index, removeAt(current.index)) }
-        if (target.index == firstIndex || current.index == firstIndex) {
+        items = items.toMutableList().apply { add(toIndex, removeAt(fromIndex)) }
+        if (toIndex == firstIndex || fromIndex == firstIndex) {
             scope.launch { listState.scrollToItem(firstIndex, firstOffset) }
         }
     }
