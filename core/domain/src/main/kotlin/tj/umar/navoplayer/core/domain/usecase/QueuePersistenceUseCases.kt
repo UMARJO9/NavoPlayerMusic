@@ -22,12 +22,7 @@ class LoadResumableQueueUseCase @Inject constructor(
             if (!access.hasAudioAccess()) return@navoRunCatching QueueResumeResult.AccessDenied
             val tracks = trackRepository.getTracks(saved.items.map { it.trackId }.distinct())
             val resumable = saved.resolveAgainst(tracks.associateBy { it.id })
-            if (resumable == null) {
-                repository.clearQueue()
-                QueueResumeResult.AllTracksMissing
-            } else {
-                QueueResumeResult.Resumable(resumable)
-            }
+            if (resumable == null) QueueResumeResult.AllTracksMissing else QueueResumeResult.Resumable(resumable)
         }
         return when (result) {
             is NavoResult.Success -> result.data

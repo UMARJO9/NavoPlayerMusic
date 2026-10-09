@@ -47,11 +47,11 @@ class QueuePersistenceUseCasesTest {
     }
 
     @Test
-    fun `all tracks missing clears saved queue`() = runTest {
+    fun `all tracks missing keeps saved queue`() = runTest {
         tracks.emit(emptyList())
 
         assertEquals(QueueResumeResult.AllTracksMissing, load())
-        assertNull(queues.current)
+        assertEquals(TestSavedQueues.alphaBeta, queues.current)
     }
 
     @Test
