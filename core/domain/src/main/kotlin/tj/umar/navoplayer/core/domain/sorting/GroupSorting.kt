@@ -13,10 +13,10 @@ import java.text.Collator
 
 fun <G : TrackGroup> List<G>.sortedFor(sort: GroupSort, collator: Collator = nameCollator()): List<G> {
     val keys = CollationKeys(collator)
-    val byName = compareBy<G> { keys.of(it.sortName.orEmpty()) }
+    val byName = compareBy<G> { it.key.isUnknown }.thenBy { keys.of(it.sortName.orEmpty()) }
     val main: Comparator<G> = when (sort.field) {
         GroupSortField.Name -> keyed<G, CollationKey>(sort.direction, { it.key.isUnknown }, { keys.of(it.sortName.orEmpty()) })
-        GroupSortField.TrackCount -> keyed<G, Int>(sort.direction, { it.key.isUnknown }, { it.tracks.size }).then(byName)
+        GroupSortField.TrackCount -> keyed<G, Int>(sort.direction, { false }, { it.tracks.size }).then(byName)
     }
     return sortedWith(
         main

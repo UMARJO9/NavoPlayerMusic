@@ -38,12 +38,41 @@ class GroupSortingTest {
         val folders = tracks.toFolders()
 
         assertEquals(
-            listOf("A", "B", null),
+            listOf("A", null, "B"),
             folders.sortedFor(GroupSort(GroupSortField.TrackCount, SortDirection.Ascending)).map { it.name },
         )
         assertEquals(
             listOf("B", "A", null),
             folders.sortedFor(GroupSort(GroupSortField.TrackCount, SortDirection.Descending)).map { it.name },
+        )
+    }
+
+    @Test
+    fun `track count places unknown group by its size`() {
+        val withUnknownMajority = tracks + TestTracks.alpha.copy(id = 5, album = null, albumId = null, folderPath = null) +
+            TestTracks.alpha.copy(id = 6, album = null, albumId = null, folderPath = null)
+        val albums = withUnknownMajority.toAlbums()
+
+        assertEquals(
+            listOf(null, "Beta", "Alpha"),
+            albums.sortedFor(GroupSort(GroupSortField.TrackCount, SortDirection.Descending)).map { it.title },
+        )
+        assertEquals(
+            listOf("Alpha", "Beta", null),
+            albums.sortedFor(GroupSort(GroupSortField.TrackCount, SortDirection.Ascending)).map { it.title },
+        )
+    }
+
+    @Test
+    fun `track count ties put unknown group last`() {
+        val tied = listOf(
+            TestTracks.alpha.copy(id = 1, album = null, albumId = null),
+            TestTracks.alpha.copy(id = 2, album = "Alpha", albumId = 2),
+        )
+
+        assertEquals(
+            listOf("Alpha", null),
+            tied.toAlbums().sortedFor(GroupSort(GroupSortField.TrackCount, SortDirection.Descending)).map { it.title },
         )
     }
 }
