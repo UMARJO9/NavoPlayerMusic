@@ -177,4 +177,5 @@ class QueueEditorTest {
 
         assertFalse(editor.move("missing", 0))
     }
+
 }

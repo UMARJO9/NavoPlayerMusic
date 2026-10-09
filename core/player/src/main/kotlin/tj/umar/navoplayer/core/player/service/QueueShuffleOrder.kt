@@ -10,6 +10,15 @@ import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 internal class QueueShuffleOrder(playOrder: IntArray) : ShuffleOrder {
 
     private val order = playOrder.copyOf()
+
+    init {
+        val seen = BooleanArray(order.size)
+        order.forEach { index ->
+            require(index in order.indices && !seen[index]) { "Play order must be a permutation" }
+            seen[index] = true
+        }
+    }
+
     private val positions = IntArray(order.size).also { positions ->
         order.forEachIndexed { position, index -> positions[index] = position }
     }

@@ -106,7 +106,6 @@ internal class DefaultPlaybackController @Inject constructor(
                     Player.EVENT_TIMELINE_CHANGED,
                     Player.EVENT_MEDIA_ITEM_TRANSITION,
                     Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED,
-                    Player.EVENT_POSITION_DISCONTINUITY,
                 )
             }.map { controller.queueSnapshot() }
         }

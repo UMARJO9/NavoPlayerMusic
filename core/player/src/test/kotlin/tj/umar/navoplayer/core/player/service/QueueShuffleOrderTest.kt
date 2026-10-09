@@ -83,4 +83,9 @@ class QueueShuffleOrderTest {
         assertTrue(cleared !is QueueShuffleOrder)
         assertEquals(0, cleared.length)
     }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `order must be a permutation`() {
+        QueueShuffleOrder(intArrayOf(0, 0, 2))
+    }
 }

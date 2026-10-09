@@ -67,3 +67,9 @@ internal fun MediaItem.toQueueItem(fallbackKey: Int): QueueItem =
     QueueItem(id = QueueItemId(queueItemId() ?: "$mediaId@$fallbackKey"), track = toTrack())
 
 private fun Bundle.longOrNull(key: String): Long? = if (containsKey(key)) getLong(key) else null
+
+internal fun MediaItem.withQueueItemId(newId: () -> String): MediaItem {
+    if (queueItemId() != null) return this
+    val extras = Bundle(mediaMetadata.extras ?: Bundle()).apply { putString(EXTRA_QUEUE_ITEM_ID, newId()) }
+    return buildUpon().setMediaMetadata(mediaMetadata.buildUpon().setExtras(extras).build()).build()
+}

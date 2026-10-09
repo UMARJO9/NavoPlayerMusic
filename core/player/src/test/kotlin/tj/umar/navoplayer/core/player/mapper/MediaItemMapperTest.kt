@@ -60,4 +60,12 @@ class MediaItemMapperTest {
     fun `unknown media id maps to zero`() {
         assertEquals(0L, MediaItem.Builder().setMediaId("x").build().toTrack().id)
     }
+
+    @Test
+    fun `missing queue item id is assigned once`() {
+        val untagged = MediaItem.Builder().setMediaId("5").build()
+
+        assertEquals("new", untagged.withQueueItemId { "new" }.queueItemId())
+        assertEquals("q7", TestTracks.alpha.toMediaItem("q7").withQueueItemId { "new" }.queueItemId())
+    }
 }

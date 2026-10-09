@@ -13,11 +13,14 @@ import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import tj.umar.navoplayer.core.player.mapper.withQueueItemId
+import java.util.UUID
 
 @OptIn(UnstableApi::class)
 internal class PlaybackSessionCallback(
     private val ownPackage: String,
     private val editor: QueueEditor,
+    private val newQueueItemId: () -> String = { UUID.randomUUID().toString() },
 ) : MediaSession.Callback {
 
     override fun onConnect(
@@ -44,7 +47,7 @@ internal class PlaybackSessionCallback(
         controller: MediaSession.ControllerInfo,
         mediaItems: MutableList<MediaItem>,
     ): ListenableFuture<MutableList<MediaItem>> {
-        val playable = resolvePlayableItems(mediaItems)
+        val playable = resolvePlayableItems(mediaItems).map { it.withQueueItemId(newQueueItemId) }
         return if (playable.isEmpty()) {
             Futures.immediateFailedFuture(UnsupportedOperationException())
         } else {
