@@ -9,4 +9,6 @@ android {
 
 dependencies {
     api(libs.androidx.compose.material3)
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
 }

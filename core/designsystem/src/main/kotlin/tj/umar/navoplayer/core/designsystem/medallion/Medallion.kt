@@ -73,7 +73,7 @@ fun rememberMedallionRotation(
     }
 }
 
-private fun DrawScope.drawSimpleMedallion(palette: MedallionPalette) {
+internal fun DrawScope.drawSimpleMedallion(palette: MedallionPalette) {
     val scale = size.minDimension / 100f
     val center = Offset(size.width / 2f, size.height / 2f)
     drawCircle(palette.background, radius = 50f * scale, center = center)
@@ -90,7 +90,7 @@ private fun DrawScope.drawSimpleMedallion(palette: MedallionPalette) {
     drawCircle(palette.background, radius = 7f * scale, center = center)
 }
 
-private fun DrawScope.drawDetailedMedallion(palette: MedallionPalette) {
+internal fun DrawScope.drawDetailedMedallion(palette: MedallionPalette) {
     val scale = size.minDimension / 200f
     val center = Offset(size.width / 2f, size.height / 2f)
     drawCircle(palette.background, radius = 100f * scale, center = center)
