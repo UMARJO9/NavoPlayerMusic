@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import tj.umar.navoplayer.core.domain.model.GroupSortField
 import tj.umar.navoplayer.core.domain.model.MinTrackDuration
 import tj.umar.navoplayer.core.domain.model.SortDirection
+import tj.umar.navoplayer.core.domain.model.ThemeMode
 import tj.umar.navoplayer.core.domain.model.TrackSortField
 import tj.umar.navoplayer.core.domain.model.UserSettings
 
@@ -24,4 +25,6 @@ interface SettingsRepository {
     suspend fun setGroupSortField(field: GroupSortField)
 
     suspend fun setGroupSortDirection(direction: SortDirection)
+
+    suspend fun setThemeMode(mode: ThemeMode)
 }

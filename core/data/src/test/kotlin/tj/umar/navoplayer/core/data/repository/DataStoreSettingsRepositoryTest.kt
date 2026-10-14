@@ -15,6 +15,7 @@ import tj.umar.navoplayer.core.domain.model.GroupSort
 import tj.umar.navoplayer.core.domain.model.GroupSortField
 import tj.umar.navoplayer.core.domain.model.MinTrackDuration
 import tj.umar.navoplayer.core.domain.model.SortDirection
+import tj.umar.navoplayer.core.domain.model.ThemeMode
 import tj.umar.navoplayer.core.domain.model.TrackSort
 import tj.umar.navoplayer.core.domain.model.TrackSortField
 import tj.umar.navoplayer.core.domain.model.UserSettings
@@ -84,5 +85,23 @@ class DataStoreSettingsRepositoryTest {
 
         assertEquals(TrackSort.Default, settings.trackSort)
         assertEquals(GroupSort.Default, settings.groupSort)
+    }
+
+    @Test
+    fun `theme mode round trip`() = runTest {
+        val repository = repository()
+
+        assertEquals(ThemeMode.Dark, repository.observeSettings().first().themeMode)
+
+        repository.setThemeMode(ThemeMode.Light)
+
+        assertEquals(ThemeMode.Light, repository.observeSettings().first().themeMode)
+    }
+
+    @Test
+    fun `unknown stored theme mode falls back to default`() {
+        val settings = StoredSettings(0, emptySet(), true, themeMode = "sepia").toUserSettings()
+
+        assertEquals(ThemeMode.Default, settings.themeMode)
     }
 }

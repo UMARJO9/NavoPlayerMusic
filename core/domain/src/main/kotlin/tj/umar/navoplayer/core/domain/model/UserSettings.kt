@@ -23,6 +23,7 @@ data class UserSettings(
     val pauseOnHeadphonesDisconnect: Boolean = true,
     val trackSort: TrackSort = TrackSort.Default,
     val groupSort: GroupSort = GroupSort.Default,
+    val themeMode: ThemeMode = ThemeMode.Default,
 )
 
 data class LibraryFolder(

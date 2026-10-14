@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.map
 import tj.umar.navoplayer.core.data.mapper.directionOf
 import tj.umar.navoplayer.core.data.mapper.groupSortFieldOf
 import tj.umar.navoplayer.core.data.mapper.storageValue
+import tj.umar.navoplayer.core.data.mapper.themeModeOf
 import tj.umar.navoplayer.core.data.mapper.trackSortFieldOf
 import tj.umar.navoplayer.core.datastore.settings.SettingsPreferencesDataSource
 import tj.umar.navoplayer.core.datastore.settings.StoredSettings
@@ -13,6 +14,7 @@ import tj.umar.navoplayer.core.domain.model.GroupSort
 import tj.umar.navoplayer.core.domain.model.GroupSortField
 import tj.umar.navoplayer.core.domain.model.MinTrackDuration
 import tj.umar.navoplayer.core.domain.model.SortDirection
+import tj.umar.navoplayer.core.domain.model.ThemeMode
 import tj.umar.navoplayer.core.domain.model.TrackSort
 import tj.umar.navoplayer.core.domain.model.TrackSortField
 import tj.umar.navoplayer.core.domain.model.UserSettings
@@ -53,6 +55,10 @@ internal class DataStoreSettingsRepository @Inject constructor(
     override suspend fun setPauseOnHeadphonesDisconnect(enabled: Boolean) {
         dataSource.setPauseOnHeadphonesDisconnect(enabled)
     }
+
+    override suspend fun setThemeMode(mode: ThemeMode) {
+        dataSource.setThemeMode(mode.storageValue())
+    }
 }
 
 internal fun StoredSettings.toUserSettings(): UserSettings = UserSettings(
@@ -61,4 +67,5 @@ internal fun StoredSettings.toUserSettings(): UserSettings = UserSettings(
     pauseOnHeadphonesDisconnect = pauseOnHeadphonesDisconnect,
     trackSort = TrackSort(trackSortFieldOf(trackSortField), directionOf(trackSortDescending)),
     groupSort = GroupSort(groupSortFieldOf(groupSortField), directionOf(groupSortDescending)),
+    themeMode = themeModeOf(themeMode),
 )

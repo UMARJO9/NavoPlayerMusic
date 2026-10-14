@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.update
 import tj.umar.navoplayer.core.domain.model.GroupSortField
 import tj.umar.navoplayer.core.domain.model.MinTrackDuration
 import tj.umar.navoplayer.core.domain.model.SortDirection
+import tj.umar.navoplayer.core.domain.model.ThemeMode
 import tj.umar.navoplayer.core.domain.model.TrackSortField
 import tj.umar.navoplayer.core.domain.model.UserSettings
 import tj.umar.navoplayer.core.domain.repository.SettingsRepository
@@ -64,6 +65,10 @@ class FakeSettingsRepository(initial: UserSettings = UserSettings()) : SettingsR
 
     override suspend fun setGroupSortDirection(direction: SortDirection) {
         write { copy(groupSort = groupSort.copy(direction = direction)) }
+    }
+
+    override suspend fun setThemeMode(mode: ThemeMode) {
+        write { copy(themeMode = mode) }
     }
 
     fun emit(value: UserSettings) {
