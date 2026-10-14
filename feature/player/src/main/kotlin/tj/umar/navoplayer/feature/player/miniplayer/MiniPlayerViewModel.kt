@@ -40,11 +40,13 @@ internal class MiniPlayerViewModel @Inject constructor(
             stateJob = observePlaybackState()
                 .onEach { playback ->
                     setState {
+                        val trackChanged = track != null && playback.currentTrack?.id != track.id
                         copy(
                             track = playback.currentTrack,
                             isPlaying = playback.isPlaying,
                             hasNext = playback.nextTrack != null,
-                            positionMs = if (playback.currentTrack?.id == track?.id) positionMs else 0L,
+                            positionMs = if (trackChanged) 0L else positionMs,
+                            durationMs = if (trackChanged) playback.currentTrack?.durationMs ?: 0L else durationMs,
                         )
                     }
                 }

@@ -76,6 +76,18 @@ class MiniPlayerViewModelTest {
         controller.state.emit(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.beta))
 
         assertEquals(0L, viewModel.state.value.positionMs)
+        assertEquals(TestTracks.beta.durationMs, viewModel.state.value.durationMs)
+    }
+
+    @Test
+    fun `first track keeps position emitted before it`() = runTest {
+        viewModel.onIntent(MiniPlayerIntent.ScreenStarted)
+        controller.progress.emit(PlaybackProgress(positionMs = 90_000, durationMs = 200_000))
+
+        controller.state.emit(TestPlaybackStates.pausedAlpha)
+
+        assertEquals(90_000L, viewModel.state.value.positionMs)
+        assertEquals(200_000L, viewModel.state.value.durationMs)
     }
 
     @Test
