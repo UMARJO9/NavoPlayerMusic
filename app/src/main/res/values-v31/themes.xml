@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <style name="Base.Theme.NavoPlayerMusic" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/navo_window_background</item>
+    </style>
+
     <style name="Theme.NavoPlayerMusic" parent="Base.Theme.NavoPlayerMusic">
-        <item name="android:windowSplashScreenBackground">@color/navo_lapis</item>
+        <item name="android:windowSplashScreenBackground">@color/navo_window_background</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
     </style>
 </resources>

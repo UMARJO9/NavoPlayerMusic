@@ -6,4 +6,5 @@
     <color name="navo_icon_saffron">#FFF2C14E</color>
     <color name="navo_icon_ivory">#FFF3EEDF</color>
     <color name="navo_icon_gold_dim">#66E3B04B</color>
+    <color name="navo_window_background">#FF13204A</color>
 </resources>
