@@ -31,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.dropShadow
@@ -61,6 +60,14 @@ import tj.umar.navoplayer.core.ui.R as CoreUiR
 private val MiniPlayerHeight = 68.dp
 private val RingSlot = 54.dp
 private val MedallionSize = 44.dp
+private val ControlSize = 48.dp
+private val ControlGap = 2.dp
+private val NextIconSize = 22.dp
+private val PlayIconSize = 24.dp
+private val HairlineWidth = 1.dp
+private val CardEndPadding = 8.dp
+private val OpenAreaStartPadding = 7.dp
+private val OpenAreaEndPadding = 8.dp
 private const val TRACK_CHANGE_MILLIS = 300
 private const val MEDALLION_CHANGE_SCALE = 0.85f
 private const val MINI_PLAYER_PRESSED_SCALE = 0.98f
@@ -71,7 +78,6 @@ private const val END_SHADE_FRACTION = 0.35f
 private const val HAIRLINE_TOP_ALPHA = 0.16f
 private const val HAIRLINE_BOTTOM_ALPHA = 0.04f
 private const val WATERMARK_ALPHA = 0.06f
-private const val DISABLED_ALPHA = 0.4f
 
 @Composable
 internal fun MiniPlayer(
@@ -115,8 +121,8 @@ internal fun MiniPlayer(
                 )
             }
             .khotamWatermark(colors.content.copy(alpha = WATERMARK_ALPHA))
-            .border(1.dp, hairline, NavoShapes.MiniPlayer)
-            .padding(end = 10.dp),
+            .border(HairlineWidth, hairline, NavoShapes.MiniPlayer)
+            .padding(end = CardEndPadding),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
@@ -129,7 +135,7 @@ internal fun MiniPlayer(
                     onClickLabel = openLabel,
                     role = Role.Button,
                 ) { onIntent(MiniPlayerIntent.OpenClicked) }
-                .padding(start = 7.dp, end = 8.dp),
+                .padding(start = OpenAreaStartPadding, end = OpenAreaEndPadding),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -157,20 +163,20 @@ internal fun MiniPlayer(
         NavoIconButton(
             icon = NavoIcons.SkipNext,
             contentDescription = stringResource(R.string.player_next),
-            onClick = { if (hasNext) onIntent(MiniPlayerIntent.NextClicked) },
-            modifier = Modifier.alpha(if (hasNext) 1f else DISABLED_ALPHA),
-            size = 44.dp,
-            iconSize = 22.dp,
+            onClick = { onIntent(MiniPlayerIntent.NextClicked) },
+            size = ControlSize,
+            iconSize = NextIconSize,
+            enabled = hasNext,
         )
-        Spacer(Modifier.width(4.dp))
+        Spacer(Modifier.width(ControlGap))
         NavoIconButton(
             icon = if (isPlaying) NavoIcons.Pause else NavoIcons.Play,
             contentDescription = stringResource(if (isPlaying) R.string.player_pause else R.string.player_play),
             onClick = { onIntent(MiniPlayerIntent.PlayPauseClicked) },
             containerColor = colors.accent,
             tint = colors.onAccent,
-            size = 44.dp,
-            iconSize = 24.dp,
+            size = ControlSize,
+            iconSize = PlayIconSize,
             animateIconChange = true,
         )
     }

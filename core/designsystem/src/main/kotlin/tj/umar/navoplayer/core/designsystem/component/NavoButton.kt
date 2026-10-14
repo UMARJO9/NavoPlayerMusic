@@ -106,12 +106,14 @@ fun NavoIconButton(
     iconSize: Dp = 24.dp,
     tint: Color = NavoTheme.colors.content,
     animateIconChange: Boolean = false,
+    enabled: Boolean = true,
 ) {
     val colors = NavoTheme.colors
     val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = modifier
             .pressScale(interactionSource, pressedScale = 0.9f)
+            .alpha(if (enabled) 1f else DISABLED_ALPHA)
             .size(size)
             .clip(NavoShapes.Pill)
             .background(containerColor)
@@ -119,6 +121,7 @@ fun NavoIconButton(
                 interactionSource = interactionSource,
                 indication = ripple(color = colors.content),
                 role = Role.Button,
+                enabled = enabled,
                 onClick = onClick,
             )
             .semantics { this.contentDescription = contentDescription },
