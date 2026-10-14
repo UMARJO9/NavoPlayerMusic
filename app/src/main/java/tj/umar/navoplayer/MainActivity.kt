@@ -12,6 +12,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -22,6 +23,7 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.ThemeMode
 import tj.umar.navoplayer.core.domain.model.resolveDarkTheme
 import tj.umar.navoplayer.feature.widget.navigation.isOpenNowPlayingRequest
+import tj.umar.navoplayer.theme.syncApplicationNightMode
 import tj.umar.navoplayer.ui.NavoApp
 
 private const val LIGHT_NAVIGATION_FALLBACK_SCRIM = 0x8013204A.toInt()
@@ -48,7 +50,10 @@ class MainActivity : ComponentActivity() {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
             when (val state = uiState) {
                 MainActivityUiState.Loading -> Unit
-                is MainActivityUiState.Ready -> ThemedApp(state.themeMode)
+                is MainActivityUiState.Ready -> {
+                    LaunchedEffect(state.themeMode) { syncApplicationNightMode(state.themeMode) }
+                    ThemedApp(state.themeMode)
+                }
             }
         }
     }
