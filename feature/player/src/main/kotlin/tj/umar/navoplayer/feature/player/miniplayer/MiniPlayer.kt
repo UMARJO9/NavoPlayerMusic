@@ -58,15 +58,15 @@ import tj.umar.navoplayer.feature.player.R
 import tj.umar.navoplayer.core.ui.R as CoreUiR
 
 private val MiniPlayerHeight = 68.dp
-private val RingSlot = 54.dp
-private val MedallionSize = 44.dp
+private val RingSlot = 58.dp
+private val MedallionSize = 42.dp
 private val ControlSize = 48.dp
 private val ControlGap = 2.dp
 private val NextIconSize = 22.dp
 private val PlayIconSize = 24.dp
 private val HairlineWidth = 1.dp
 private val CardEndPadding = 8.dp
-private val OpenAreaStartPadding = 7.dp
+private val OpenAreaStartPadding = 5.dp
 private val OpenAreaEndPadding = 8.dp
 private const val TRACK_CHANGE_MILLIS = 300
 private const val MEDALLION_CHANGE_SCALE = 0.85f

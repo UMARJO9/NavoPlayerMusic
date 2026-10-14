@@ -56,28 +56,33 @@ fun ProgressRing(
         modifier = modifier.drawWithCache {
             val stroke = strokeWidth.toPx()
             val glowStroke = GlowStrokeWidth.toPx()
-            val radius = (size.minDimension - stroke) / 2f
+            val haloRadius = HaloRadius.toPx()
+            val beadRadius = BeadRadius.toPx()
+            val reach = maxOf(stroke, glowStroke, haloRadius * 2f)
+            val radius = (size.minDimension - reach) / 2f
             val center = Offset(size.width / 2f, size.height / 2f)
             val arcTopLeft = Offset(center.x - radius, center.y - radius)
             val arcSize = Size(radius * 2f, radius * 2f)
             val trackColor = colors.content.copy(alpha = TRACK_ALPHA)
-            val haloRadius = HaloRadius.toPx()
-            val beadRadius = BeadRadius.toPx()
+            val trackStroke = Stroke(stroke)
+            val arcStroke = Stroke(stroke, cap = StrokeCap.Round)
+            val glowArcStroke = Stroke(glowStroke, cap = StrokeCap.Round)
             onDrawBehind {
                 val fraction = progress().coerceIn(0f, 1f)
                 val glow = glowAlpha.value
                 val sweep = fraction * FULL_TURN_DEGREES
-                drawCircle(trackColor, radius = radius, center = center, style = Stroke(stroke))
+                drawCircle(trackColor, radius = radius, center = center, style = trackStroke)
                 if (fraction <= MIN_VISIBLE_FRACTION) return@onDrawBehind
                 if (glow > 0f) {
                     drawArc(
-                        color = colors.accent.copy(alpha = GLOW_ALPHA * glow),
+                        color = colors.accent,
                         startAngle = RING_START_DEGREES,
                         sweepAngle = sweep,
                         useCenter = false,
                         topLeft = arcTopLeft,
                         size = arcSize,
-                        style = Stroke(glowStroke, cap = StrokeCap.Round),
+                        alpha = GLOW_ALPHA * glow,
+                        style = glowArcStroke,
                     )
                 }
                 drawArc(
@@ -87,10 +92,10 @@ fun ProgressRing(
                     useCenter = false,
                     topLeft = arcTopLeft,
                     size = arcSize,
-                    style = Stroke(stroke, cap = StrokeCap.Round),
+                    style = arcStroke,
                 )
                 val head = ringHeadOffset(center, radius, fraction)
-                if (glow > 0f) drawCircle(colors.accent.copy(alpha = HALO_ALPHA * glow), radius = haloRadius, center = head)
+                if (glow > 0f) drawCircle(colors.accent, radius = haloRadius, center = head, alpha = HALO_ALPHA * glow)
                 drawCircle(colors.content, radius = beadRadius, center = head)
             }
         },
@@ -118,12 +123,12 @@ private fun ProgressRingPreview() {
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             listOf(0f, 0.38f, 0.97f).forEach { fraction ->
-                ProgressRing(progress = { fraction }, modifier = Modifier.size(54.dp)) {
-                    Medallion(MedallionPalettes.all[0], Modifier.size(44.dp))
+                ProgressRing(progress = { fraction }, modifier = Modifier.size(58.dp)) {
+                    Medallion(MedallionPalettes.all[0], Modifier.size(42.dp))
                 }
             }
-            ProgressRing(progress = { 0.6f }, modifier = Modifier.size(54.dp), glowing = false) {
-                Medallion(MedallionPalettes.all[1], Modifier.size(44.dp))
+            ProgressRing(progress = { 0.6f }, modifier = Modifier.size(58.dp), glowing = false) {
+                Medallion(MedallionPalettes.all[1], Modifier.size(42.dp))
             }
         }
     }
