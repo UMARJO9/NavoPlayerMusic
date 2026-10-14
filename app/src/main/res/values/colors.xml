@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="navo_lapis">#FF13204A</color>
+    <color name="navo_lapis_high">#FF24387A</color>
+    <color name="navo_icon_crimson">#FFC8414B</color>
+    <color name="navo_icon_saffron">#FFF2C14E</color>
+    <color name="navo_icon_ivory">#FFF3EEDF</color>
+    <color name="navo_icon_gold_dim">#66E3B04B</color>
 </resources>
