@@ -68,4 +68,19 @@ object NavoIcons {
 
     val DragHandle: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_drag_handle)
+
+    val Headphones: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_headphones)
+
+    val Equalizer: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_equalizer)
+
+    val Theme: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_theme)
+
+    val Document: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_document)
+
+    val Check: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_check)
 }
