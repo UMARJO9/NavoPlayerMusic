@@ -50,7 +50,6 @@ import tj.umar.navoplayer.core.designsystem.medallion.Medallion
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.medallion.khotamWatermark
 import tj.umar.navoplayer.core.designsystem.modifier.pressScale
-import tj.umar.navoplayer.core.designsystem.theme.NavoShadows
 import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.Track
@@ -101,7 +100,7 @@ internal fun MiniPlayer(
     val endColor = remember(colors) { lerp(colors.high, colors.raised, END_SHADE_FRACTION) }
     val hairline = remember(colors) {
         Brush.verticalGradient(
-            listOf(colors.content.copy(alpha = HAIRLINE_TOP_ALPHA), colors.content.copy(alpha = HAIRLINE_BOTTOM_ALPHA)),
+            listOf(colors.highlight.copy(alpha = HAIRLINE_TOP_ALPHA), colors.highlight.copy(alpha = HAIRLINE_BOTTOM_ALPHA)),
         )
     }
     Row(
@@ -109,7 +108,7 @@ internal fun MiniPlayer(
             .fillMaxWidth()
             .height(MiniPlayerHeight)
             .pressScale(openInteraction, pressedScale = MINI_PLAYER_PRESSED_SCALE)
-            .dropShadow(NavoShapes.MiniPlayer, NavoShadows.MiniPlayer)
+            .dropShadow(NavoShapes.MiniPlayer, NavoTheme.shadows.miniPlayer)
             .clip(NavoShapes.MiniPlayer)
             .drawBehind {
                 drawRect(

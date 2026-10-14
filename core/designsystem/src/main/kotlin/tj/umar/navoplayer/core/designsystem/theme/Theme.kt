@@ -54,6 +54,7 @@ fun NavoTheme(
     CompositionLocalProvider(
         LocalNavoColors provides if (darkTheme) LapisNavoColors else ParchmentNavoColors,
         LocalNavoTypography provides DefaultNavoTypography,
+        LocalNavoShadows provides if (darkTheme) DarkNavoShadows else LightNavoShadows,
     ) {
         MaterialTheme(
             colorScheme = if (darkTheme) NavoDarkColorScheme else NavoLightColorScheme,
@@ -73,4 +74,9 @@ object NavoTheme {
         @Composable
         @ReadOnlyComposable
         get() = LocalNavoTypography.current
+
+    val shadows: NavoShadows
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalNavoShadows.current
 }

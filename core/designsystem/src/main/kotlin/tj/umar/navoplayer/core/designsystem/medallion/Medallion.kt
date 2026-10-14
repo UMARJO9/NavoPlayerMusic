@@ -15,8 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,6 +29,7 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 enum class MedallionVariant { Simple, Detailed }
 
 private val DetailedMinSize = 120.dp
+private val RimWidth = 1.dp
 private const val PETAL_COUNT = 8
 private const val PETAL_STEP_DEGREES = 45f
 
@@ -36,11 +39,13 @@ fun Medallion(
     modifier: Modifier = Modifier,
     variant: MedallionVariant? = null,
     rotationDegrees: () -> Float = { 0f },
+    rim: Color = NavoTheme.colors.medallionRim,
 ) {
     Spacer(
         modifier = modifier
             .graphicsLayer { rotationZ = rotationDegrees() }
             .drawWithCache {
+                val rimWidth = RimWidth.toPx()
                 val resolved = variant ?: if (size.minDimension < DetailedMinSize.toPx()) {
                     MedallionVariant.Simple
                 } else {
@@ -49,15 +54,26 @@ fun Medallion(
                 when (resolved) {
                     MedallionVariant.Simple -> {
                         val star = simpleKhotamStar(size)
-                        onDrawBehind { drawSimpleMedallion(palette, star) }
+                        onDrawBehind {
+                            drawSimpleMedallion(palette, star)
+                            drawMedallionRim(rim, rimWidth)
+                        }
                     }
                     MedallionVariant.Detailed -> {
                         val ornament = SuzaniOrnament(size)
-                        onDrawBehind { drawSuzaniMedallion(palette, ornament, rotationDegrees()) }
+                        onDrawBehind {
+                            drawSuzaniMedallion(palette, ornament, rotationDegrees())
+                            drawMedallionRim(rim, rimWidth)
+                        }
                     }
                 }
             },
     )
+}
+
+private fun DrawScope.drawMedallionRim(rim: Color, width: Float) {
+    if (rim.alpha <= 0f) return
+    drawCircle(rim, radius = size.minDimension / 2f - width / 2f, style = Stroke(width))
 }
 
 @Composable

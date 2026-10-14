@@ -47,7 +47,6 @@ import tj.umar.navoplayer.core.designsystem.medallion.Medallion
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionVariant
 import tj.umar.navoplayer.core.designsystem.medallion.rememberMedallionRotation
-import tj.umar.navoplayer.core.designsystem.theme.NavoShadows
 import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.feature.welcome.R
@@ -171,7 +170,7 @@ private fun MedallionComposition(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .offset(x = 4.dp, y = 30.dp)
                 .size(220.dp)
-                .dropShadow(CircleShape, NavoShadows.Medallion),
+                .dropShadow(CircleShape, NavoTheme.shadows.medallion),
         ) {
             Medallion(
                 palette = palettes[0],

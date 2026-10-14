@@ -66,7 +66,6 @@ import tj.umar.navoplayer.core.designsystem.medallion.Medallion
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionVariant
 import tj.umar.navoplayer.core.designsystem.medallion.rememberMedallionRotation
-import tj.umar.navoplayer.core.designsystem.theme.NavoShadows
 import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
@@ -257,7 +256,7 @@ private fun RotatingMedallion(trackId: Long, rotationDegrees: () -> Float) {
         modifier = Modifier
             .sizeIn(maxWidth = MedallionMaxSize, maxHeight = MedallionMaxSize)
             .aspectRatio(1f, matchHeightConstraintsFirst = true)
-            .dropShadow(CircleShape, NavoShadows.Medallion),
+            .dropShadow(CircleShape, NavoTheme.shadows.medallion),
     ) {
         Medallion(
             palette = palette,
