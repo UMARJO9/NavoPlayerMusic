@@ -6,6 +6,8 @@ import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -26,10 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.dropShadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
+import tj.umar.navoplayer.core.designsystem.component.ProgressRing
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
 import tj.umar.navoplayer.core.designsystem.medallion.Medallion
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
@@ -50,8 +50,10 @@ import tj.umar.navoplayer.feature.player.R
 import tj.umar.navoplayer.core.ui.R as CoreUiR
 
 private val MiniPlayerHeight = 68.dp
-private val ProgressLineHeight = 3.dp
+private val RingSlot = 54.dp
+private val MedallionSize = 44.dp
 private const val TRACK_CHANGE_MILLIS = 300
+private const val MEDALLION_CHANGE_SCALE = 0.85f
 private const val MINI_PLAYER_PRESSED_SCALE = 0.98f
 
 @Composable
@@ -74,14 +76,6 @@ internal fun MiniPlayer(
             .dropShadow(NavoShapes.MiniPlayer, NavoShadows.MiniPlayer)
             .clip(NavoShapes.MiniPlayer)
             .background(colors.high)
-            .drawWithContent {
-                drawContent()
-                drawRect(
-                    color = colors.accent,
-                    topLeft = Offset.Zero,
-                    size = Size(size.width * progress().coerceIn(0f, 1f), ProgressLineHeight.toPx()),
-                )
-            }
             .padding(end = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -95,9 +89,21 @@ internal fun MiniPlayer(
                     onClickLabel = openLabel,
                     role = Role.Button,
                 ) { onIntent(MiniPlayerIntent.OpenClicked) }
-                .padding(start = 12.dp, end = 8.dp),
+                .padding(start = 7.dp, end = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            ProgressRing(progress = progress, modifier = Modifier.size(RingSlot), glowing = isPlaying) {
+                AnimatedContent(
+                    targetState = track,
+                    contentKey = { it.id },
+                    transitionSpec = { miniMedallionTransition() },
+                    label = "miniMedallionChange",
+                ) { shownTrack ->
+                    val palette = remember(shownTrack.id) { MedallionPalettes.forKey(shownTrack.id) }
+                    Medallion(palette = palette, modifier = Modifier.size(MedallionSize), rotationDegrees = rotation)
+                }
+            }
             AnimatedContent(
                 targetState = track,
                 contentKey = { it.id },
@@ -105,7 +111,7 @@ internal fun MiniPlayer(
                 transitionSpec = { miniTrackTransition() },
                 label = "miniTrackChange",
             ) { shownTrack ->
-                MiniTrackInfo(track = shownTrack, rotation = rotation)
+                MiniTrackInfo(track = shownTrack)
             }
         }
         NavoIconButton(
@@ -120,32 +126,33 @@ internal fun MiniPlayer(
 }
 
 @Composable
-private fun MiniTrackInfo(track: Track, rotation: () -> Float) {
+private fun MiniTrackInfo(track: Track) {
     val colors = NavoTheme.colors
-    val palette = remember(track.id) { MedallionPalettes.forKey(track.id) }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Medallion(palette = palette, modifier = Modifier.size(46.dp), rotationDegrees = rotation)
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                text = track.title.ifBlank { stringResource(CoreUiR.string.core_ui_unknown_title) },
-                color = colors.content,
-                style = NavoTheme.typography.label.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = track.artist ?: stringResource(CoreUiR.string.core_ui_unknown_artist),
-                color = colors.contentOnHigh,
-                style = NavoTheme.typography.caption,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+        Text(
+            text = track.title.ifBlank { stringResource(CoreUiR.string.core_ui_unknown_title) },
+            color = colors.content,
+            style = NavoTheme.typography.label.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+            text = track.artist ?: stringResource(CoreUiR.string.core_ui_unknown_artist),
+            color = colors.contentOnHigh,
+            style = NavoTheme.typography.caption,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
+
+private fun miniMedallionTransition(): ContentTransform = ContentTransform(
+    targetContentEnter = fadeIn(tween(TRACK_CHANGE_MILLIS)) +
+        scaleIn(tween(TRACK_CHANGE_MILLIS), initialScale = MEDALLION_CHANGE_SCALE),
+    initialContentExit = fadeOut(tween(TRACK_CHANGE_MILLIS)) +
+        scaleOut(tween(TRACK_CHANGE_MILLIS), targetScale = MEDALLION_CHANGE_SCALE),
+    sizeTransform = SizeTransform(clip = false),
+)
 
 private fun miniTrackTransition(): ContentTransform = ContentTransform(
     targetContentEnter = slideInVertically(tween(TRACK_CHANGE_MILLIS)) { height -> height / 2 } +

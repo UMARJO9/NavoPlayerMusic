@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import tj.umar.navoplayer.core.designsystem.animation.rememberSmoothProgress
 import tj.umar.navoplayer.core.designsystem.medallion.rememberMedallionRotation
 import tj.umar.navoplayer.core.domain.model.Track
 import tj.umar.navoplayer.core.ui.mvi.CollectEffects
@@ -53,6 +54,12 @@ internal fun MiniPlayerRoute(
     val currentOnOpenNowPlaying by rememberUpdatedState(onOpenNowPlaying)
     var lastTrack by remember { mutableStateOf<Track?>(null) }
     val rotation = rememberMedallionRotation(running = isPlaying && visible, frameIntervalMillis = ROTATION_FRAME_MILLIS)
+    val progress = rememberSmoothProgress(
+        positionMs = { stateHolder.value.positionMs },
+        durationMs = { stateHolder.value.durationMs },
+        playing = isPlaying && visible,
+        frameIntervalMillis = ROTATION_FRAME_MILLIS,
+    )
 
     LifecycleStartEffect(visible) {
         if (visible) viewModel.onIntent(MiniPlayerIntent.ScreenStarted)
@@ -80,10 +87,7 @@ internal fun MiniPlayerRoute(
         MiniPlayer(
             track = shownTrack,
             isPlaying = isPlaying,
-            progress = {
-                val state = stateHolder.value
-                if (state.durationMs > 0L) state.positionMs.toFloat() / state.durationMs else 0f
-            },
+            progress = progress,
             rotation = rotation,
             onIntent = viewModel::onIntent,
             modifier = Modifier
