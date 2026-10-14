@@ -7,7 +7,9 @@ import tj.umar.navoplayer.core.domain.model.Track
 internal data class MiniPlayerState(
     val track: Track? = null,
     val isPlaying: Boolean = false,
-    val progress: Float = 0f,
+    val hasNext: Boolean = false,
+    val positionMs: Long = 0L,
+    val durationMs: Long = 0L,
 )
 
 internal sealed interface MiniPlayerIntent {

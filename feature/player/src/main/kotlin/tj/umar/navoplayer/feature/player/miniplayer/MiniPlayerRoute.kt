@@ -80,7 +80,10 @@ internal fun MiniPlayerRoute(
         MiniPlayer(
             track = shownTrack,
             isPlaying = isPlaying,
-            progress = { stateHolder.value.progress },
+            progress = {
+                val state = stateHolder.value
+                if (state.durationMs > 0L) state.positionMs.toFloat() / state.durationMs else 0f
+            },
             rotation = rotation,
             onIntent = viewModel::onIntent,
             modifier = Modifier

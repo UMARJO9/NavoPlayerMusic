@@ -36,14 +36,21 @@ internal class MiniPlayerViewModel @Inject constructor(
         if (stateJob?.isActive != true) {
             stateJob = observePlaybackState()
                 .onEach { playback ->
-                    setState { copy(track = playback.currentTrack, isPlaying = playback.isPlaying) }
+                    setState {
+                        copy(
+                            track = playback.currentTrack,
+                            isPlaying = playback.isPlaying,
+                            hasNext = playback.nextTrack != null,
+                            positionMs = if (playback.currentTrack?.id == track?.id) positionMs else 0L,
+                        )
+                    }
                 }
                 .catch { }
                 .launchIn(viewModelScope)
         }
         if (progressJob?.isActive != true) {
             progressJob = observePlaybackProgress()
-                .onEach { progress -> setState { copy(progress = progress.fraction) } }
+                .onEach { progress -> setState { copy(positionMs = progress.positionMs, durationMs = progress.durationMs) } }
                 .catch { }
                 .launchIn(viewModelScope)
         }

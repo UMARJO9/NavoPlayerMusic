@@ -47,11 +47,33 @@ class MiniPlayerViewModelTest {
     }
 
     @Test
-    fun `progress becomes fraction`() = runTest {
+    fun `progress maps position and duration`() = runTest {
         viewModel.onIntent(MiniPlayerIntent.ScreenStarted)
         controller.progress.emit(PlaybackProgress(positionMs = 50_000, durationMs = 200_000))
 
-        assertEquals(0.25f, viewModel.state.value.progress)
+        assertEquals(50_000L, viewModel.state.value.positionMs)
+        assertEquals(200_000L, viewModel.state.value.durationMs)
+    }
+
+    @Test
+    fun `maps has next from next track`() = runTest {
+        viewModel.onIntent(MiniPlayerIntent.ScreenStarted)
+        controller.state.emit(TestPlaybackStates.playingAlpha)
+        assertTrue(viewModel.state.value.hasNext)
+
+        controller.state.emit(TestPlaybackStates.playingAlpha.copy(nextTrack = null))
+        assertFalse(viewModel.state.value.hasNext)
+    }
+
+    @Test
+    fun `track change resets position`() = runTest {
+        viewModel.onIntent(MiniPlayerIntent.ScreenStarted)
+        controller.state.emit(TestPlaybackStates.playingAlpha)
+        controller.progress.emit(PlaybackProgress(positionMs = 150_000, durationMs = 200_000))
+
+        controller.state.emit(TestPlaybackStates.playingAlpha.copy(currentTrack = TestTracks.beta))
+
+        assertEquals(0L, viewModel.state.value.positionMs)
     }
 
     @Test
