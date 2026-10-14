@@ -12,6 +12,7 @@ import tj.umar.navoplayer.core.domain.model.PlaybackProgress
 import tj.umar.navoplayer.core.domain.model.PlaybackState
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackProgressUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
+import tj.umar.navoplayer.core.domain.usecase.SkipToNextUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
 import tj.umar.navoplayer.core.testing.MainDispatcherRule
 import tj.umar.navoplayer.core.testing.data.TestPlaybackStates
@@ -29,6 +30,7 @@ class MiniPlayerViewModelTest {
         observePlaybackState = ObservePlaybackStateUseCase(controller),
         observePlaybackProgress = ObservePlaybackProgressUseCase(controller),
         togglePlayPause = TogglePlayPauseUseCase(controller),
+        skipToNext = SkipToNextUseCase(controller),
     )
 
     @Test
@@ -81,6 +83,26 @@ class MiniPlayerViewModelTest {
         viewModel.onIntent(MiniPlayerIntent.PlayPauseClicked)
 
         assertEquals(listOf(PlaybackCommand.TogglePlayPause), controller.commands)
+    }
+
+    @Test
+    fun `next click skips when has next`() = runTest {
+        viewModel.onIntent(MiniPlayerIntent.ScreenStarted)
+        controller.state.emit(TestPlaybackStates.playingAlpha)
+
+        viewModel.onIntent(MiniPlayerIntent.NextClicked)
+
+        assertEquals(listOf(PlaybackCommand.SkipToNext), controller.commands)
+    }
+
+    @Test
+    fun `next click without next does nothing`() = runTest {
+        viewModel.onIntent(MiniPlayerIntent.ScreenStarted)
+        controller.state.emit(TestPlaybackStates.playingAlpha.copy(nextTrack = null))
+
+        viewModel.onIntent(MiniPlayerIntent.NextClicked)
+
+        assertTrue(controller.commands.isEmpty())
     }
 
     @Test

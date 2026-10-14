@@ -16,6 +16,7 @@ internal sealed interface MiniPlayerIntent {
     data object ScreenStarted : MiniPlayerIntent
     data object ScreenStopped : MiniPlayerIntent
     data object PlayPauseClicked : MiniPlayerIntent
+    data object NextClicked : MiniPlayerIntent
     data object OpenClicked : MiniPlayerIntent
 }
 

@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackProgressUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
+import tj.umar.navoplayer.core.domain.usecase.SkipToNextUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
 import tj.umar.navoplayer.core.ui.mvi.MviViewModel
 import javax.inject.Inject
@@ -18,6 +19,7 @@ internal class MiniPlayerViewModel @Inject constructor(
     private val observePlaybackState: ObservePlaybackStateUseCase,
     private val observePlaybackProgress: ObservePlaybackProgressUseCase,
     private val togglePlayPause: TogglePlayPauseUseCase,
+    private val skipToNext: SkipToNextUseCase,
 ) : MviViewModel<MiniPlayerState, MiniPlayerIntent, MiniPlayerEffect>(MiniPlayerState()) {
 
     private var stateJob: Job? = null
@@ -28,6 +30,7 @@ internal class MiniPlayerViewModel @Inject constructor(
             MiniPlayerIntent.ScreenStarted -> startObserving()
             MiniPlayerIntent.ScreenStopped -> stopObserving()
             MiniPlayerIntent.PlayPauseClicked -> viewModelScope.launch { togglePlayPause() }
+            MiniPlayerIntent.NextClicked -> if (currentState.hasNext) viewModelScope.launch { skipToNext() }
             MiniPlayerIntent.OpenClicked -> if (currentState.track != null) sendEffect(MiniPlayerEffect.OpenNowPlaying)
         }
     }
