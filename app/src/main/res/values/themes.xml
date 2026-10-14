@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.NavoPlayerMusic" parent="android:Theme.Material.NoActionBar">
+    <style name="Base.Theme.NavoPlayerMusic" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/navo_lapis</item>
     </style>
+
+    <style name="Theme.NavoPlayerMusic" parent="Base.Theme.NavoPlayerMusic" />
 </resources>
