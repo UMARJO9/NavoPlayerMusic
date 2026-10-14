@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="72"
+    android:viewportHeight="72">
+    <path android:pathData="M3,36 A33,33 0 1,1 69,36 A33,33 0 1,1 3,36 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="36"
+                android:centerY="36"
+                android:gradientRadius="40"
+                android:type="radial">
+                <item
+                    android:color="@color/navo_lapis_high"
+                    android:offset="0.0" />
+                <item
+                    android:color="@color/navo_lapis"
+                    android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.9167"
+        android:scaleY="0.9167"
+        android:translateX="-18"
+        android:translateY="-18">
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="0">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="22.5">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="45">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="67.5">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="90">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="112.5">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="135">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="157.5">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="180">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="202.5">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="225">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="247.5">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="270">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="292.5">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="315">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="337.5">
+            <path
+                android:fillColor="@color/navo_icon_gold_dim"
+                android:pathData="M53.2,19.5 A0.8,0.8 0 1,1 54.8,19.5 A0.8,0.8 0 1,1 53.2,19.5 Z" />
+        </group>
+        <path
+            android:fillColor="@color/navo_icon_crimson"
+            android:pathData="M22,54 A32,32 0 1,1 86,54 A32,32 0 1,1 22,54 Z" />
+        <path
+            android:fillColor="@color/navo_icon_saffron"
+            android:pathData="M54.00,24.56 L62.62,33.18 L74.82,33.18 L74.82,45.38 L83.44,54.00 L74.82,62.62 L74.82,74.82 L62.62,74.82 L54.00,83.44 L45.38,74.82 L33.18,74.82 L33.18,62.62 L24.56,54.00 L33.18,45.38 L33.18,33.18 L45.38,33.18 Z" />
+        <path
+            android:fillColor="@color/navo_lapis"
+            android:pathData="M39.92,54 A14.08,14.08 0 1,1 68.08,54 A14.08,14.08 0 1,1 39.92,54 Z" />
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="0">
+            <path
+                android:fillColor="@color/navo_icon_saffron"
+                android:pathData="M54,41.84 A2.24,3.84 0 1,1 54,49.52 A2.24,3.84 0 1,1 54,41.84 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="45">
+            <path
+                android:fillColor="@color/navo_icon_saffron"
+                android:pathData="M54,41.84 A2.24,3.84 0 1,1 54,49.52 A2.24,3.84 0 1,1 54,41.84 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="90">
+            <path
+                android:fillColor="@color/navo_icon_saffron"
+                android:pathData="M54,41.84 A2.24,3.84 0 1,1 54,49.52 A2.24,3.84 0 1,1 54,41.84 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="135">
+            <path
+                android:fillColor="@color/navo_icon_saffron"
+                android:pathData="M54,41.84 A2.24,3.84 0 1,1 54,49.52 A2.24,3.84 0 1,1 54,41.84 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="180">
+            <path
+                android:fillColor="@color/navo_icon_saffron"
+                android:pathData="M54,41.84 A2.24,3.84 0 1,1 54,49.52 A2.24,3.84 0 1,1 54,41.84 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="225">
+            <path
+                android:fillColor="@color/navo_icon_saffron"
+                android:pathData="M54,41.84 A2.24,3.84 0 1,1 54,49.52 A2.24,3.84 0 1,1 54,41.84 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="270">
+            <path
+                android:fillColor="@color/navo_icon_saffron"
+                android:pathData="M54,41.84 A2.24,3.84 0 1,1 54,49.52 A2.24,3.84 0 1,1 54,41.84 Z" />
+        </group>
+        <group
+            android:pivotX="54"
+            android:pivotY="54"
+            android:rotation="315">
+            <path
+                android:fillColor="@color/navo_icon_saffron"
+                android:pathData="M54,41.84 A2.24,3.84 0 1,1 54,49.52 A2.24,3.84 0 1,1 54,41.84 Z" />
+        </group>
+        <path
+            android:fillColor="@color/navo_icon_ivory"
+            android:pathData="M50.8,54 A3.2,3.2 0 1,1 57.2,54 A3.2,3.2 0 1,1 50.8,54 Z" />
+    </group>
+</vector>
