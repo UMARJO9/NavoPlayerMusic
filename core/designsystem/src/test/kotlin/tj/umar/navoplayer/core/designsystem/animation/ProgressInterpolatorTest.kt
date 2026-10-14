@@ -73,13 +73,22 @@ class ProgressInterpolatorTest {
     }
 
     @Test
-    fun durationChangeRewindsTowardNewPosition() {
+    fun durationChangeSnapsToNewPosition() {
         interpolator.onSample(190_000, 200_000, playing = true, nowMillis = 0)
         interpolator.onSample(0, 120_000, playing = true, nowMillis = 500)
 
-        val midway = interpolator.positionAt(600)
-        assertTrue(midway < 120_000f)
-        assertEquals(240f, interpolator.positionAt(740), DELTA)
+        assertEquals(100f, interpolator.positionAt(600), DELTA)
+        assertTrue(!interpolator.isSettling(600))
+    }
+
+    @Test
+    fun resetSnapsToTargetImmediately() {
+        interpolator.onSample(10_000, 200_000, playing = false, nowMillis = 0)
+        interpolator.reset(150_000, 200_000, playing = false, nowMillis = 100)
+
+        assertEquals(150_000f, interpolator.positionAt(100), DELTA)
+        interpolator.onSample(150_000, 200_000, playing = true, nowMillis = 200)
+        assertEquals(150_000f, interpolator.positionAt(200), DELTA)
     }
 
     @Test

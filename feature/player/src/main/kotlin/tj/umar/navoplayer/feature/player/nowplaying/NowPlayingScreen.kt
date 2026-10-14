@@ -318,6 +318,7 @@ private fun SeekBar(state: NowPlayingState, onIntent: (NowPlayingIntent) -> Unit
         positionMs = { state.displayedPositionMs },
         durationMs = { state.durationMs },
         playing = state.isPlaying && state.seekPreviewMs == null,
+        snap = state.seekPreviewMs != null,
     )
     val previewMs = state.seekPreviewMs
     val value: () -> Float = if (previewMs != null && duration > 0) {

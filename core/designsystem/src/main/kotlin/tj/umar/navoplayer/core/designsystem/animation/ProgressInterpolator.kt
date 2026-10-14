@@ -24,14 +24,14 @@ internal class ProgressInterpolator(
 
     fun onSample(positionMs: Long, durationMs: Long, playing: Boolean, nowMillis: Long) {
         val target = positionMs.toFloat()
-        if (!initialized) {
+        if (!initialized || durationMs != duration) {
             initialized = true
             correction = Correction.None
             lastShown = target
         } else {
             val shown = positionAt(nowMillis)
             val delta = target - shown
-            if (durationMs != duration || abs(delta) > jumpThresholdMillis || delta < -backwardJitterMillis) {
+            if (abs(delta) > jumpThresholdMillis || delta < -backwardJitterMillis) {
                 correction = Correction.Jump
                 jumpFrom = shown
             } else {
@@ -45,6 +45,11 @@ internal class ProgressInterpolator(
         anchorTime = nowMillis
         duration = durationMs
         this.playing = playing
+    }
+
+    fun reset(positionMs: Long, durationMs: Long, playing: Boolean, nowMillis: Long) {
+        initialized = false
+        onSample(positionMs, durationMs, playing, nowMillis)
     }
 
     fun positionAt(nowMillis: Long): Float {

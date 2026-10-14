@@ -12,7 +12,7 @@ import androidx.compose.runtime.withFrameMillis
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
-private data class ProgressSample(val positionMs: Long, val durationMs: Long, val playing: Boolean)
+private data class ProgressSample(val positionMs: Long, val durationMs: Long, val playing: Boolean, val snap: Boolean)
 
 @Composable
 fun rememberSmoothProgress(
@@ -20,27 +20,29 @@ fun rememberSmoothProgress(
     durationMs: () -> Long,
     playing: Boolean,
     frameIntervalMillis: Long = 0L,
+    snap: Boolean = false,
 ): () -> Float {
     val interpolator = remember { ProgressInterpolator() }
-    val shown = remember { mutableFloatStateOf(0f) }
+    val shown = remember { mutableFloatStateOf(rawFraction(positionMs(), durationMs())) }
     val samples = remember { mutableIntStateOf(0) }
     val motionEnabled = rememberMotionEnabled()
     val currentPosition by rememberUpdatedState(positionMs)
     val currentDuration by rememberUpdatedState(durationMs)
     val currentPlaying by rememberUpdatedState(playing)
+    val currentSnap by rememberUpdatedState(snap)
     val currentMotion by rememberUpdatedState(motionEnabled)
 
     LaunchedEffect(interpolator) {
-        snapshotFlow { ProgressSample(currentPosition(), currentDuration(), currentPlaying) }
+        snapshotFlow { ProgressSample(currentPosition(), currentDuration(), currentPlaying, currentSnap) }
             .collect { sample ->
                 withFrameMillis { now ->
-                    interpolator.onSample(sample.positionMs, sample.durationMs, sample.playing, now)
-                    if (!currentMotion) {
-                        shown.floatValue = if (sample.durationMs > 0L) {
-                            (sample.positionMs.toFloat() / sample.durationMs).coerceIn(0f, 1f)
-                        } else {
-                            0f
-                        }
+                    if (sample.snap) {
+                        interpolator.reset(sample.positionMs, sample.durationMs, sample.playing, now)
+                    } else {
+                        interpolator.onSample(sample.positionMs, sample.durationMs, sample.playing, now)
+                    }
+                    if (sample.snap || !currentMotion) {
+                        shown.floatValue = rawFraction(sample.positionMs, sample.durationMs)
                     }
                 }
                 samples.intValue++
@@ -62,3 +64,6 @@ fun rememberSmoothProgress(
 
     return remember(shown) { { shown.floatValue } }
 }
+
+private fun rawFraction(positionMs: Long, durationMs: Long): Float =
+    if (durationMs > 0L) (positionMs.toFloat() / durationMs).coerceIn(0f, 1f) else 0f
