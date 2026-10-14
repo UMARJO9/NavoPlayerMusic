@@ -41,6 +41,18 @@ class ProgressInterpolatorTest {
     }
 
     @Test
+    fun largerBackwardCorrectionWhilePlayingRewindsWithoutFreezing() {
+        interpolator.onSample(10_000, 200_000, playing = true, nowMillis = 0)
+        interpolator.positionAt(500)
+
+        interpolator.onSample(9_700, 200_000, playing = true, nowMillis = 500)
+
+        assertTrue(interpolator.positionAt(620) < 10_500f)
+        assertEquals(9_940f, interpolator.positionAt(740), DELTA)
+        assertTrue(!interpolator.isSettling(740))
+    }
+
+    @Test
     fun smallDriftConvergesToSample() {
         interpolator.onSample(10_000, 200_000, playing = false, nowMillis = 0)
         interpolator.onSample(10_300, 200_000, playing = false, nowMillis = 100)

@@ -2,11 +2,12 @@ package tj.umar.navoplayer.core.designsystem.animation
 
 import kotlin.math.abs
 
-class ProgressInterpolator(
+internal class ProgressInterpolator(
     private val maxExtrapolationMillis: Long = 1_000L,
     private val driftBlendMillis: Long = 400L,
     private val jumpMillis: Long = 240L,
     private val jumpThresholdMillis: Long = 1_500L,
+    private val backwardJitterMillis: Long = 250L,
 ) {
     private enum class Correction { None, Drift, Jump }
 
@@ -30,7 +31,7 @@ class ProgressInterpolator(
         } else {
             val shown = positionAt(nowMillis)
             val delta = target - shown
-            if (durationMs != duration || abs(delta) > jumpThresholdMillis) {
+            if (durationMs != duration || abs(delta) > jumpThresholdMillis || delta < -backwardJitterMillis) {
                 correction = Correction.Jump
                 jumpFrom = shown
             } else {
