@@ -58,6 +58,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import tj.umar.navoplayer.core.designsystem.animation.rememberSmoothProgress
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
 import tj.umar.navoplayer.core.designsystem.component.NavoSeekBar
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
@@ -313,9 +314,20 @@ private fun SeekBar(state: NowPlayingState, onIntent: (NowPlayingIntent) -> Unit
     val position = state.displayedPositionMs.coerceIn(0, duration.coerceAtLeast(0))
     val positionText = formatDuration(position)
     val durationText = formatDuration(duration)
+    val smoothProgress = rememberSmoothProgress(
+        positionMs = { state.displayedPositionMs },
+        durationMs = { state.durationMs },
+        playing = state.isPlaying && state.seekPreviewMs == null,
+    )
+    val previewMs = state.seekPreviewMs
+    val value: () -> Float = if (previewMs != null && duration > 0) {
+        { previewMs.coerceIn(0, duration).toFloat() / duration }
+    } else {
+        smoothProgress
+    }
     Column {
-        NavoSeekBar(
-            value = if (duration > 0) position.toFloat() / duration else 0f,
+        SmoothSeekBar(
+            value = value,
             onValueChange = { fraction -> onIntent(NowPlayingIntent.SeekChanged((fraction * duration).toLong())) },
             onValueChangeFinished = { onIntent(NowPlayingIntent.SeekFinished) },
             playing = state.isPlaying,
@@ -327,6 +339,25 @@ private fun SeekBar(state: NowPlayingState, onIntent: (NowPlayingIntent) -> Unit
             Text(text = durationText, style = NavoTheme.typography.captionNumeric, color = colors.contentSecondary)
         }
     }
+}
+
+@Composable
+private fun SmoothSeekBar(
+    value: () -> Float,
+    onValueChange: (Float) -> Unit,
+    onValueChangeFinished: () -> Unit,
+    playing: Boolean,
+    stateDescription: String,
+    contentDescription: String,
+) {
+    NavoSeekBar(
+        value = value(),
+        onValueChange = onValueChange,
+        onValueChangeFinished = onValueChangeFinished,
+        playing = playing,
+        stateDescription = stateDescription,
+        contentDescription = contentDescription,
+    )
 }
 
 @Composable
