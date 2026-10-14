@@ -51,6 +51,7 @@ internal fun MiniPlayerRoute(
     val stateHolder = viewModel.state.collectAsStateWithLifecycle()
     val track by remember { derivedStateOf { stateHolder.value.track } }
     val isPlaying by remember { derivedStateOf { stateHolder.value.isPlaying } }
+    val hasNext by remember { derivedStateOf { stateHolder.value.hasNext } }
     val currentOnOpenNowPlaying by rememberUpdatedState(onOpenNowPlaying)
     var lastTrack by remember { mutableStateOf<Track?>(null) }
     val rotation = rememberMedallionRotation(running = isPlaying && visible, frameIntervalMillis = ROTATION_FRAME_MILLIS)
@@ -87,6 +88,7 @@ internal fun MiniPlayerRoute(
         MiniPlayer(
             track = shownTrack,
             isPlaying = isPlaying,
+            hasNext = hasNext,
             progress = progress,
             rotation = rotation,
             onIntent = viewModel::onIntent,

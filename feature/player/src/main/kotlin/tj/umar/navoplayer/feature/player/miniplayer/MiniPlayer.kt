@@ -3,6 +3,7 @@ package tj.umar.navoplayer.feature.player.miniplayer
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -11,24 +12,31 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.dropShadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +49,7 @@ import tj.umar.navoplayer.core.designsystem.component.ProgressRing
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
 import tj.umar.navoplayer.core.designsystem.medallion.Medallion
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
+import tj.umar.navoplayer.core.designsystem.medallion.khotamWatermark
 import tj.umar.navoplayer.core.designsystem.modifier.pressScale
 import tj.umar.navoplayer.core.designsystem.theme.NavoShadows
 import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
@@ -55,11 +64,20 @@ private val MedallionSize = 44.dp
 private const val TRACK_CHANGE_MILLIS = 300
 private const val MEDALLION_CHANGE_SCALE = 0.85f
 private const val MINI_PLAYER_PRESSED_SCALE = 0.98f
+private const val PALETTE_TINT_FRACTION = 0.16f
+private const val PALETTE_TINT_MILLIS = 450
+private const val TINT_STOP = 0.45f
+private const val END_SHADE_FRACTION = 0.35f
+private const val HAIRLINE_TOP_ALPHA = 0.16f
+private const val HAIRLINE_BOTTOM_ALPHA = 0.04f
+private const val WATERMARK_ALPHA = 0.06f
+private const val DISABLED_ALPHA = 0.4f
 
 @Composable
 internal fun MiniPlayer(
     track: Track,
     isPlaying: Boolean,
+    hasNext: Boolean,
     progress: () -> Float,
     rotation: () -> Float,
     onIntent: (MiniPlayerIntent) -> Unit,
@@ -68,6 +86,18 @@ internal fun MiniPlayer(
     val colors = NavoTheme.colors
     val openInteraction = remember { MutableInteractionSource() }
     val openLabel = stringResource(R.string.player_open_now_playing)
+    val palette = remember(track.id) { MedallionPalettes.forKey(track.id) }
+    val tint = animateColorAsState(
+        targetValue = lerp(colors.high, palette.background, PALETTE_TINT_FRACTION),
+        animationSpec = tween(PALETTE_TINT_MILLIS),
+        label = "miniPlayerTint",
+    )
+    val endColor = remember(colors) { lerp(colors.high, colors.raised, END_SHADE_FRACTION) }
+    val hairline = remember(colors) {
+        Brush.verticalGradient(
+            listOf(colors.content.copy(alpha = HAIRLINE_TOP_ALPHA), colors.content.copy(alpha = HAIRLINE_BOTTOM_ALPHA)),
+        )
+    }
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -75,7 +105,17 @@ internal fun MiniPlayer(
             .pressScale(openInteraction, pressedScale = MINI_PLAYER_PRESSED_SCALE)
             .dropShadow(NavoShapes.MiniPlayer, NavoShadows.MiniPlayer)
             .clip(NavoShapes.MiniPlayer)
-            .background(colors.high)
+            .drawBehind {
+                drawRect(
+                    Brush.horizontalGradient(
+                        0f to tint.value,
+                        TINT_STOP to colors.high,
+                        1f to endColor,
+                    ),
+                )
+            }
+            .khotamWatermark(colors.content.copy(alpha = WATERMARK_ALPHA))
+            .border(1.dp, hairline, NavoShapes.MiniPlayer)
             .padding(end = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -115,11 +155,22 @@ internal fun MiniPlayer(
             }
         }
         NavoIconButton(
+            icon = NavoIcons.SkipNext,
+            contentDescription = stringResource(R.string.player_next),
+            onClick = { if (hasNext) onIntent(MiniPlayerIntent.NextClicked) },
+            modifier = Modifier.alpha(if (hasNext) 1f else DISABLED_ALPHA),
+            size = 44.dp,
+            iconSize = 22.dp,
+        )
+        Spacer(Modifier.width(4.dp))
+        NavoIconButton(
             icon = if (isPlaying) NavoIcons.Pause else NavoIcons.Play,
             contentDescription = stringResource(if (isPlaying) R.string.player_pause else R.string.player_play),
             onClick = { onIntent(MiniPlayerIntent.PlayPauseClicked) },
-            size = 48.dp,
-            iconSize = 26.dp,
+            containerColor = colors.accent,
+            tint = colors.onAccent,
+            size = 44.dp,
+            iconSize = 24.dp,
             animateIconChange = true,
         )
     }
@@ -162,22 +213,63 @@ private fun miniTrackTransition(): ContentTransform = ContentTransform(
     sizeTransform = SizeTransform(clip = false),
 )
 
-@Preview(widthDp = 390, heightDp = 120)
+private fun previewTrack(id: Long, title: String, artist: String?) =
+    Track(id, title, artist, null, 11, 101, 252_000, 2, "content://media/$id", "Music/Navo", null, null)
+
 @Composable
-private fun MiniPlayerPreview() {
+private fun MiniPlayerPreviewFrame(content: @Composable () -> Unit) {
     NavoTheme {
         Column(
             modifier = Modifier
                 .background(NavoTheme.colors.background)
                 .padding(12.dp),
         ) {
-            MiniPlayer(
-                track = Track(2, "Ҷавонӣ", "Daler Nazarov", null, 11, 101, 252_000, 2, "content://media/2", "Music/Navo", null, null),
-                isPlaying = true,
-                progress = { 0.38f },
-                rotation = { 0f },
-                onIntent = {},
-            )
+            content()
         }
+    }
+}
+
+@Preview(widthDp = 390, heightDp = 120)
+@Composable
+private fun MiniPlayerPlayingPreview() {
+    MiniPlayerPreviewFrame {
+        MiniPlayer(
+            track = previewTrack(2, "Ҷавонӣ", "Daler Nazarov"),
+            isPlaying = true,
+            hasNext = true,
+            progress = { 0.38f },
+            rotation = { 0f },
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(widthDp = 390, heightDp = 120)
+@Composable
+private fun MiniPlayerPausedPreview() {
+    MiniPlayerPreviewFrame {
+        MiniPlayer(
+            track = previewTrack(5, "Over the Horizon", "Samsung"),
+            isPlaying = false,
+            hasNext = false,
+            progress = { 0.72f },
+            rotation = { 0f },
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(widthDp = 390, heightDp = 120, fontScale = 1.3f)
+@Composable
+private fun MiniPlayerLongTextPreview() {
+    MiniPlayerPreviewFrame {
+        MiniPlayer(
+            track = previewTrack(4, "AudioCleaner_20260908_212257_VID_20260908_212002_189", null),
+            isPlaying = true,
+            hasNext = true,
+            progress = { 0.05f },
+            rotation = { 0f },
+            onIntent = {},
+        )
     }
 }
