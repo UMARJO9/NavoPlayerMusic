@@ -102,4 +102,15 @@ class SettingsPreferencesDataSourceTest {
         assertEquals(null, settings.groupSortField)
         assertEquals(true, settings.groupSortDescending)
     }
+
+    @Test
+    fun `theme mode is absent by default and stored as given`() = runTest {
+        val dataSource = dataSource()
+
+        assertEquals(null, dataSource.settings.first().themeMode)
+
+        dataSource.setThemeMode("light")
+
+        assertEquals("light", dataSource.settings.first().themeMode)
+    }
 }

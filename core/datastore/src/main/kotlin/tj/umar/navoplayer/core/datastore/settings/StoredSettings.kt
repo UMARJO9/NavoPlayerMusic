@@ -8,4 +8,5 @@ data class StoredSettings(
     val trackSortDescending: Boolean = false,
     val groupSortField: String? = null,
     val groupSortDescending: Boolean = false,
+    val themeMode: String? = null,
 )

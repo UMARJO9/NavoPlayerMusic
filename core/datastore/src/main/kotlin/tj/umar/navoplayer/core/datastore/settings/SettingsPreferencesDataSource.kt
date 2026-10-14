@@ -22,6 +22,7 @@ private val TrackSortField = stringPreferencesKey("track_sort_field")
 private val TrackSortDescending = booleanPreferencesKey("track_sort_descending")
 private val GroupSortField = stringPreferencesKey("group_sort_field")
 private val GroupSortDescending = booleanPreferencesKey("group_sort_descending")
+private val ThemeMode = stringPreferencesKey("theme_mode")
 
 class SettingsPreferencesDataSource @Inject constructor(
     @param:SettingsDataStore private val dataStore: DataStore<Preferences>,
@@ -37,6 +38,7 @@ class SettingsPreferencesDataSource @Inject constructor(
                 trackSortDescending = preferences[TrackSortDescending] ?: false,
                 groupSortField = preferences[GroupSortField],
                 groupSortDescending = preferences[GroupSortDescending] ?: false,
+                themeMode = preferences[ThemeMode],
             )
         }
 
@@ -69,5 +71,9 @@ class SettingsPreferencesDataSource @Inject constructor(
 
     suspend fun setGroupSortDescending(descending: Boolean) {
         dataStore.edit { it[GroupSortDescending] = descending }
+    }
+
+    suspend fun setThemeMode(value: String) {
+        dataStore.edit { it[ThemeMode] = value }
     }
 }
