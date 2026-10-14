@@ -23,12 +23,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
-import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Path
@@ -38,6 +35,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import tj.umar.navoplayer.core.designsystem.animation.rememberMotionEnabled
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 
 private val SeekStrokeWidth = 4.dp
@@ -130,16 +128,6 @@ fun NavoSeekBar(
             )
         },
     )
-}
-
-@Composable
-private fun rememberMotionEnabled(): Boolean {
-    var enabled by remember { mutableStateOf(true) }
-    LaunchedEffect(Unit) {
-        val motionScale = coroutineContext[MotionDurationScale] ?: return@LaunchedEffect
-        snapshotFlow { motionScale.scaleFactor > 0f }.collect { enabled = it }
-    }
-    return enabled
 }
 
 @Composable
