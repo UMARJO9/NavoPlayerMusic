@@ -107,6 +107,7 @@ internal fun SearchScreen(
                 .fillMaxSize()
                 .imePadding(),
             empty = { SearchEmptyContent(phase = state.phase, resultsQuery = state.resultsQuery) },
+            loading = { SearchLoadingIndicator() },
             error = {
                 StateMessage(
                     message = stringResource(R.string.search_error),

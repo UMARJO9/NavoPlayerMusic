@@ -9,4 +9,5 @@
     <string name="search_section_artists">Исполнители</string>
     <string name="search_error">Не удалось загрузить музыку</string>
     <string name="search_retry">Повторить</string>
+    <string name="search_loading">Ищем…</string>
 </resources>
