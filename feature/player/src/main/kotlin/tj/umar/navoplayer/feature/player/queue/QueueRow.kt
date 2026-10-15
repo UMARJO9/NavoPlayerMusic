@@ -32,11 +32,13 @@ import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
 import tj.umar.navoplayer.core.designsystem.equalizer.EqualizerBars
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
-import tj.umar.navoplayer.core.designsystem.medallion.Medallion
+import tj.umar.navoplayer.core.designsystem.medallion.MedallionArtwork
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.Track
+import tj.umar.navoplayer.core.domain.model.artworkKey
+import tj.umar.navoplayer.core.ui.artwork.rememberArtwork
 import tj.umar.navoplayer.feature.player.R
 import tj.umar.navoplayer.core.ui.R as CoreUiR
 
@@ -101,7 +103,11 @@ internal fun QueueRow(
                 modifier = Modifier.size(22.dp),
             )
         }
-        Medallion(palette = palette, modifier = Modifier.size(44.dp))
+        MedallionArtwork(
+            palette = palette,
+            image = rememberArtwork(track.artworkKey, 44.dp).value,
+            modifier = Modifier.size(44.dp),
+        )
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(3.dp),
