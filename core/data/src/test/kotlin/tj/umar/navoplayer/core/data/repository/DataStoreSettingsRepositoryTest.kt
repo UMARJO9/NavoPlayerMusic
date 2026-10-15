@@ -104,4 +104,15 @@ class DataStoreSettingsRepositoryTest {
 
         assertEquals(ThemeMode.Default, settings.themeMode)
     }
+
+    @Test
+    fun `cover art setting round trip`() = runTest {
+        val repository = repository()
+
+        assertEquals(true, repository.observeSettings().first().showCoverArt)
+
+        repository.setShowCoverArt(false)
+
+        assertEquals(false, repository.observeSettings().first().showCoverArt)
+    }
 }

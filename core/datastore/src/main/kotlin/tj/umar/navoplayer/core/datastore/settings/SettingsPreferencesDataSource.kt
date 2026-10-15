@@ -23,6 +23,7 @@ private val TrackSortDescending = booleanPreferencesKey("track_sort_descending")
 private val GroupSortField = stringPreferencesKey("group_sort_field")
 private val GroupSortDescending = booleanPreferencesKey("group_sort_descending")
 private val ThemeMode = stringPreferencesKey("theme_mode")
+private val ShowCoverArt = booleanPreferencesKey("show_cover_art")
 
 class SettingsPreferencesDataSource @Inject constructor(
     @param:SettingsDataStore private val dataStore: DataStore<Preferences>,
@@ -39,6 +40,7 @@ class SettingsPreferencesDataSource @Inject constructor(
                 groupSortField = preferences[GroupSortField],
                 groupSortDescending = preferences[GroupSortDescending] ?: false,
                 themeMode = preferences[ThemeMode],
+                showCoverArt = preferences[ShowCoverArt] ?: true,
             )
         }
 
@@ -55,6 +57,10 @@ class SettingsPreferencesDataSource @Inject constructor(
 
     suspend fun setPauseOnHeadphonesDisconnect(enabled: Boolean) {
         dataStore.edit { it[PauseOnHeadphonesDisconnect] = enabled }
+    }
+
+    suspend fun setShowCoverArt(enabled: Boolean) {
+        dataStore.edit { it[ShowCoverArt] = enabled }
     }
 
     suspend fun setTrackSortField(value: String) {

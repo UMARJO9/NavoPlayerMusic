@@ -24,6 +24,7 @@ data class UserSettings(
     val trackSort: TrackSort = TrackSort.Default,
     val groupSort: GroupSort = GroupSort.Default,
     val themeMode: ThemeMode = ThemeMode.Default,
+    val showCoverArt: Boolean = true,
 )
 
 data class LibraryFolder(

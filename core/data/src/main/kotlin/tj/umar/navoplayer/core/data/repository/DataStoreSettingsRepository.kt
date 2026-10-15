@@ -59,6 +59,10 @@ internal class DataStoreSettingsRepository @Inject constructor(
     override suspend fun setThemeMode(mode: ThemeMode) {
         dataSource.setThemeMode(mode.storageValue())
     }
+
+    override suspend fun setShowCoverArt(enabled: Boolean) {
+        dataSource.setShowCoverArt(enabled)
+    }
 }
 
 internal fun StoredSettings.toUserSettings(): UserSettings = UserSettings(
@@ -68,4 +72,5 @@ internal fun StoredSettings.toUserSettings(): UserSettings = UserSettings(
     trackSort = TrackSort(trackSortFieldOf(trackSortField), directionOf(trackSortDescending)),
     groupSort = GroupSort(groupSortFieldOf(groupSortField), directionOf(groupSortDescending)),
     themeMode = themeModeOf(themeMode),
+    showCoverArt = showCoverArt,
 )

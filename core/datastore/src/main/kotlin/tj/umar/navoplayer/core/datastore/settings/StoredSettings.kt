@@ -9,4 +9,5 @@ data class StoredSettings(
     val groupSortField: String? = null,
     val groupSortDescending: Boolean = false,
     val themeMode: String? = null,
+    val showCoverArt: Boolean = true,
 )

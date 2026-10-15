@@ -27,4 +27,6 @@ interface SettingsRepository {
     suspend fun setGroupSortDirection(direction: SortDirection)
 
     suspend fun setThemeMode(mode: ThemeMode)
+
+    suspend fun setShowCoverArt(enabled: Boolean)
 }

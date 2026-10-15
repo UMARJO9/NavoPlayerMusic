@@ -113,4 +113,15 @@ class SettingsPreferencesDataSourceTest {
 
         assertEquals("light", dataSource.settings.first().themeMode)
     }
+
+    @Test
+    fun `cover art toggle defaults to shown and is stored`() = runTest {
+        val dataSource = dataSource()
+
+        assertEquals(true, dataSource.settings.first().showCoverArt)
+
+        dataSource.setShowCoverArt(false)
+
+        assertEquals(false, dataSource.settings.first().showCoverArt)
+    }
 }

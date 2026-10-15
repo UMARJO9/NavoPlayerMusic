@@ -74,3 +74,17 @@ class SetThemeModeUseCase @Inject constructor(
     suspend operator fun invoke(mode: ThemeMode): NavoResult<Unit> =
         navoRunCatching { settingsRepository.setThemeMode(mode) }
 }
+
+class ObserveShowCoverArtUseCase @Inject constructor(
+    private val settingsRepository: SettingsRepository,
+) {
+    operator fun invoke(): Flow<Boolean> =
+        settingsRepository.observeSettings().map { it.showCoverArt }.distinctUntilChanged()
+}
+
+class SetShowCoverArtUseCase @Inject constructor(
+    private val settingsRepository: SettingsRepository,
+) {
+    suspend operator fun invoke(enabled: Boolean): NavoResult<Unit> =
+        navoRunCatching { settingsRepository.setShowCoverArt(enabled) }
+}

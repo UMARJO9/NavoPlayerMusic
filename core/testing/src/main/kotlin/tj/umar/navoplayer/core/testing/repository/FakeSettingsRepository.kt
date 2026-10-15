@@ -71,6 +71,10 @@ class FakeSettingsRepository(initial: UserSettings = UserSettings()) : SettingsR
         write { copy(themeMode = mode) }
     }
 
+    override suspend fun setShowCoverArt(enabled: Boolean) {
+        write { copy(showCoverArt = enabled) }
+    }
+
     fun emit(value: UserSettings) {
         settings.value = value
     }
