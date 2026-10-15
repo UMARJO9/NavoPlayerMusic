@@ -1,7 +1,9 @@
 package tj.umar.navoplayer.core.designsystem.component
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
 import tj.umar.navoplayer.core.designsystem.medallion.Medallion
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalette
+import tj.umar.navoplayer.core.designsystem.modifier.pressScale
 import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.designsystem.R
@@ -43,16 +47,26 @@ fun GroupRow(
     leading: GroupLeading,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    pressedScale: Float = 1f,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     val typography = NavoTheme.typography
     val colors = NavoTheme.colors
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressModifier = if (pressedScale < 1f) Modifier.pressScale(interactionSource, pressedScale) else Modifier
     Row(
         modifier = modifier
+            .then(pressModifier)
             .fillMaxWidth()
             .heightIn(min = 64.dp)
             .semantics(mergeDescendants = true) { }
             .clip(NavoShapes.TrackRow)
-            .clickable(onClickLabel = stringResource(R.string.designsystem_open), onClick = onClick)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
+                onClickLabel = stringResource(R.string.designsystem_open),
+                onClick = onClick,
+            )
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -73,6 +87,11 @@ fun GroupRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+        }
+        if (trailing != null) {
+            Box(modifier = Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+                trailing()
+            }
         }
     }
 }
@@ -120,6 +139,29 @@ private fun FavoritesGroupRowPreview() {
                 subtitle = "12 треков · 48 минут",
                 leading = GroupLeading.Favorites,
                 onClick = {},
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun TrailingGroupRowPreview() {
+    NavoTheme {
+        Column(modifier = Modifier.background(NavoTheme.colors.background).padding(8.dp)) {
+            GroupRow(
+                title = "Вечерний плейлист",
+                subtitle = "8 треков · 31 минута",
+                leading = GroupLeading.Folder,
+                onClick = {},
+                pressedScale = 0.98f,
+                trailing = {
+                    Icon(
+                        imageVector = NavoIcons.Check,
+                        contentDescription = null,
+                        tint = NavoTheme.colors.accent,
+                    )
+                },
             )
         }
     }
