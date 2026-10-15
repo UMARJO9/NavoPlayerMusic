@@ -17,6 +17,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlin.math.min
@@ -36,7 +37,7 @@ internal fun entranceFraction(elapsedMillis: Float, index: Int): Float =
 
 @Composable
 fun rememberListEntrance(): () -> Float {
-    val motion = rememberMotionEnabled()
+    val motion = rememberMotionEnabled() && !LocalInspectionMode.current
     var played by rememberSaveable { mutableStateOf(false) }
     val elapsed = remember { Animatable(if (played || !motion) LIST_ENTRANCE_TOTAL_MILLIS.toFloat() else 0f) }
     LaunchedEffect(motion) {

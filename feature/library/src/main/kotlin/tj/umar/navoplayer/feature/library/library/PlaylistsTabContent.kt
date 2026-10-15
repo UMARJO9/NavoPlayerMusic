@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import tj.umar.navoplayer.core.designsystem.animation.animatedListItem
+import tj.umar.navoplayer.core.designsystem.animation.rememberListEntrance
+import tj.umar.navoplayer.core.designsystem.animation.rememberMotionEnabled
 import tj.umar.navoplayer.core.designsystem.component.GroupLeading
 import tj.umar.navoplayer.core.designsystem.component.GroupRow
 import tj.umar.navoplayer.core.designsystem.component.NavoButton
@@ -69,13 +72,19 @@ internal fun PlaylistsTabContent(state: LibraryState, onIntent: (LibraryIntent) 
 
 @Composable
 private fun PlaylistList(state: LibraryState, onIntent: (LibraryIntent) -> Unit) {
+    val motion = rememberMotionEnabled()
+    val entrance = rememberListEntrance()
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = navoListPadding(state.hasActivePlayback),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         item(key = "summary", contentType = "summary") {
-            PlaylistsSummary(count = state.playlists.size, onIntent = onIntent)
+            PlaylistsSummary(
+                count = state.playlists.size,
+                onIntent = onIntent,
+                modifier = Modifier.animatedListItem(this, 0, motion, entrance),
+            )
         }
         item(key = "favorites", contentType = "playlist") {
             val minutes = state.favorites.durationMinutes()
@@ -88,6 +97,7 @@ private fun PlaylistList(state: LibraryState, onIntent: (LibraryIntent) -> Unit)
                 ),
                 leading = GroupLeading.Favorites,
                 onClick = { onIntent(LibraryIntent.FavoritesClicked) },
+                modifier = Modifier.animatedListItem(this, 1, motion, entrance),
             )
         }
         if (state.playlists.isEmpty()) {
@@ -98,27 +108,28 @@ private fun PlaylistList(state: LibraryState, onIntent: (LibraryIntent) -> Unit)
                     color = NavoTheme.colors.contentSecondary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
+                        .animatedListItem(this, 2, motion, entrance)
                         .fillMaxWidth()
                         .padding(NavoSpacing.Large),
                 )
             }
         }
-        items(state.playlists, key = { it.id }, contentType = { "playlist" }) { playlist ->
+        itemsIndexed(state.playlists, key = { _, playlist -> playlist.id }, contentType = { _, _ -> "playlist" }) { index, playlist ->
             GroupRow(
                 title = playlist.name,
                 subtitle = playlist.subtitle(),
                 leading = GroupLeading.Artwork(MedallionPalettes.forKey(playlist.id)),
                 onClick = { onIntent(LibraryIntent.PlaylistClicked(playlist.id)) },
-                modifier = Modifier.animateItem(),
+                modifier = Modifier.animatedListItem(this, 2 + index, motion, entrance),
             )
         }
     }
 }
 
 @Composable
-private fun PlaylistsSummary(count: Int, onIntent: (LibraryIntent) -> Unit) {
+private fun PlaylistsSummary(count: Int, onIntent: (LibraryIntent) -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(start = NavoSummaryHorizontalPadding, top = 12.dp, end = NavoSummaryHorizontalPadding, bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
