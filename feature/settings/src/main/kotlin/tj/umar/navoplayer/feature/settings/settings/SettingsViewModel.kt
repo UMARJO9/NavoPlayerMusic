@@ -11,12 +11,14 @@ import tj.umar.navoplayer.core.common.result.NavoResult
 import tj.umar.navoplayer.core.common.result.onError
 import tj.umar.navoplayer.core.domain.model.EqualizerStatus
 import tj.umar.navoplayer.core.domain.model.MinTrackDuration
+import tj.umar.navoplayer.core.domain.model.ThemeMode
 import tj.umar.navoplayer.core.domain.model.UserSettings
 import tj.umar.navoplayer.core.domain.usecase.GetAppInfoUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveEqualizerUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveSettingsUseCase
 import tj.umar.navoplayer.core.domain.usecase.SetMinTrackDurationUseCase
 import tj.umar.navoplayer.core.domain.usecase.SetPauseOnHeadphonesDisconnectUseCase
+import tj.umar.navoplayer.core.domain.usecase.SetThemeModeUseCase
 import tj.umar.navoplayer.core.ui.mvi.MviViewModel
 import javax.inject.Inject
 
@@ -27,6 +29,7 @@ internal class SettingsViewModel @Inject constructor(
     private val setMinTrackDuration: SetMinTrackDurationUseCase,
     private val setPauseOnHeadphonesDisconnect: SetPauseOnHeadphonesDisconnectUseCase,
     private val observeEqualizer: ObserveEqualizerUseCase,
+    private val setThemeMode: SetThemeModeUseCase,
 ) : MviViewModel<SettingsState, SettingsIntent, SettingsEffect>(SettingsState(versionName = getAppInfo().versionName)) {
 
     private var settingsJob: Job? = null
@@ -40,6 +43,7 @@ internal class SettingsViewModel @Inject constructor(
             is SettingsIntent.MinTrackDurationSelected -> onDurationSelected(intent.value)
             is SettingsIntent.PauseOnHeadphonesDisconnectToggled ->
                 if (!currentState.loadFailed) save { setPauseOnHeadphonesDisconnect(intent.enabled) }
+            is SettingsIntent.ThemeModeSelected -> onThemeModeSelected(intent.mode)
             SettingsIntent.HiddenFoldersClicked -> sendEffect(SettingsEffect.NavigateToHiddenFolders)
             SettingsIntent.LicensesClicked -> sendEffect(SettingsEffect.NavigateToLicenses)
             SettingsIntent.EqualizerClicked -> sendEffect(SettingsEffect.NavigateToEqualizer)
@@ -55,6 +59,7 @@ internal class SettingsViewModel @Inject constructor(
                 minTrackDuration = settings.minTrackDuration,
                 hiddenFolderCount = settings.excludedFolders.size,
                 pauseOnHeadphonesDisconnect = settings.pauseOnHeadphonesDisconnect,
+                themeMode = settings.themeMode,
             )
         }
     }
@@ -63,6 +68,12 @@ internal class SettingsViewModel @Inject constructor(
         if (currentState.loadFailed) return
         if (value == currentState.minTrackDuration) return
         save { setMinTrackDuration(value) }
+    }
+
+    private fun onThemeModeSelected(mode: ThemeMode) {
+        if (currentState.loadFailed) return
+        if (mode == currentState.themeMode) return
+        save { setThemeMode(mode) }
     }
 
     private fun save(write: suspend () -> NavoResult<Unit>) {

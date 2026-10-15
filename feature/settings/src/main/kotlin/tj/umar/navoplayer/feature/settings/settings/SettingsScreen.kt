@@ -79,6 +79,14 @@ internal fun SettingsScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 24.dp),
             ) {
+                item(key = "appearance") { SettingsSectionHeader(title = stringResource(R.string.settings_section_appearance)) }
+                item(key = "theme") {
+                    ThemeModeSelector(
+                        options = state.themeOptions,
+                        selected = state.themeMode,
+                        onSelect = { onIntent(SettingsIntent.ThemeModeSelected(it)) },
+                    )
+                }
                 item(key = "library") { SettingsSectionHeader(title = stringResource(R.string.settings_section_library)) }
                 item(key = "duration") { DurationSetting(state = state, onIntent = onIntent) }
                 item(key = "folders") {

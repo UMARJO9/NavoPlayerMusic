@@ -2,6 +2,9 @@ package tj.umar.navoplayer.feature.settings.settings
 
 import androidx.compose.runtime.Immutable
 import tj.umar.navoplayer.core.domain.model.MinTrackDuration
+import tj.umar.navoplayer.core.domain.model.ThemeMode
+
+private val ThemeModeOptions = listOf(ThemeMode.System, ThemeMode.Light, ThemeMode.Dark)
 
 @Immutable
 internal data class SettingsState(
@@ -12,9 +15,13 @@ internal data class SettingsState(
     val pauseOnHeadphonesDisconnect: Boolean = true,
     val versionName: String = "",
     val equalizerSummary: EqualizerSummary = EqualizerSummary.Loading,
+    val themeMode: ThemeMode = ThemeMode.Default,
 ) {
     val durationOptions: List<MinTrackDuration>
         get() = MinTrackDuration.entries
+
+    val themeOptions: List<ThemeMode>
+        get() = ThemeModeOptions
 }
 
 internal sealed interface SettingsIntent {
@@ -23,6 +30,7 @@ internal sealed interface SettingsIntent {
     data object RetryLoad : SettingsIntent
     data class MinTrackDurationSelected(val value: MinTrackDuration) : SettingsIntent
     data class PauseOnHeadphonesDisconnectToggled(val enabled: Boolean) : SettingsIntent
+    data class ThemeModeSelected(val mode: ThemeMode) : SettingsIntent
     data object HiddenFoldersClicked : SettingsIntent
     data object LicensesClicked : SettingsIntent
     data object EqualizerClicked : SettingsIntent

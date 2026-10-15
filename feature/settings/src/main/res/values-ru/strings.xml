@@ -1,6 +1,10 @@
 <resources>
     <string name="settings_title">Настройки</string>
     <string name="settings_back">Назад</string>
+    <string name="settings_section_appearance">Оформление</string>
+    <string name="settings_theme_system">Как в системе</string>
+    <string name="settings_theme_light">Светлая</string>
+    <string name="settings_theme_dark">Тёмная</string>
     <string name="settings_section_library">Медиатека</string>
     <string name="settings_min_duration_title">Скрывать короткие треки</string>
     <string name="settings_min_duration_subtitle">Треки короче выбранного скрываются везде</string>

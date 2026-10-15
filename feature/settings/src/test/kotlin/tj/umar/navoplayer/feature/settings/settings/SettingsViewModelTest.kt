@@ -11,12 +11,14 @@ import tj.umar.navoplayer.core.domain.model.EqualizerAvailability
 import tj.umar.navoplayer.core.domain.model.EqualizerPresetSelection
 import tj.umar.navoplayer.core.domain.model.EqualizerSettings
 import tj.umar.navoplayer.core.domain.model.MinTrackDuration
+import tj.umar.navoplayer.core.domain.model.ThemeMode
 import tj.umar.navoplayer.core.domain.model.UserSettings
 import tj.umar.navoplayer.core.domain.usecase.GetAppInfoUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveEqualizerUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveSettingsUseCase
 import tj.umar.navoplayer.core.domain.usecase.SetMinTrackDurationUseCase
 import tj.umar.navoplayer.core.domain.usecase.SetPauseOnHeadphonesDisconnectUseCase
+import tj.umar.navoplayer.core.domain.usecase.SetThemeModeUseCase
 import tj.umar.navoplayer.core.testing.MainDispatcherRule
 import tj.umar.navoplayer.core.testing.app.FakeAppInfoProvider
 import tj.umar.navoplayer.core.testing.data.testEqualizerCapabilities
@@ -42,6 +44,7 @@ class SettingsViewModelTest {
         setMinTrackDuration = SetMinTrackDurationUseCase(settings),
         setPauseOnHeadphonesDisconnect = SetPauseOnHeadphonesDisconnectUseCase(settings),
         observeEqualizer = ObserveEqualizerUseCase(equalizerController, equalizerSettings),
+        setThemeMode = SetThemeModeUseCase(settings),
     ).apply { onIntent(SettingsIntent.ScreenStarted) }
 
     @Test
@@ -125,6 +128,7 @@ class SettingsViewModelTest {
             setMinTrackDuration = SetMinTrackDurationUseCase(settings),
             setPauseOnHeadphonesDisconnect = SetPauseOnHeadphonesDisconnectUseCase(settings),
             observeEqualizer = ObserveEqualizerUseCase(equalizerController, equalizerSettings),
+        setThemeMode = SetThemeModeUseCase(settings),
         )
         assertEquals(0, settings.observeCalls)
 
@@ -165,5 +169,57 @@ class SettingsViewModelTest {
 
         assertEquals(EqualizerSummary.Off, viewModel.state.value.equalizerSummary)
         assertFalse(viewModel.state.value.loadFailed)
+    }
+
+    @Test
+    fun `state reflects stored theme mode`() {
+        settings.emit(settings.current.copy(themeMode = ThemeMode.Light))
+
+        val viewModel = viewModel()
+
+        assertEquals(ThemeMode.Light, viewModel.state.value.themeMode)
+    }
+
+    @Test
+    fun `theme mode selection writes and state follows`() = runTest {
+        val viewModel = viewModel()
+
+        viewModel.onIntent(SettingsIntent.ThemeModeSelected(ThemeMode.System))
+
+        assertEquals(ThemeMode.System, settings.current.themeMode)
+        assertEquals(ThemeMode.System, viewModel.state.value.themeMode)
+        assertEquals(1, settings.writeCalls)
+    }
+
+    @Test
+    fun `selecting current theme mode is ignored`() = runTest {
+        val viewModel = viewModel()
+
+        viewModel.onIntent(SettingsIntent.ThemeModeSelected(ThemeMode.Default))
+
+        assertEquals(0, settings.writeCalls)
+    }
+
+    @Test
+    fun `theme mode selection is blocked when load failed`() {
+        settings.observeError = IllegalStateException("broken")
+        val viewModel = viewModel()
+
+        viewModel.onIntent(SettingsIntent.ThemeModeSelected(ThemeMode.Light))
+
+        assertEquals(0, settings.writeCalls)
+        assertEquals(ThemeMode.Default, settings.current.themeMode)
+    }
+
+    @Test
+    fun `theme mode write error shows message`() = runTest {
+        val viewModel = viewModel()
+        settings.writeError = IllegalStateException("disk full")
+
+        viewModel.effects.test {
+            viewModel.onIntent(SettingsIntent.ThemeModeSelected(ThemeMode.Light))
+            assertEquals(SettingsEffect.ShowSaveFailed, awaitItem())
+        }
+        assertEquals(ThemeMode.Default, viewModel.state.value.themeMode)
     }
 }

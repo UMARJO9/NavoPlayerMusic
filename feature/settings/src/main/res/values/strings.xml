@@ -1,6 +1,10 @@
 <resources>
     <string name="settings_title">Settings</string>
     <string name="settings_back">Back</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
     <string name="settings_section_library">Library</string>
     <string name="settings_min_duration_title">Hide short tracks</string>
     <string name="settings_min_duration_subtitle">Shorter tracks are hidden everywhere</string>
