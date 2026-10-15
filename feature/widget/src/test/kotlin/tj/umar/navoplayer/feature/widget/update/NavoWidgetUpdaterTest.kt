@@ -7,16 +7,21 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import tj.umar.navoplayer.core.domain.model.NowPlaying
+import tj.umar.navoplayer.core.domain.model.ThemeMode
+import tj.umar.navoplayer.core.domain.model.UserSettings
 import tj.umar.navoplayer.core.domain.usecase.ObserveNowPlayingUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObserveThemeModeUseCase
 import tj.umar.navoplayer.core.testing.data.TestTracks
 import tj.umar.navoplayer.core.testing.playback.FakeNowPlayingMonitor
 import tj.umar.navoplayer.core.testing.repository.FakePlaybackQueueRepository
+import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
 import tj.umar.navoplayer.core.testing.repository.FakeTrackRepository
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class NavoWidgetUpdaterTest {
 
     private val monitor = FakeNowPlayingMonitor()
+    private val settings = FakeSettingsRepository()
     private var refreshCalls = 0
     private var refreshError: Exception? = null
     private val refresher = WidgetRefresher {
@@ -24,7 +29,12 @@ class NavoWidgetUpdaterTest {
         refreshError?.let { throw it }
     }
 
-    private fun TestScope.updater() = NavoWidgetUpdater(ObserveNowPlayingUseCase(monitor, FakePlaybackQueueRepository(), FakeTrackRepository()), refresher, backgroundScope)
+    private fun TestScope.updater() = NavoWidgetUpdater(
+        observeNowPlaying = ObserveNowPlayingUseCase(monitor, FakePlaybackQueueRepository(), FakeTrackRepository()),
+        observeThemeMode = ObserveThemeModeUseCase(settings),
+        refresher = refresher,
+        scope = backgroundScope,
+    )
 
     @Test
     fun `refreshes on start and on changes`() = runTest {
@@ -72,6 +82,40 @@ class NavoWidgetUpdaterTest {
         refreshError = null
 
         monitor.nowPlaying.value = NowPlaying(TestTracks.beta, isPlaying = true)
+        runCurrent()
+
+        assertEquals(2, refreshCalls)
+    }
+
+    @Test
+    fun `theme change refreshes once`() = runTest {
+        updater().start()
+        runCurrent()
+
+        settings.emit(UserSettings(themeMode = ThemeMode.Light))
+        runCurrent()
+
+        assertEquals(2, refreshCalls)
+    }
+
+    @Test
+    fun `same theme does not refresh again`() = runTest {
+        updater().start()
+        runCurrent()
+
+        settings.emit(UserSettings(themeMode = ThemeMode.Default, pauseOnHeadphonesDisconnect = false))
+        runCurrent()
+
+        assertEquals(1, refreshCalls)
+    }
+
+    @Test
+    fun `theme read failure still refreshes`() = runTest {
+        settings.observeError = IllegalStateException("datastore")
+        updater().start()
+        runCurrent()
+
+        monitor.nowPlaying.value = NowPlaying(TestTracks.alpha, isPlaying = true)
         runCurrent()
 
         assertEquals(2, refreshCalls)
