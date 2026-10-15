@@ -25,6 +25,8 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.ThemeMode
 import tj.umar.navoplayer.core.domain.model.resolveDarkTheme
 import tj.umar.navoplayer.feature.widget.navigation.isOpenNowPlayingRequest
+import tj.umar.navoplayer.splash.animatorDurationScale
+import tj.umar.navoplayer.splash.playNavoExitAnimation
 import tj.umar.navoplayer.theme.syncApplicationNightMode
 import tj.umar.navoplayer.ui.NavoApp
 
@@ -38,11 +40,17 @@ class MainActivity : ComponentActivity() {
     private val openNowPlayingRequests = Channel<Unit>(Channel.CONFLATED)
     private val openNowPlayingFlow = openNowPlayingRequests.receiveAsFlow()
 
+    private var resolvedDarkTheme = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-        applySystemBars(darkTheme = isNightConfiguration())
+        resolvedDarkTheme = isNightConfiguration()
+        applySystemBars(darkTheme = resolvedDarkTheme)
         splashScreen.setKeepOnScreenCondition { viewModel.uiState.value is MainActivityUiState.Loading }
+        splashScreen.setOnExitAnimationListener { provider ->
+            provider.playNavoExitAnimation(animatorDurationScale()) { applySystemBars(resolvedDarkTheme) }
+        }
         val fromHistory = (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0
         if (savedInstanceState == null && !fromHistory && intent.isOpenNowPlayingRequest()) {
             openNowPlayingRequests.trySend(Unit)
@@ -69,6 +77,7 @@ class MainActivity : ComponentActivity() {
             val background = NavoTheme.colors.background.toArgb()
             val uiMode = LocalConfiguration.current.uiMode
             LaunchedEffect(darkTheme, background, uiMode) {
+                resolvedDarkTheme = darkTheme
                 applySystemBars(darkTheme)
                 window.setBackgroundDrawable(ColorDrawable(background))
             }
