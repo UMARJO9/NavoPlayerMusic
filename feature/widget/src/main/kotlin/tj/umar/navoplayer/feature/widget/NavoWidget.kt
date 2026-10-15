@@ -1,12 +1,15 @@
 package tj.umar.navoplayer.feature.widget
 
 import android.content.Context
+import android.content.res.Configuration
+import android.os.Build
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceId
+import androidx.glance.LocalContext
 import androidx.glance.action.actionParametersOf
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
@@ -14,10 +17,12 @@ import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.medallion.renderBitmap
+import tj.umar.navoplayer.core.domain.model.ThemeMode
 import tj.umar.navoplayer.core.domain.model.TransportCommand
 import tj.umar.navoplayer.feature.widget.action.TransportActionCallback
 import tj.umar.navoplayer.feature.widget.action.TransportCommandKey
@@ -42,9 +47,15 @@ class NavoWidget : GlanceAppWidget() {
         val states = entryPoint.observeNowPlaying().invoke().map { it.toWidgetUiState() }
         val initial = states.first()
         val artworkPx = (ARTWORK_DP * context.resources.displayMetrics.density).roundToInt()
-        val colors = NavoWidgetAppearance.Dark.widgetColors()
+        val themeModes = entryPoint.observeThemeMode()().catch { emit(ThemeMode.Default) }
+        val initialThemeMode = themeModes.first()
         provideContent {
             val state by states.collectAsState(initial)
+            val themeMode by themeModes.collectAsState(initialThemeMode)
+            val night = LocalContext.current.isSystemInNightMode()
+            val colors = remember(themeMode, night) {
+                themeMode.widgetAppearance(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S, night).widgetColors()
+            }
             val trackId = (state as? NavoWidgetUiState.Playing)?.trackId
             val artwork = remember(trackId) { trackId?.let { MedallionPalettes.forKey(it).renderBitmap(artworkPx) } }
             NavoWidgetContent(
@@ -69,3 +80,6 @@ private fun widgetActions(context: Context, state: NavoWidgetUiState): NavoWidge
 
 private fun transportAction(command: TransportCommand) =
     actionRunCallback<TransportActionCallback>(actionParametersOf(TransportCommandKey to command.name))
+
+private fun Context.isSystemInNightMode(): Boolean =
+    (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
