@@ -87,6 +87,15 @@ class TrackArtworkBitmapLoaderTest {
     }
 
     @Test
+    fun `oversized artwork is scaled to session size`() = runTest {
+        val artwork = RecordingPlaybackArtwork { Bitmap.createBitmap(1024, 1024, Bitmap.Config.ARGB_8888) }
+
+        val bitmap = loader(artwork).loadBitmap(trackArtworkUri(ArtworkKey(7, 70))).await()
+
+        assertEquals(SESSION_ARTWORK_PX, bitmap.width)
+    }
+
+    @Test
     fun `other uris go to fallback`() = runTest {
         val uri = Uri.parse("content://media/external/images/1")
         val artwork = RecordingPlaybackArtwork { error("unused") }

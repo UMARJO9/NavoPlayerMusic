@@ -21,6 +21,7 @@ import tj.umar.navoplayer.core.domain.model.QueueResumeResult
 import tj.umar.navoplayer.core.domain.model.ResumableQueue
 import tj.umar.navoplayer.core.domain.usecase.LoadResumableQueueUseCase
 import tj.umar.navoplayer.core.player.artwork.PlaybackArtwork
+import tj.umar.navoplayer.core.player.artwork.cappedToShortSide
 import tj.umar.navoplayer.core.player.artwork.encodeJpeg
 import tj.umar.navoplayer.core.player.mapper.artworkKey
 import tj.umar.navoplayer.core.player.mapper.toMediaItem
@@ -93,7 +94,7 @@ internal class QueueRestorer(
     }
 
     private suspend fun previewArtwork(key: ArtworkKey): ByteArray? = try {
-        withContext(mappingDispatcher) { artwork.load(key, PREVIEW_ARTWORK_PX).encodeJpeg() }
+        withContext(mappingDispatcher) { artwork.load(key, PREVIEW_ARTWORK_PX).cappedToShortSide(PREVIEW_ARTWORK_PX).encodeJpeg() }
     } catch (cancellation: CancellationException) {
         throw cancellation
     } catch (failure: Exception) {

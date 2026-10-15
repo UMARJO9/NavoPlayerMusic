@@ -53,6 +53,15 @@ class CoverOrMedallionPlaybackArtworkTest {
     }
 
     @Test
+    fun `oversized cover is scaled to requested size`() = runTest {
+        val source = StubArtworkSource(Bitmap.createBitmap(1024, 1024, Bitmap.Config.ARGB_8888))
+
+        val result = CoverOrMedallionPlaybackArtwork(source, preference()).load(ArtworkKey(1, 10), 512)
+
+        assertEquals(512, result.width)
+    }
+
+    @Test
     fun `missing cover falls back to opaque medallion`() = runTest {
         val result = CoverOrMedallionPlaybackArtwork(StubArtworkSource(null), preference()).load(ArtworkKey(3, null), 512)
 

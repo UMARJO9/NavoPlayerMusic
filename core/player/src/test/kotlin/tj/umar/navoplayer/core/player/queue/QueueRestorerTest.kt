@@ -67,7 +67,7 @@ class QueueRestorerTest {
     private val artwork = object : PlaybackArtwork {
         override suspend fun load(key: ArtworkKey, sizePx: Int): Bitmap {
             renderedIds += key.trackId
-            return Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+            return Bitmap.createBitmap(1024, 1024, Bitmap.Config.ARGB_8888)
         }
     }
 

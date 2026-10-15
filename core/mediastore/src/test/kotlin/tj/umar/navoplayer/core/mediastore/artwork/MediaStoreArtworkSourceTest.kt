@@ -85,6 +85,17 @@ class MediaStoreArtworkSourceTest {
     }
 
     @Test
+    fun `decoded art is capped at the requested bucket`() = runTest {
+        val source = source()
+        decoder.albumBitmaps[10] = Bitmap.createBitmap(600, 600, Bitmap.Config.ARGB_8888)
+
+        val result = source.load(albumTrack, 200)
+
+        assertEquals(256, result?.width)
+        assertSame(result, source.cached(albumTrack, 200))
+    }
+
+    @Test
     fun `unexpected decode failures are not cached`() = runTest {
         val source = source()
         val failures = listOf(

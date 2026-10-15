@@ -26,6 +26,6 @@ internal class TrackArtworkBitmapLoader(
 
     override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
         val key = uri.artworkKey() ?: return fallback.loadBitmap(uri)
-        return scope.future(dispatcher) { artwork.load(key, SESSION_ARTWORK_PX) }
+        return scope.future(dispatcher) { artwork.load(key, SESSION_ARTWORK_PX).cappedToShortSide(SESSION_ARTWORK_PX) }
     }
 }

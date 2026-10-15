@@ -45,7 +45,7 @@ internal class MediaStoreArtworkSource @Inject constructor(
     private suspend fun decodeAndStore(key: ArtworkKey, id: ArtworkCacheId, bucketPx: Int): Bitmap? {
         val generation = libraryGeneration.get()
         val bitmap = try {
-            decode(key, bucketPx)
+            decode(key, bucketPx)?.cappedToShortSide(bucketPx)
         } catch (e: CancellationException) {
             throw e
         } catch (e: RuntimeException) {
