@@ -4,6 +4,7 @@ import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -28,13 +29,20 @@ class NavoWidgetUpdater @Inject internal constructor(
     @param:ApplicationScope private val scope: CoroutineScope,
 ) {
     private var job: Job? = null
+    private val systemNight = MutableStateFlow<Boolean?>(null)
+
+    fun onSystemNightModeChanged(night: Boolean) {
+        systemNight.value = night
+    }
 
     fun start() {
         if (job?.isActive == true) return
         val themeModes = observeThemeMode().catch { emit(ThemeMode.Default) }
-        job = observeNowPlaying()
-            .map { it.toWidgetUiState() }
-            .combine(themeModes) { state, themeMode -> state to themeMode }
+        job = combine(
+            observeNowPlaying().map { it.toWidgetUiState() },
+            themeModes,
+            systemNight,
+        ) { state, themeMode, night -> Triple(state, themeMode, night) }
             .distinctUntilChanged()
             .onEach { refreshSafely() }
             .launchIn(scope)

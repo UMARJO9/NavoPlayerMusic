@@ -120,4 +120,32 @@ class NavoWidgetUpdaterTest {
 
         assertEquals(2, refreshCalls)
     }
+
+    @Test
+    fun `night mode change refreshes`() = runTest {
+        val updater = updater()
+        updater.onSystemNightModeChanged(false)
+        updater.start()
+        runCurrent()
+
+        updater.onSystemNightModeChanged(true)
+        runCurrent()
+
+        assertEquals(2, refreshCalls)
+    }
+
+    @Test
+    fun `same night mode twice refreshes once`() = runTest {
+        val updater = updater()
+        updater.onSystemNightModeChanged(true)
+        updater.start()
+        runCurrent()
+
+        updater.onSystemNightModeChanged(true)
+        runCurrent()
+        updater.onSystemNightModeChanged(true)
+        runCurrent()
+
+        assertEquals(1, refreshCalls)
+    }
 }
