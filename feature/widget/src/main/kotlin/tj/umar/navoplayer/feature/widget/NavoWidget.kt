@@ -17,11 +17,14 @@ import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
-import tj.umar.navoplayer.core.designsystem.medallion.renderBitmap
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.withContext
 import tj.umar.navoplayer.core.domain.model.ThemeMode
 import tj.umar.navoplayer.core.domain.model.TransportCommand
 import tj.umar.navoplayer.feature.widget.action.TransportActionCallback
@@ -42,6 +45,7 @@ class NavoWidget : GlanceAppWidget() {
         ),
     )
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val entryPoint = EntryPointAccessors.fromApplication(context, NavoWidgetEntryPoint::class.java)
         val states = entryPoint.observeNowPlaying().invoke().map { it.toWidgetUiState() }
@@ -50,16 +54,25 @@ class NavoWidget : GlanceAppWidget() {
         val themeModes = entryPoint.observeThemeMode()().catch { emit(ThemeMode.Default) }
         val initialThemeMode = themeModes.first()
         val trackedNights = entryPoint.widgetUpdater().systemNightMode
+        val loader = entryPoint.artworkLoader()
+        val dispatcher = entryPoint.defaultDispatcher()
+        val artworks = states
+            .map { (it as? NavoWidgetUiState.Playing)?.artworkKey }
+            .distinctUntilChanged()
+            .mapLatest { key -> key?.let { widgetArtwork(loader, it, artworkPx) } }
+            .flowOn(dispatcher)
+        val initialArtwork = (initial as? NavoWidgetUiState.Playing)?.artworkKey?.let { key ->
+            withContext(dispatcher) { widgetArtwork(loader, key, artworkPx) }
+        }
         provideContent {
             val state by states.collectAsState(initial)
+            val artwork by artworks.collectAsState(initialArtwork)
             val themeMode by themeModes.collectAsState(initialThemeMode)
             val trackedNight by trackedNights.collectAsState()
             val night = trackedNight ?: LocalContext.current.isSystemInNightMode()
             val colors = remember(themeMode, night) {
                 themeMode.widgetAppearance(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S, night).widgetColors()
             }
-            val trackId = (state as? NavoWidgetUiState.Playing)?.trackId
-            val artwork = remember(trackId) { trackId?.let { MedallionPalettes.forKey(it).renderBitmap(artworkPx) } }
             NavoWidgetContent(
                 state = state,
                 artwork = artwork,

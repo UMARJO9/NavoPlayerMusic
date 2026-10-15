@@ -33,6 +33,7 @@ import androidx.glance.preview.Preview
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
+import tj.umar.navoplayer.core.domain.model.ArtworkKey
 import tj.umar.navoplayer.core.designsystem.R as DesignR
 import tj.umar.navoplayer.core.ui.R as CoreUiR
 
@@ -191,6 +192,7 @@ private val previewPlaying = NavoWidgetUiState.Playing(
     title = "Утро в Варзобе",
     artist = "Navo Band",
     isPlaying = true,
+    artworkKey = ArtworkKey(trackId = 1, albumId = null),
 )
 
 @Composable

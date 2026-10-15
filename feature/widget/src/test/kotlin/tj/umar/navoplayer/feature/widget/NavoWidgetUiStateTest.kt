@@ -2,6 +2,7 @@ package tj.umar.navoplayer.feature.widget
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import tj.umar.navoplayer.core.domain.model.ArtworkKey
 import tj.umar.navoplayer.core.domain.model.NowPlaying
 import tj.umar.navoplayer.core.testing.data.TestTracks
 
@@ -17,7 +18,13 @@ class NavoWidgetUiStateTest {
         val state = NowPlaying(TestTracks.alpha, isPlaying = true).toWidgetUiState()
 
         assertEquals(
-            NavoWidgetUiState.Playing(TestTracks.alpha.id, TestTracks.alpha.title, TestTracks.alpha.artist, isPlaying = true),
+            NavoWidgetUiState.Playing(
+                trackId = TestTracks.alpha.id,
+                title = TestTracks.alpha.title,
+                artist = TestTracks.alpha.artist,
+                isPlaying = true,
+                artworkKey = ArtworkKey(trackId = TestTracks.alpha.id, albumId = TestTracks.alpha.albumId),
+            ),
             state,
         )
     }
