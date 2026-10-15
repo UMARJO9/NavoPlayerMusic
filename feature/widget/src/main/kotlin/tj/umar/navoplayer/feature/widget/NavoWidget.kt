@@ -49,10 +49,12 @@ class NavoWidget : GlanceAppWidget() {
         val artworkPx = (ARTWORK_DP * context.resources.displayMetrics.density).roundToInt()
         val themeModes = entryPoint.observeThemeMode()().catch { emit(ThemeMode.Default) }
         val initialThemeMode = themeModes.first()
+        val trackedNights = entryPoint.widgetUpdater().systemNightMode
         provideContent {
             val state by states.collectAsState(initial)
             val themeMode by themeModes.collectAsState(initialThemeMode)
-            val night = LocalContext.current.isSystemInNightMode()
+            val trackedNight by trackedNights.collectAsState()
+            val night = trackedNight ?: LocalContext.current.isSystemInNightMode()
             val colors = remember(themeMode, night) {
                 themeMode.widgetAppearance(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S, night).widgetColors()
             }

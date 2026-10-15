@@ -5,6 +5,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -30,6 +32,8 @@ class NavoWidgetUpdater @Inject internal constructor(
 ) {
     private var job: Job? = null
     private val systemNight = MutableStateFlow<Boolean?>(null)
+
+    internal val systemNightMode: StateFlow<Boolean?> = systemNight.asStateFlow()
 
     fun onSystemNightModeChanged(night: Boolean) {
         systemNight.value = night
