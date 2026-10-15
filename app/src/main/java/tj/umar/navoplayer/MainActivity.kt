@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.channels.Channel
@@ -66,7 +67,8 @@ class MainActivity : ComponentActivity() {
         val darkTheme = themeMode.resolveDarkTheme(isSystemInDarkTheme())
         NavoTheme(darkTheme = darkTheme) {
             val background = NavoTheme.colors.background.toArgb()
-            LaunchedEffect(darkTheme, background) {
+            val uiMode = LocalConfiguration.current.uiMode
+            LaunchedEffect(darkTheme, background, uiMode) {
                 applySystemBars(darkTheme)
                 window.setBackgroundDrawable(ColorDrawable(background))
             }
