@@ -106,17 +106,7 @@ internal fun SearchScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .imePadding(),
-            empty = {
-                if (state.phase == SearchPhase.NoResults) {
-                    StateMessage(
-                        message = stringResource(R.string.search_no_results, state.resultsQuery),
-                        palette = MedallionPalettes.all[5],
-                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                    )
-                } else {
-                    StateMessage(message = stringResource(R.string.search_idle_hint), palette = MedallionPalettes.all[2])
-                }
-            },
+            empty = { SearchEmptyContent(phase = state.phase, resultsQuery = state.resultsQuery) },
             error = {
                 StateMessage(
                     message = stringResource(R.string.search_error),
@@ -241,6 +231,25 @@ private fun SearchResultsPreview() {
 @Composable
 private fun SearchNoResultsPreview() {
     NavoTheme {
+        SearchScreen(
+            state = SearchState(query = "zzz", phase = SearchPhase.NoResults, resultsQuery = "zzz"),
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(widthDp = 390, heightDp = 844)
+@Composable
+private fun SearchIdleLightPreview() {
+    NavoTheme(darkTheme = false) {
+        SearchScreen(state = SearchState(), onIntent = {})
+    }
+}
+
+@Preview(widthDp = 390, heightDp = 600)
+@Composable
+private fun SearchNoResultsLightPreview() {
+    NavoTheme(darkTheme = false) {
         SearchScreen(
             state = SearchState(query = "zzz", phase = SearchPhase.NoResults, resultsQuery = "zzz"),
             onIntent = {},
