@@ -14,6 +14,8 @@ import tj.umar.navoplayer.core.ui.artwork.ArtworkLoader
 internal suspend fun widgetArtwork(loader: ArtworkLoader, key: ArtworkKey, sizePx: Int): Bitmap =
     loader.load(key, sizePx)?.circleCropped(sizePx) ?: MedallionPalettes.forKey(key.trackId).renderBitmap(sizePx)
 
+internal fun ArtworkLoader.enabledWhen(enabled: Boolean): ArtworkLoader = if (enabled) this else ArtworkLoader.None
+
 internal fun Bitmap.circleCropped(sidePx: Int): Bitmap {
     val side = sidePx.coerceAtLeast(1)
     val output = Bitmap.createBitmap(side, side, Bitmap.Config.ARGB_8888)

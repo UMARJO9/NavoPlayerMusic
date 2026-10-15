@@ -72,14 +72,14 @@ class MainActivity : ComponentActivity() {
                 MainActivityUiState.Loading -> Unit
                 is MainActivityUiState.Ready -> {
                     LaunchedEffect(state.themeMode) { syncApplicationNightMode(state.themeMode) }
-                    ThemedApp(state.themeMode)
+                    ThemedApp(state.themeMode, state.showCoverArt)
                 }
             }
         }
     }
 
     @Composable
-    private fun ThemedApp(themeMode: ThemeMode) {
+    private fun ThemedApp(themeMode: ThemeMode, showCoverArt: Boolean) {
         val darkTheme = themeMode.resolveDarkTheme(isSystemInDarkTheme())
         NavoTheme(darkTheme = darkTheme) {
             val background = NavoTheme.colors.background.toArgb()
@@ -89,7 +89,7 @@ class MainActivity : ComponentActivity() {
                 applySystemBars(darkTheme)
                 window.setBackgroundDrawable(ColorDrawable(background))
             }
-            CompositionLocalProvider(LocalArtworkLoader provides artworkLoader) {
+            CompositionLocalProvider(LocalArtworkLoader provides if (showCoverArt) artworkLoader else ArtworkLoader.None) {
                 NavoApp(openNowPlayingRequests = openNowPlayingFlow)
             }
         }

@@ -6,6 +6,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import tj.umar.navoplayer.core.common.dispatchers.DefaultDispatcher
 import tj.umar.navoplayer.core.domain.usecase.ObserveNowPlayingUseCase
+import tj.umar.navoplayer.core.domain.usecase.ObserveShowCoverArtUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveThemeModeUseCase
 import tj.umar.navoplayer.core.ui.artwork.ArtworkLoader
 import tj.umar.navoplayer.feature.widget.action.WidgetCommandHandler
@@ -19,6 +20,7 @@ internal interface NavoWidgetEntryPoint {
     fun widgetCommandHandler(): WidgetCommandHandler
     fun widgetUpdater(): NavoWidgetUpdater
     fun artworkLoader(): ArtworkLoader
+    fun observeShowCoverArt(): ObserveShowCoverArtUseCase
 
     @DefaultDispatcher
     fun defaultDispatcher(): CoroutineDispatcher

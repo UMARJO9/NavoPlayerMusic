@@ -19,6 +19,7 @@ import androidx.glance.appwidget.provideContent
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
@@ -56,13 +57,15 @@ class NavoWidget : GlanceAppWidget() {
         val trackedNights = entryPoint.widgetUpdater().systemNightMode
         val loader = entryPoint.artworkLoader()
         val dispatcher = entryPoint.defaultDispatcher()
-        val artworks = states
-            .map { (it as? NavoWidgetUiState.Playing)?.artworkKey }
+        val showCoverArt = entryPoint.observeShowCoverArt()().catch { emit(true) }
+        val initialShowCoverArt = showCoverArt.first()
+        val artworkKeys = states.map { (it as? NavoWidgetUiState.Playing)?.artworkKey }.distinctUntilChanged()
+        val artworks = combine(artworkKeys, showCoverArt) { key, show -> key to show }
             .distinctUntilChanged()
-            .mapLatest { key -> key?.let { widgetArtwork(loader, it, artworkPx) } }
+            .mapLatest { (key, show) -> key?.let { widgetArtwork(loader.enabledWhen(show), it, artworkPx) } }
             .flowOn(dispatcher)
         val initialArtwork = (initial as? NavoWidgetUiState.Playing)?.artworkKey?.let { key ->
-            withContext(dispatcher) { widgetArtwork(loader, key, artworkPx) }
+            withContext(dispatcher) { widgetArtwork(loader.enabledWhen(initialShowCoverArt), key, artworkPx) }
         }
         provideContent {
             val state by states.collectAsState(initial)

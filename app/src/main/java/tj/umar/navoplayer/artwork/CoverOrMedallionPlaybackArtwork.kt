@@ -11,9 +11,13 @@ import javax.inject.Inject
 
 internal class CoverOrMedallionPlaybackArtwork @Inject constructor(
     private val source: AudioArtworkSource,
+    private val preference: CoverArtPreference,
 ) : PlaybackArtwork {
 
     override suspend fun load(key: ArtworkKey, sizePx: Int): Bitmap =
-        source.load(key, sizePx)
+        cover(key, sizePx)
             ?: MedallionPalettes.forKey(key.trackId).renderBitmap(minOf(sizePx, MAX_MEDALLION_BITMAP_PX), opaque = true)
+
+    private suspend fun cover(key: ArtworkKey, sizePx: Int): Bitmap? =
+        if (preference.enabled.value) source.load(key, sizePx) else null
 }

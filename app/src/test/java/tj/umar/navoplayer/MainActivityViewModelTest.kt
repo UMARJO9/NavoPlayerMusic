@@ -7,6 +7,7 @@ import org.junit.Rule
 import org.junit.Test
 import tj.umar.navoplayer.core.domain.model.ThemeMode
 import tj.umar.navoplayer.core.domain.model.UserSettings
+import tj.umar.navoplayer.core.domain.usecase.ObserveShowCoverArtUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveThemeModeUseCase
 import tj.umar.navoplayer.core.testing.MainDispatcherRule
 import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
@@ -18,7 +19,7 @@ class MainActivityViewModelTest {
 
     private val repository = FakeSettingsRepository()
 
-    private fun viewModel() = MainActivityViewModel(ObserveThemeModeUseCase(repository))
+    private fun viewModel() = MainActivityViewModel(ObserveThemeModeUseCase(repository), ObserveShowCoverArtUseCase(repository))
 
     @Test
     fun `starts loading before anyone collects`() {
@@ -45,6 +46,19 @@ class MainActivityViewModelTest {
 
         viewModel.uiState.test {
             assertEquals(MainActivityUiState.Ready(ThemeMode.Default), awaitItem())
+        }
+    }
+
+    @Test
+    fun `cover art setting is part of ready state`() = runTest {
+        repository.emit(UserSettings(themeMode = ThemeMode.Light, showCoverArt = false))
+        val viewModel = viewModel()
+
+        viewModel.uiState.test {
+            assertEquals(MainActivityUiState.Ready(ThemeMode.Light, showCoverArt = false), awaitItem())
+
+            repository.setShowCoverArt(true)
+            assertEquals(MainActivityUiState.Ready(ThemeMode.Light, showCoverArt = true), awaitItem())
         }
     }
 }

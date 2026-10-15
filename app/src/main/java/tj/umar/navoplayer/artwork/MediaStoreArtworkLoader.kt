@@ -8,9 +8,12 @@ import javax.inject.Inject
 
 internal class MediaStoreArtworkLoader @Inject constructor(
     private val source: AudioArtworkSource,
+    private val preference: CoverArtPreference,
 ) : ArtworkLoader {
 
-    override fun cached(key: ArtworkKey, sizePx: Int): Bitmap? = source.cached(key, sizePx)
+    override fun cached(key: ArtworkKey, sizePx: Int): Bitmap? =
+        if (preference.enabled.value) source.cached(key, sizePx) else null
 
-    override suspend fun load(key: ArtworkKey, sizePx: Int): Bitmap? = source.load(key, sizePx)
+    override suspend fun load(key: ArtworkKey, sizePx: Int): Bitmap? =
+        if (preference.enabled.value) source.load(key, sizePx) else null
 }

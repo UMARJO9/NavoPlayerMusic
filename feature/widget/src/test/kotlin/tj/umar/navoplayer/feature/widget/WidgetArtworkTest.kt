@@ -58,4 +58,14 @@ class WidgetArtworkTest {
         assertEquals(Color.BLUE, cover.getPixel(0, 0))
         assertEquals(Color.BLUE, cropped.getPixel(10, 10))
     }
+
+    @Test
+    fun `disabled cover art skips the loader`() = runTest {
+        val loader = StubArtworkLoader(Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888))
+
+        val result = widgetArtwork(loader.enabledWhen(false), ArtworkKey(1, 10), 100)
+
+        assertEquals(100, result.width)
+        assertEquals(emptyList<Pair<ArtworkKey, Int>>(), loader.requests)
+    }
 }
