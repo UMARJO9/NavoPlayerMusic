@@ -1,5 +1,14 @@
 package tj.umar.navoplayer.feature.playlists.component
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,8 +24,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -30,6 +39,9 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.ui.R as CoreUiR
 import tj.umar.navoplayer.feature.playlists.R
+
+private const val TITLE_FADE_IN_MILLIS = 220
+private const val TITLE_FADE_OUT_MILLIS = 120
 
 @Composable
 internal fun CollectionHeader(
@@ -49,15 +61,33 @@ internal fun CollectionHeader(
         Box(modifier = Modifier.collapsingHeader(collapse, motion)) {
             artwork()
         }
-        Text(
-            text = title,
-            style = NavoTheme.typography.displayM,
-            color = NavoTheme.colors.content,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.semantics { heading() },
-        )
+        AnimatedContent(
+            targetState = title,
+            transitionSpec = {
+                if (motion) {
+                    (fadeIn(tween(TITLE_FADE_IN_MILLIS)) + slideInVertically { it / 4 })
+                        .togetherWith(fadeOut(tween(TITLE_FADE_OUT_MILLIS)))
+                        .using(SizeTransform(clip = false))
+                } else {
+                    EnterTransition.None togetherWith ExitTransition.None
+                }
+            },
+            contentAlignment = Alignment.Center,
+            label = "collectionTitle",
+            modifier = Modifier.clearAndSetSemantics {
+                heading()
+                contentDescription = title
+            },
+        ) { shownTitle ->
+            Text(
+                text = shownTitle,
+                style = NavoTheme.typography.displayM,
+                color = NavoTheme.colors.content,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
