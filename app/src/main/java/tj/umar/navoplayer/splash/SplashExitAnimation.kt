@@ -26,18 +26,22 @@ internal fun SplashScreenViewProvider.playNavoExitAnimation(
         onRemoved()
         return
     }
-    val icon = runCatching { iconView }.getOrNull()
-    val animators = listOfNotNull(
-        icon?.let(::iconExitAnimator),
-        backgroundExitAnimator(view),
-    )
-    AnimatorSet().apply {
-        startDelay = splashExitStartDelayMillis(
-            nowMillis = nowMillis,
-            iconAnimationStartMillis = iconAnimationStartMillis,
-            iconAnimationDurationMillis = iconAnimationDurationMillis,
-        )
-        playTogether(animators)
+    val exit = runCatching {
+        AnimatorSet().apply {
+            playTogether(iconExitAnimator(iconView), backgroundExitAnimator(view))
+            startDelay = splashExitStartDelayMillis(
+                nowMillis = nowMillis,
+                iconAnimationStartMillis = iconAnimationStartMillis,
+                iconAnimationDurationMillis = iconAnimationDurationMillis,
+            )
+        }
+    }.getOrNull()
+    if (exit == null) {
+        remove()
+        onRemoved()
+        return
+    }
+    exit.apply {
         doOnEnd {
             remove()
             onRemoved()
