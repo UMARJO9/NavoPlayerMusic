@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +38,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.filter
+import tj.umar.navoplayer.core.designsystem.animation.rememberMotionEnabled
 import tj.umar.navoplayer.core.designsystem.component.ContentPhase
 import tj.umar.navoplayer.core.designsystem.component.GroupRow
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
@@ -140,6 +141,8 @@ private fun SearchState.contentPhase(): ContentPhase = when (phase) {
 private fun SearchResultsList(state: SearchState, onIntent: (SearchIntent) -> Unit, onScroll: () -> Unit) {
     val listState = rememberLazyListState()
     val trackOptionsLabel = stringResource(CoreUiR.string.core_ui_track_options)
+    val motionEnabled = rememberMotionEnabled()
+    val entrance = rememberResultsEntrance()
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrollInProgress }.filter { it }.collect { onScroll() }
     }
@@ -152,17 +155,35 @@ private fun SearchResultsList(state: SearchState, onIntent: (SearchIntent) -> Un
         contentPadding = navoListPadding(state.hasActivePlayback),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        groupSection("artists", R.string.search_section_artists, state.artists, state.artistCount, onIntent)
-        groupSection("albums", R.string.search_section_albums, state.albums, state.albumCount, onIntent)
+        val motion = ResultsMotion(enabled = motionEnabled, entrance = entrance)
+        val albumsStart = groupSection(
+            "artists",
+            R.string.search_section_artists,
+            state.artists,
+            state.artistCount,
+            startIndex = 0,
+            motion = motion,
+            onIntent = onIntent,
+        )
+        val tracksStart = groupSection(
+            "albums",
+            R.string.search_section_albums,
+            state.albums,
+            state.albumCount,
+            startIndex = albumsStart,
+            motion = motion,
+            onIntent = onIntent,
+        )
         if (state.tracks.isNotEmpty()) {
             item(key = "header:tracks", contentType = "header") {
                 SectionHeader(
                     title = stringResource(R.string.search_section_tracks),
                     count = state.tracks.size,
-                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                    modifier = resultItem(tracksStart, motion.enabled, motion.entrance)
+                        .semantics { liveRegion = LiveRegionMode.Polite },
                 )
             }
-            items(state.tracks, key = { "t:${it.id}" }, contentType = { "track" }) { track ->
+            itemsIndexed(state.tracks, key = { _, track -> "t:${track.id}" }, contentType = { _, _ -> "track" }) { index, track ->
                 TrackListItem(
                     track = track,
                     isCurrent = track.id == state.currentTrackId,
@@ -170,33 +191,42 @@ private fun SearchResultsList(state: SearchState, onIntent: (SearchIntent) -> Un
                     onClick = { onIntent(SearchIntent.TrackClicked(track.id)) },
                     onLongClick = { onIntent(SearchIntent.TrackLongPressed(track.id)) },
                     onLongClickLabel = trackOptionsLabel,
-                    modifier = Modifier.animateItem(),
+                    modifier = resultItem(tracksStart + 1 + index, motion.enabled, motion.entrance),
                 )
             }
         }
     }
 }
 
+private class ResultsMotion(val enabled: Boolean, val entrance: () -> Float)
+
 private fun LazyListScope.groupSection(
     name: String,
     titleRes: Int,
     groups: List<TrackGroup>,
     totalCount: Int,
+    startIndex: Int,
+    motion: ResultsMotion,
     onIntent: (SearchIntent) -> Unit,
-) {
-    if (groups.isEmpty()) return
+): Int {
+    if (groups.isEmpty()) return startIndex
     item(key = "header:$name", contentType = "header") {
-        SectionHeader(title = stringResource(titleRes), count = maxOf(totalCount, groups.size))
+        SectionHeader(
+            title = stringResource(titleRes),
+            count = maxOf(totalCount, groups.size),
+            modifier = resultItem(startIndex, motion.enabled, motion.entrance),
+        )
     }
-    items(groups, key = { "$name:${it.key.stableKey()}" }, contentType = { "group" }) { group ->
+    itemsIndexed(groups, key = { _, group -> "$name:${group.key.stableKey()}" }, contentType = { _, _ -> "group" }) { index, group ->
         GroupRow(
             title = group.displayTitle(),
             subtitle = group.displaySubtitle(),
             leading = group.key.leading(),
             onClick = { onIntent(SearchIntent.GroupClicked(group.key)) },
-            modifier = Modifier.animateItem(),
+            modifier = resultItem(startIndex + 1 + index, motion.enabled, motion.entrance),
         )
     }
+    return startIndex + 1 + groups.size
 }
 
 @Composable
