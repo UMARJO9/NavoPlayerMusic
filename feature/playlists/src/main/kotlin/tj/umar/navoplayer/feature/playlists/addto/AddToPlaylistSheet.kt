@@ -79,6 +79,7 @@ internal fun AddToPlaylistSheet(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val entrance = rememberListEntrance()
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
@@ -94,15 +95,18 @@ internal fun AddToPlaylistSheet(
                 onCancel = { onIntent(AddToPlaylistIntent.NameFormDismissed) },
             )
         } else {
-            AddToPlaylistContent(state = state, onIntent = onIntent)
+            AddToPlaylistContent(state = state, onIntent = onIntent, entrance = entrance)
         }
     }
 }
 
 @Composable
-internal fun AddToPlaylistContent(state: AddToPlaylistState, onIntent: (AddToPlaylistIntent) -> Unit) {
+internal fun AddToPlaylistContent(
+    state: AddToPlaylistState,
+    onIntent: (AddToPlaylistIntent) -> Unit,
+    entrance: () -> Float = rememberListEntrance(),
+) {
     val motion = rememberMotionEnabled()
-    val entrance = rememberListEntrance()
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(start = 8.dp, end = 8.dp, bottom = NavoSpacing.Large),
