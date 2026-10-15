@@ -24,7 +24,7 @@ class MainActivityViewModel @Inject constructor(
     val uiState: StateFlow<MainActivityUiState> = combine(observeThemeMode(), observeShowCoverArt()) { themeMode, showCoverArt ->
         MainActivityUiState.Ready(themeMode, showCoverArt)
     }
-        .catch<MainActivityUiState> { emit(MainActivityUiState.Ready(ThemeMode.Default)) }
+        .catch<MainActivityUiState> { emit(MainActivityUiState.Ready(ThemeMode.Default, showCoverArt = true)) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), MainActivityUiState.Loading)
 }
 
@@ -32,6 +32,6 @@ sealed interface MainActivityUiState {
     data object Loading : MainActivityUiState
     data class Ready(
         val themeMode: ThemeMode,
-        val showCoverArt: Boolean = true,
+        val showCoverArt: Boolean,
     ) : MainActivityUiState
 }

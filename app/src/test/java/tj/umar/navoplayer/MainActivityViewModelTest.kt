@@ -32,10 +32,10 @@ class MainActivityViewModelTest {
         val viewModel = viewModel()
 
         viewModel.uiState.test {
-            assertEquals(MainActivityUiState.Ready(ThemeMode.Light), awaitItem())
+            assertEquals(MainActivityUiState.Ready(ThemeMode.Light, showCoverArt = true), awaitItem())
 
             repository.setThemeMode(ThemeMode.System)
-            assertEquals(MainActivityUiState.Ready(ThemeMode.System), awaitItem())
+            assertEquals(MainActivityUiState.Ready(ThemeMode.System, showCoverArt = true), awaitItem())
         }
     }
 
@@ -45,7 +45,7 @@ class MainActivityViewModelTest {
         val viewModel = viewModel()
 
         viewModel.uiState.test {
-            assertEquals(MainActivityUiState.Ready(ThemeMode.Default), awaitItem())
+            assertEquals(MainActivityUiState.Ready(ThemeMode.Default, showCoverArt = true), awaitItem())
         }
     }
 
