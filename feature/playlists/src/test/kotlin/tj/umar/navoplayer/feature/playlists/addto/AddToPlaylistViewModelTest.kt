@@ -268,15 +268,91 @@ class AddToPlaylistViewModelTest {
     fun `favorite toggle leaves playlist marks untouched`() = runTest {
         opened(TestTracks.beta.id)
         viewModel.effects.test {
-            viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
-            awaitItem()
             viewModel.onIntent(AddToPlaylistIntent.FavoriteClicked)
             assertEquals(AddToPlaylistEffect.FavoriteChanged(1, true), awaitItem())
         }
 
         val state = viewModel.state.value
         assertNull(state.savingPlaylistId)
-        assertEquals(TestPlaylists.morning.id, state.addedPlaylistId)
+        assertNull(state.addedPlaylistId)
+    }
+
+    @Test
+    fun `actions are ignored after successful add`() = runTest {
+        opened(TestTracks.beta.id)
+
+        viewModel.effects.test {
+            viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
+            awaitItem()
+            viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.empty.id))
+            viewModel.onIntent(AddToPlaylistIntent.FavoriteClicked)
+            viewModel.onIntent(AddToPlaylistIntent.NewPlaylistClicked)
+            expectNoEvents()
+        }
+        val state = viewModel.state.value
+        assertTrue(state.isClosing)
+        assertFalse(state.isNameFormVisible)
+        assertEquals(1, playlists.writeCalls)
+        assertEquals(0, favorites.writeCalls)
+    }
+
+    @Test
+    fun `actions are ignored after favorite change`() = runTest {
+        opened(TestTracks.beta.id)
+
+        viewModel.effects.test {
+            viewModel.onIntent(AddToPlaylistIntent.FavoriteClicked)
+            awaitItem()
+            viewModel.onIntent(AddToPlaylistIntent.FavoriteClicked)
+            viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
+            expectNoEvents()
+        }
+        assertTrue(viewModel.state.value.isClosing)
+        assertEquals(1, favorites.writeCalls)
+        assertEquals(0, playlists.writeCalls)
+    }
+
+    @Test
+    fun `reopening unlocks sheet`() = runTest {
+        val request = opened(TestTracks.beta.id)
+        viewModel.effects.test {
+            viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
+            awaitItem()
+        }
+
+        viewModel.onIntent(AddToPlaylistIntent.Opened(request))
+
+        assertFalse(viewModel.state.value.isClosing)
+    }
+
+    @Test
+    fun `created playlist leaves added mark empty`() = runTest {
+        opened(TestTracks.beta.id)
+
+        viewModel.effects.test {
+            viewModel.onIntent(AddToPlaylistIntent.NewPlaylistConfirmed("Дорога"))
+            assertEquals(AddToPlaylistEffect.Created(1, "Дорога"), awaitItem())
+        }
+        assertNull(viewModel.state.value.addedPlaylistId)
+        assertNull(viewModel.state.value.savingPlaylistId)
+    }
+
+    @Test
+    fun `stale result keeps saving mark of new request`() = runTest {
+        opened(TestTracks.beta.id)
+        val firstGate = CompletableDeferred<Unit>()
+        playlists.writeGate = firstGate
+        viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
+
+        opened(TestTracks.longMix.id)
+        val secondGate = CompletableDeferred<Unit>()
+        playlists.writeGate = secondGate
+        viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.empty.id))
+        firstGate.complete(Unit)
+
+        assertEquals(TestPlaylists.empty.id, viewModel.state.value.savingPlaylistId)
+        assertTrue(viewModel.state.value.isSaving)
+        secondGate.complete(Unit)
     }
 
     @Test

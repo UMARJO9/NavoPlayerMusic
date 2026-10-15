@@ -15,7 +15,11 @@ internal data class AddToPlaylistState(
     val isFavorite: Boolean? = null,
     val savingPlaylistId: Long? = null,
     val addedPlaylistId: Long? = null,
+    val isClosing: Boolean = false,
 ) {
+    val isLocked: Boolean
+        get() = isSaving || isClosing
+
     val favoriteTrackId: Long?
         get() = trackIds.singleOrNull()
 }

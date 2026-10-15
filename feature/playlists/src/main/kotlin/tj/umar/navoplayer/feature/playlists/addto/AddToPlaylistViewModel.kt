@@ -33,7 +33,7 @@ internal class AddToPlaylistViewModel @Inject constructor(
             is AddToPlaylistIntent.Opened -> onOpened(intent.request)
             is AddToPlaylistIntent.PlaylistClicked -> onPlaylistClicked(intent.playlistId)
             AddToPlaylistIntent.FavoriteClicked -> onFavoriteClicked()
-            AddToPlaylistIntent.NewPlaylistClicked -> setState { copy(isNameFormVisible = true) }
+            AddToPlaylistIntent.NewPlaylistClicked -> if (!currentState.isClosing) setState { copy(isNameFormVisible = true) }
             AddToPlaylistIntent.NameFormDismissed -> setState { copy(isNameFormVisible = false) }
             is AddToPlaylistIntent.NewPlaylistConfirmed -> onNewPlaylistConfirmed(intent.name)
             AddToPlaylistIntent.RetryLoad -> startObserving()
@@ -46,7 +46,7 @@ internal class AddToPlaylistViewModel @Inject constructor(
             stopObserving()
             setState { AddToPlaylistState(token = request.token, trackIds = request.trackIds) }
         } else {
-            setState { copy(addedPlaylistId = null) }
+            setState { copy(addedPlaylistId = null, isClosing = false) }
         }
         startObserving()
     }
@@ -54,7 +54,7 @@ internal class AddToPlaylistViewModel @Inject constructor(
     private fun onPlaylistClicked(playlistId: Long) {
         val state = currentState
         val token = state.token ?: return
-        if (state.isSaving || state.trackIds.isEmpty()) return
+        if (state.isLocked || state.trackIds.isEmpty()) return
         val playlist = state.playlists.firstOrNull { it.id == playlistId } ?: return
         setState { copy(isSaving = true, savingPlaylistId = playlistId, addedPlaylistId = null) }
         viewModelScope.launch {
@@ -69,7 +69,7 @@ internal class AddToPlaylistViewModel @Inject constructor(
     private fun onNewPlaylistConfirmed(name: String) {
         val state = currentState
         val token = state.token ?: return
-        if (state.isSaving) return
+        if (state.isLocked) return
         setState { copy(isSaving = true, isNameFormVisible = false) }
         viewModelScope.launch {
             val effect = when (val result = createPlaylist(name, state.trackIds)) {
@@ -85,7 +85,7 @@ internal class AddToPlaylistViewModel @Inject constructor(
         val token = state.token ?: return
         val trackId = state.favoriteTrackId ?: return
         val isFavorite = state.isFavorite ?: return
-        if (state.isSaving) return
+        if (state.isLocked) return
         val target = !isFavorite
         setState { copy(isSaving = true) }
         viewModelScope.launch {
@@ -110,7 +110,13 @@ internal class AddToPlaylistViewModel @Inject constructor(
         if (effect.token != currentState.token) return
         setState {
             when (effect) {
-                is AddToPlaylistEffect.Added -> copy(isSaving = false, savingPlaylistId = null, addedPlaylistId = savingPlaylistId)
+                is AddToPlaylistEffect.Added -> copy(
+                    isSaving = false,
+                    savingPlaylistId = null,
+                    addedPlaylistId = savingPlaylistId,
+                    isClosing = true,
+                )
+                is AddToPlaylistEffect.FavoriteChanged -> copy(isSaving = false, savingPlaylistId = null, isClosing = true)
                 is AddToPlaylistEffect.Failed -> copy(isSaving = false, savingPlaylistId = null, addedPlaylistId = null)
                 else -> copy(isSaving = false, savingPlaylistId = null)
             }

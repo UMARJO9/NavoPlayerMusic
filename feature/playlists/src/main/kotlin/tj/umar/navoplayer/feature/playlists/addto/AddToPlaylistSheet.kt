@@ -126,7 +126,7 @@ internal fun AddToPlaylistContent(state: AddToPlaylistState, onIntent: (AddToPla
                     label = stringResource(
                         if (isFavorite) R.string.playlists_sheet_favorite_remove else R.string.playlists_sheet_favorite_add,
                     ),
-                    enabled = !state.isSaving && state.isFavorite != null,
+                    enabled = !state.isLocked && state.isFavorite != null,
                     onClick = { onIntent(AddToPlaylistIntent.FavoriteClicked) },
                     modifier = Modifier.semantics { selected = isFavorite },
                 )
@@ -136,7 +136,7 @@ internal fun AddToPlaylistContent(state: AddToPlaylistState, onIntent: (AddToPla
             ActionRow(
                 icon = NavoIcons.Plus,
                 label = stringResource(CoreUiR.string.core_ui_new_playlist),
-                enabled = !state.isSaving,
+                enabled = !state.isLocked,
                 onClick = { onIntent(AddToPlaylistIntent.NewPlaylistClicked) },
             )
         }
