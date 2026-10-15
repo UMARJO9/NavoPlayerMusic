@@ -10,7 +10,6 @@ import android.provider.MediaStore
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import java.io.FileNotFoundException
-import kotlin.coroutines.cancellation.CancellationException
 
 internal class LegacyArtworkDecoder(
     private val context: Context,
@@ -26,6 +25,8 @@ internal class LegacyArtworkDecoder(
         } catch (e: FileNotFoundException) {
             null
         } catch (e: IllegalArgumentException) {
+            null
+        } catch (e: SecurityException) {
             null
         }
     }
@@ -43,8 +44,6 @@ internal class LegacyArtworkDecoder(
         return try {
             retriever.setDataSource(context, uri)
             retriever.embeddedPicture
-        } catch (e: CancellationException) {
-            throw e
         } catch (e: SecurityException) {
             throw e
         } catch (e: RuntimeException) {

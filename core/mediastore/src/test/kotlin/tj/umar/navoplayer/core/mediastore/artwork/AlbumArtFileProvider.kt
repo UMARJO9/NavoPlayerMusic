@@ -13,6 +13,7 @@ class AlbumArtFileProvider : ContentProvider() {
     override fun onCreate(): Boolean = true
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {
+        if (denied) throw SecurityException(uri.toString())
         val content = files[uri.lastPathSegment?.toLongOrNull()] ?: throw FileNotFoundException(uri.toString())
         val file = File.createTempFile("album-art", ".bin").apply {
             deleteOnExit()
@@ -39,5 +40,6 @@ class AlbumArtFileProvider : ContentProvider() {
 
     companion object {
         var files: Map<Long, ByteArray> = emptyMap()
+        var denied: Boolean = false
     }
 }

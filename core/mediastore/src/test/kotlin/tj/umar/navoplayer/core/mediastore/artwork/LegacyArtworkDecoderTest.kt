@@ -25,6 +25,7 @@ class LegacyArtworkDecoderTest {
     @After
     fun tearDown() {
         AlbumArtFileProvider.files = emptyMap()
+        AlbumArtFileProvider.denied = false
     }
 
     @Test
@@ -32,6 +33,14 @@ class LegacyArtworkDecoderTest {
         Robolectric.setupContentProvider(AlbumArtFileProvider::class.java, MediaStore.AUTHORITY)
 
         assertNull(decoder.album(albumId = 1, targetPx = 256))
+    }
+
+    @Test
+    fun `denied album art decodes to null`() = runTest {
+        Robolectric.setupContentProvider(AlbumArtFileProvider::class.java, MediaStore.AUTHORITY)
+        AlbumArtFileProvider.denied = true
+
+        assertNull(decoder.album(albumId = 5, targetPx = 256))
     }
 
     @Test
