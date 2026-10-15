@@ -44,7 +44,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import tj.umar.navoplayer.core.designsystem.animation.rememberMotionEnabled
 import tj.umar.navoplayer.core.designsystem.component.ContentPhase
 import tj.umar.navoplayer.core.designsystem.component.NavoChip
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
@@ -64,7 +63,6 @@ import tj.umar.navoplayer.core.designsystem.medallion.Medallion
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.medallion.OrnamentDivider
 import tj.umar.navoplayer.core.designsystem.medallion.khotamWatermark
-import tj.umar.navoplayer.core.designsystem.medallion.rememberMedallionRotation
 import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.MinTrackDuration
@@ -73,9 +71,7 @@ import tj.umar.navoplayer.feature.settings.R
 import tj.umar.navoplayer.core.designsystem.R as DesignSystemR
 
 private const val HEADER_ITEM_KEY = "header"
-private const val HEADER_MEDALLION_PERIOD_MILLIS = 60_000
 private const val WATERMARK_ALPHA = 0.10f
-private val HeaderMedallionSize = 56.dp
 private val FooterMedallionSize = 40.dp
 private val CompactTitleThreshold = 96.dp
 private val BackButtonSize = 48.dp
@@ -256,10 +252,6 @@ private fun SettingsCompactBar(
 @Composable
 private fun SettingsHeader() {
     val colors = NavoTheme.colors
-    val rotation = rememberMedallionRotation(
-        running = rememberMotionEnabled(),
-        periodMillis = HEADER_MEDALLION_PERIOD_MILLIS,
-    )
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -271,12 +263,6 @@ private fun SettingsHeader() {
             .padding(start = NavoSpacing.ScreenHorizontal, end = NavoSpacing.ScreenHorizontal, top = 8.dp, bottom = 4.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Medallion(
-            palette = MedallionPalettes.all[2],
-            rotationDegrees = rotation,
-            modifier = Modifier.size(HeaderMedallionSize),
-        )
-        Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = stringResource(R.string.settings_title),
             style = NavoTheme.typography.displayM,
