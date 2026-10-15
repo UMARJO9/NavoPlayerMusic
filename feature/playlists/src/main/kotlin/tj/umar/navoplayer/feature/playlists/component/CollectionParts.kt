@@ -28,9 +28,9 @@ import tj.umar.navoplayer.core.ui.R as CoreUiR
 import tj.umar.navoplayer.feature.playlists.R
 
 @Composable
-internal fun CollectionHeader(title: String, artwork: @Composable () -> Unit) {
+internal fun CollectionHeader(title: String, modifier: Modifier = Modifier, artwork: @Composable () -> Unit) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = NavoSpacing.Medium, vertical = NavoSpacing.Small),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -56,11 +56,12 @@ internal fun CollectionSummary(
     isPlaying: Boolean,
     onPlay: () -> Unit,
     onShuffle: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val colors = NavoTheme.colors
     val typography = NavoTheme.typography
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(start = NavoSummaryHorizontalPadding, top = 12.dp, end = NavoSummaryHorizontalPadding, bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -99,9 +100,9 @@ internal fun CollectionSummary(
 }
 
 @Composable
-internal fun CollectionEmptyNote(title: String, hint: String) {
+internal fun CollectionEmptyNote(title: String, hint: String, modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = NavoSpacing.Large, vertical = NavoSpacing.Large),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -123,13 +124,13 @@ internal fun CollectionEmptyNote(title: String, hint: String) {
 }
 
 @Composable
-internal fun UnavailableTracksNote(count: Int) {
+internal fun UnavailableTracksNote(count: Int, modifier: Modifier = Modifier) {
     Text(
         text = pluralStringResource(R.plurals.playlists_unavailable_count, count, count),
         style = NavoTheme.typography.caption,
         color = NavoTheme.colors.contentMuted,
         textAlign = TextAlign.Center,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = NavoSpacing.Medium, vertical = NavoSpacing.Medium),
     )

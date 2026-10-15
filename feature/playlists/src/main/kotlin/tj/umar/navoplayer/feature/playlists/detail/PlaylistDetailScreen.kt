@@ -1,5 +1,8 @@
 package tj.umar.navoplayer.feature.playlists.detail
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,20 +19,25 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import tj.umar.navoplayer.core.designsystem.animation.animatedListItem
+import tj.umar.navoplayer.core.designsystem.animation.rememberListEntrance
+import tj.umar.navoplayer.core.designsystem.animation.rememberMotionEnabled
 import tj.umar.navoplayer.core.designsystem.component.ContentPhase
 import tj.umar.navoplayer.core.designsystem.component.NavoConfirmDialog
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
@@ -50,7 +58,12 @@ import tj.umar.navoplayer.feature.playlists.R
 import tj.umar.navoplayer.feature.playlists.component.CollectionEmptyNote
 import tj.umar.navoplayer.feature.playlists.component.CollectionHeader
 import tj.umar.navoplayer.feature.playlists.component.CollectionSummary
+import tj.umar.navoplayer.feature.playlists.component.HEADER_ITEM_KEY
 import tj.umar.navoplayer.feature.playlists.component.UnavailableTracksNote
+
+private const val SETTLE_START_DEGREES = -18f
+private const val SETTLE_MILLIS = 600
+private val SettleEasing = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
 
 @Composable
 internal fun PlaylistDetailScreen(
@@ -153,27 +166,35 @@ private fun PlaylistTrackList(
     onIntent: (PlaylistDetailIntent) -> Unit,
 ) {
     val removeLabel = stringResource(R.string.playlists_remove_track_label)
+    val motion = rememberMotionEnabled()
+    val entrance = rememberListEntrance()
+    val settle = rememberMedallionSettle(key = playlist.id, motion = motion)
+    val trackCount = playlist.tracks.size
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = navoListPadding(state.hasActivePlayback),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        item(key = "header", contentType = "header") {
-            CollectionHeader(title = playlist.name) {
+        item(key = HEADER_ITEM_KEY, contentType = "header") {
+            CollectionHeader(
+                title = playlist.name,
+                modifier = Modifier.animatedListItem(this, 0, motion, entrance),
+            ) {
                 val palette = remember(playlist.id) { MedallionPalettes.forKey(playlist.id) }
-                Medallion(palette = palette, modifier = Modifier.size(104.dp))
+                Medallion(palette = palette, modifier = Modifier.size(104.dp), rotationDegrees = settle)
             }
         }
         item(key = "summary", contentType = "summary") {
             CollectionSummary(
-                trackCount = playlist.tracks.size,
+                trackCount = trackCount,
                 totalMinutes = state.totalMinutes,
                 isPlaying = state.isPlaylistPlaying,
                 onPlay = { onIntent(PlaylistDetailIntent.PlayClicked) },
                 onShuffle = { onIntent(PlaylistDetailIntent.ShuffleClicked) },
+                modifier = Modifier.animatedListItem(this, 1, motion, entrance),
             )
         }
-        items(playlist.tracks, key = { it.id }, contentType = { "track" }) { track ->
+        itemsIndexed(playlist.tracks, key = { _, track -> track.id }, contentType = { _, _ -> "track" }) { index, track ->
             TrackListItem(
                 track = track,
                 isCurrent = track.id == state.currentTrackId,
@@ -181,7 +202,7 @@ private fun PlaylistTrackList(
                 onClick = { onIntent(PlaylistDetailIntent.TrackClicked(track.id)) },
                 onLongClick = { onIntent(PlaylistDetailIntent.TrackLongPressed(track.id)) },
                 onLongClickLabel = removeLabel,
-                modifier = Modifier.animateItem(),
+                modifier = Modifier.animatedListItem(this, 2 + index, motion, entrance),
             )
         }
         if (playlist.tracks.isEmpty() && playlist.missingTrackCount == 0) {
@@ -189,15 +210,34 @@ private fun PlaylistTrackList(
                 CollectionEmptyNote(
                     title = stringResource(R.string.playlists_empty),
                     hint = stringResource(R.string.playlists_empty_hint),
+                    modifier = Modifier.animatedListItem(this, 2 + trackCount, motion, entrance),
                 )
             }
         }
         if (playlist.missingTrackCount > 0) {
             item(key = "missing", contentType = "note") {
-                UnavailableTracksNote(count = playlist.missingTrackCount)
+                UnavailableTracksNote(
+                    count = playlist.missingTrackCount,
+                    modifier = Modifier.animatedListItem(this, 2 + trackCount, motion, entrance),
+                )
             }
         }
     }
+}
+
+@Composable
+private fun rememberMedallionSettle(key: Long, motion: Boolean): () -> Float {
+    var settled by rememberSaveable(key) { mutableStateOf(false) }
+    val rotation = remember(key) { Animatable(if (settled || !motion) 0f else SETTLE_START_DEGREES) }
+    LaunchedEffect(key, motion) {
+        if (motion) {
+            rotation.animateTo(0f, tween(SETTLE_MILLIS, easing = SettleEasing))
+        } else {
+            rotation.snapTo(0f)
+        }
+        settled = true
+    }
+    return remember(rotation) { { rotation.value } }
 }
 
 @Composable
