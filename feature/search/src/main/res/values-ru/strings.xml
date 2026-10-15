@@ -10,4 +10,10 @@
     <string name="search_error">Не удалось загрузить музыку</string>
     <string name="search_retry">Повторить</string>
     <string name="search_loading">Ищем…</string>
+    <plurals name="search_results_count">
+        <item quantity="one">%d результат</item>
+        <item quantity="few">%d результата</item>
+        <item quantity="many">%d результатов</item>
+        <item quantity="other">%d результата</item>
+    </plurals>
 </resources>

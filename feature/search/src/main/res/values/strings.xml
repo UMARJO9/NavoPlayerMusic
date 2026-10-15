@@ -11,4 +11,8 @@
     <string name="search_error">Couldn\'t load your music</string>
     <string name="search_retry">Try again</string>
     <string name="search_loading">Searching…</string>
+    <plurals name="search_results_count">
+        <item quantity="one">%d result</item>
+        <item quantity="other">%d results</item>
+    </plurals>
 </resources>

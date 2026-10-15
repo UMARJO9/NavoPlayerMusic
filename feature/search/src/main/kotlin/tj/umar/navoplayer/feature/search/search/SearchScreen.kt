@@ -2,6 +2,7 @@ package tj.umar.navoplayer.feature.search.search
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -12,8 +13,10 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -30,7 +33,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
@@ -149,13 +155,26 @@ private fun SearchResultsList(state: SearchState, onIntent: (SearchIntent) -> Un
     LaunchedEffect(state.resultsQuery) {
         listState.scrollToItem(0)
     }
+    Box(modifier = Modifier.fillMaxSize()) {
+        ResultsColumn(state, listState, trackOptionsLabel, ResultsMotion(motionEnabled, entrance), onIntent)
+        ResultCountAnnouncement(state.totalResultCount())
+    }
+}
+
+@Composable
+private fun ResultsColumn(
+    state: SearchState,
+    listState: LazyListState,
+    trackOptionsLabel: String,
+    motion: ResultsMotion,
+    onIntent: (SearchIntent) -> Unit,
+) {
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = navoListPadding(state.hasActivePlayback),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        val motion = ResultsMotion(enabled = motionEnabled, entrance = entrance)
         val albumsStart = groupSection(
             "artists",
             R.string.search_section_artists,
@@ -179,8 +198,7 @@ private fun SearchResultsList(state: SearchState, onIntent: (SearchIntent) -> Un
                 SectionHeader(
                     title = stringResource(R.string.search_section_tracks),
                     count = state.tracks.size,
-                    modifier = resultItem(tracksStart, motion.enabled, motion.entrance)
-                        .semantics { liveRegion = LiveRegionMode.Polite },
+                    modifier = resultItem(tracksStart, motion.enabled, motion.entrance),
                 )
             }
             itemsIndexed(state.tracks, key = { _, track -> "t:${track.id}" }, contentType = { _, _ -> "track" }) { index, track ->
@@ -196,6 +214,22 @@ private fun SearchResultsList(state: SearchState, onIntent: (SearchIntent) -> Un
             }
         }
     }
+}
+
+private fun SearchState.totalResultCount(): Int =
+    tracks.size + maxOf(albumCount, albums.size) + maxOf(artistCount, artists.size)
+
+@Composable
+private fun ResultCountAnnouncement(total: Int) {
+    val announcement = pluralStringResource(R.plurals.search_results_count, total, total)
+    Box(
+        modifier = Modifier
+            .size(1.dp)
+            .clearAndSetSemantics {
+                contentDescription = announcement
+                liveRegion = LiveRegionMode.Polite
+            },
+    )
 }
 
 private class ResultsMotion(val enabled: Boolean, val entrance: () -> Float)
