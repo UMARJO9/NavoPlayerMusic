@@ -1,6 +1,7 @@
 package tj.umar.navoplayer.core.mediastore.artwork
 
 import android.graphics.Bitmap
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -45,7 +46,9 @@ internal class MediaStoreArtworkSource @Inject constructor(
         val generation = libraryGeneration.get()
         val bitmap = try {
             decode(key, bucketPx)
-        } catch (e: SecurityException) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: RuntimeException) {
             return null
         }
         when {

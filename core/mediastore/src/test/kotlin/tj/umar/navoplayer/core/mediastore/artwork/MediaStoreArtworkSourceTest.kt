@@ -1,6 +1,8 @@
 package tj.umar.navoplayer.core.mediastore.artwork
 
 import android.graphics.Bitmap
+import android.os.OperationCanceledException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -80,6 +82,37 @@ class MediaStoreArtworkSourceTest {
 
         assertSame(art, source.load(looseTrack, 200))
         assertEquals(listOf("track:1", "track:1"), decoder.calls)
+    }
+
+    @Test
+    fun `unexpected decode failures are not cached`() = runTest {
+        val source = source()
+        val failures = listOf(
+            OperationCanceledException(),
+            IllegalArgumentException("bad uri"),
+            UnsupportedOperationException("no provider"),
+        )
+
+        failures.forEach { failure ->
+            decoder.failure = failure
+            assertNull(source.load(looseTrack, 200))
+        }
+        decoder.failure = null
+        val art = bitmap()
+        decoder.trackBitmaps[1] = art
+
+        assertSame(art, source.load(looseTrack, 200))
+        assertEquals(4, decoder.calls.size)
+    }
+
+    @Test
+    fun `decoder cancellation is rethrown`() = runTest {
+        val source = source()
+        decoder.failure = CancellationException("stopped")
+
+        val failure = runCatching { source.load(looseTrack, 200) }.exceptionOrNull()
+
+        assertTrue(failure is CancellationException)
     }
 
     @Test
