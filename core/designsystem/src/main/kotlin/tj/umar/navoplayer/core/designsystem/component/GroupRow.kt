@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -27,7 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
-import tj.umar.navoplayer.core.designsystem.medallion.Medallion
+import tj.umar.navoplayer.core.designsystem.medallion.MedallionArtwork
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalette
 import tj.umar.navoplayer.core.designsystem.modifier.pressScale
 import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
@@ -49,6 +50,7 @@ fun GroupRow(
     modifier: Modifier = Modifier,
     pressedScale: Float = 1f,
     trailing: (@Composable () -> Unit)? = null,
+    artwork: ImageBitmap? = null,
 ) {
     val typography = NavoTheme.typography
     val colors = NavoTheme.colors
@@ -71,7 +73,7 @@ fun GroupRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        GroupArtwork(leading = leading, size = 48.dp)
+        GroupArtwork(leading = leading, size = 48.dp, artwork = artwork)
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(
                 text = title,
@@ -97,9 +99,18 @@ fun GroupRow(
 }
 
 @Composable
-fun GroupArtwork(leading: GroupLeading, size: Dp, modifier: Modifier = Modifier) {
+fun GroupArtwork(
+    leading: GroupLeading,
+    size: Dp,
+    modifier: Modifier = Modifier,
+    artwork: ImageBitmap? = null,
+) {
     when (leading) {
-        is GroupLeading.Artwork -> Medallion(palette = leading.palette, modifier = modifier.size(size))
+        is GroupLeading.Artwork -> MedallionArtwork(
+            palette = leading.palette,
+            image = artwork,
+            modifier = modifier.size(size),
+        )
         GroupLeading.Folder -> Box(
             modifier = modifier
                 .size(size)

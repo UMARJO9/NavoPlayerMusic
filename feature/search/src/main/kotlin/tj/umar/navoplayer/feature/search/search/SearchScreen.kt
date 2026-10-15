@@ -61,6 +61,7 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.TrackGroup
 import tj.umar.navoplayer.core.ui.R as CoreUiR
+import tj.umar.navoplayer.core.ui.artwork.rememberGroupArtwork
 import tj.umar.navoplayer.core.ui.group.displaySubtitle
 import tj.umar.navoplayer.core.ui.group.displayTitle
 import tj.umar.navoplayer.core.ui.group.leading
@@ -259,6 +260,7 @@ private fun LazyListScope.groupSection(
             subtitle = group.displaySubtitle(),
             leading = group.key.leading(),
             onClick = { onIntent(SearchIntent.GroupClicked(group.key)) },
+            artwork = rememberGroupArtwork(group, 48.dp).value,
             modifier = Modifier.animatedListItem(this, startIndex + 1 + index, motion.enabled, motion.entrance),
         )
     }

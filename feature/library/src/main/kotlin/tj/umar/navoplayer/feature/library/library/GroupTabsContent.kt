@@ -19,6 +19,7 @@ import tj.umar.navoplayer.core.ui.R as CoreUiR
 import tj.umar.navoplayer.feature.library.R
 import tj.umar.navoplayer.core.designsystem.component.GroupRow
 import tj.umar.navoplayer.feature.library.component.ListSummary
+import tj.umar.navoplayer.core.ui.artwork.rememberGroupArtwork
 import tj.umar.navoplayer.core.ui.group.displaySubtitle
 import tj.umar.navoplayer.core.ui.group.displayTitle
 import tj.umar.navoplayer.core.ui.group.leading
@@ -69,6 +70,7 @@ private fun GroupTabContent(
                     subtitle = group.displaySubtitle(),
                     leading = group.key.leading(),
                     onClick = { onIntent(LibraryIntent.GroupClicked(group.key)) },
+                    artwork = rememberGroupArtwork(group, 48.dp).value,
                     modifier = Modifier.animateItem(),
                 )
             }

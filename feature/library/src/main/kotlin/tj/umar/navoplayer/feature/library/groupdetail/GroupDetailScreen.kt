@@ -42,6 +42,7 @@ import tj.umar.navoplayer.core.designsystem.component.GroupArtwork
 import tj.umar.navoplayer.feature.library.component.ListSummary
 import tj.umar.navoplayer.core.designsystem.component.PhasedContent
 import tj.umar.navoplayer.core.designsystem.component.StateMessage
+import tj.umar.navoplayer.core.ui.artwork.rememberGroupArtwork
 import tj.umar.navoplayer.core.ui.track.TrackListItem
 import tj.umar.navoplayer.core.designsystem.component.contentPhase
 import tj.umar.navoplayer.core.ui.group.description
@@ -142,7 +143,11 @@ private fun GroupHeader(group: TrackGroup) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        GroupArtwork(leading = group.key.leading(), size = 104.dp)
+        GroupArtwork(
+            leading = group.key.leading(),
+            size = 104.dp,
+            artwork = rememberGroupArtwork(group, 104.dp).value,
+        )
         Text(
             text = group.displayTitle(),
             style = NavoTheme.typography.displayM,
