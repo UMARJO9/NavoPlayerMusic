@@ -16,6 +16,7 @@ internal data class SettingsState(
     val versionName: String = "",
     val equalizerSummary: EqualizerSummary = EqualizerSummary.Loading,
     val themeMode: ThemeMode = ThemeMode.Default,
+    val showCoverArt: Boolean = true,
 ) {
     val durationOptions: List<MinTrackDuration>
         get() = MinTrackDuration.entries
@@ -30,6 +31,7 @@ internal sealed interface SettingsIntent {
     data object RetryLoad : SettingsIntent
     data class MinTrackDurationSelected(val value: MinTrackDuration) : SettingsIntent
     data class PauseOnHeadphonesDisconnectToggled(val enabled: Boolean) : SettingsIntent
+    data class ShowCoverArtToggled(val enabled: Boolean) : SettingsIntent
     data class ThemeModeSelected(val mode: ThemeMode) : SettingsIntent
     data object HiddenFoldersClicked : SettingsIntent
     data object LicensesClicked : SettingsIntent

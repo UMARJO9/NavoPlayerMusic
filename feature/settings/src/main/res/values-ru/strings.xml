@@ -15,6 +15,8 @@
     <string name="settings_min_duration_seconds">%d с</string>
     <string name="settings_hidden_folders_title">Скрытые папки</string>
     <string name="settings_hidden_folders_none">Нет</string>
+    <string name="settings_show_cover_art_title">Показывать обложки</string>
+    <string name="settings_show_cover_art_subtitle">Из файлов, если есть</string>
     <string name="settings_section_playback">Воспроизведение</string>
     <string name="settings_pause_on_disconnect_title">Пауза при отключении наушников</string>
     <string name="settings_pause_on_disconnect_subtitle">Проводных и Bluetooth</string>

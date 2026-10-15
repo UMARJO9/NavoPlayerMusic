@@ -78,6 +78,9 @@ object NavoIcons {
     val Theme: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_theme)
 
+    val Artwork: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_artwork)
+
     val Document: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_document)
 

@@ -18,6 +18,7 @@ import tj.umar.navoplayer.core.domain.usecase.ObserveEqualizerUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveSettingsUseCase
 import tj.umar.navoplayer.core.domain.usecase.SetMinTrackDurationUseCase
 import tj.umar.navoplayer.core.domain.usecase.SetPauseOnHeadphonesDisconnectUseCase
+import tj.umar.navoplayer.core.domain.usecase.SetShowCoverArtUseCase
 import tj.umar.navoplayer.core.domain.usecase.SetThemeModeUseCase
 import tj.umar.navoplayer.core.ui.mvi.MviViewModel
 import javax.inject.Inject
@@ -30,6 +31,7 @@ internal class SettingsViewModel @Inject constructor(
     private val setPauseOnHeadphonesDisconnect: SetPauseOnHeadphonesDisconnectUseCase,
     private val observeEqualizer: ObserveEqualizerUseCase,
     private val setThemeMode: SetThemeModeUseCase,
+    private val setShowCoverArt: SetShowCoverArtUseCase,
 ) : MviViewModel<SettingsState, SettingsIntent, SettingsEffect>(SettingsState(versionName = getAppInfo().versionName)) {
 
     private var settingsJob: Job? = null
@@ -43,6 +45,8 @@ internal class SettingsViewModel @Inject constructor(
             is SettingsIntent.MinTrackDurationSelected -> onDurationSelected(intent.value)
             is SettingsIntent.PauseOnHeadphonesDisconnectToggled ->
                 if (!currentState.loadFailed) save { setPauseOnHeadphonesDisconnect(intent.enabled) }
+            is SettingsIntent.ShowCoverArtToggled ->
+                if (!currentState.loadFailed) save { setShowCoverArt(intent.enabled) }
             is SettingsIntent.ThemeModeSelected -> onThemeModeSelected(intent.mode)
             SettingsIntent.HiddenFoldersClicked -> sendEffect(SettingsEffect.NavigateToHiddenFolders)
             SettingsIntent.LicensesClicked -> sendEffect(SettingsEffect.NavigateToLicenses)
@@ -60,6 +64,7 @@ internal class SettingsViewModel @Inject constructor(
                 hiddenFolderCount = settings.excludedFolders.size,
                 pauseOnHeadphonesDisconnect = settings.pauseOnHeadphonesDisconnect,
                 themeMode = settings.themeMode,
+                showCoverArt = settings.showCoverArt,
             )
         }
     }

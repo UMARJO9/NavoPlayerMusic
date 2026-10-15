@@ -18,6 +18,7 @@ import tj.umar.navoplayer.core.domain.usecase.ObserveEqualizerUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveSettingsUseCase
 import tj.umar.navoplayer.core.domain.usecase.SetMinTrackDurationUseCase
 import tj.umar.navoplayer.core.domain.usecase.SetPauseOnHeadphonesDisconnectUseCase
+import tj.umar.navoplayer.core.domain.usecase.SetShowCoverArtUseCase
 import tj.umar.navoplayer.core.domain.usecase.SetThemeModeUseCase
 import tj.umar.navoplayer.core.testing.MainDispatcherRule
 import tj.umar.navoplayer.core.testing.app.FakeAppInfoProvider
@@ -45,6 +46,7 @@ class SettingsViewModelTest {
         setPauseOnHeadphonesDisconnect = SetPauseOnHeadphonesDisconnectUseCase(settings),
         observeEqualizer = ObserveEqualizerUseCase(equalizerController, equalizerSettings),
         setThemeMode = SetThemeModeUseCase(settings),
+        setShowCoverArt = SetShowCoverArtUseCase(settings),
     ).apply { onIntent(SettingsIntent.ScreenStarted) }
 
     @Test
@@ -76,6 +78,39 @@ class SettingsViewModelTest {
         viewModel.onIntent(SettingsIntent.PauseOnHeadphonesDisconnectToggled(true))
 
         assertTrue(viewModel.state.value.pauseOnHeadphonesDisconnect)
+    }
+
+    @Test
+    fun `cover art is shown by default and toggle writes`() = runTest {
+        val viewModel = viewModel()
+        assertTrue(viewModel.state.value.showCoverArt)
+
+        viewModel.onIntent(SettingsIntent.ShowCoverArtToggled(false))
+
+        assertFalse(viewModel.state.value.showCoverArt)
+        assertFalse(settings.current.showCoverArt)
+    }
+
+    @Test
+    fun `cover art toggle failure shows message`() = runTest {
+        val viewModel = viewModel()
+        settings.writeError = IllegalStateException("disk full")
+
+        viewModel.effects.test {
+            viewModel.onIntent(SettingsIntent.ShowCoverArtToggled(false))
+            assertEquals(SettingsEffect.ShowSaveFailed, awaitItem())
+        }
+        assertTrue(viewModel.state.value.showCoverArt)
+    }
+
+    @Test
+    fun `cover art toggle is blocked when settings failed to load`() {
+        settings.observeError = IllegalStateException("broken")
+        val viewModel = viewModel()
+
+        viewModel.onIntent(SettingsIntent.ShowCoverArtToggled(false))
+
+        assertEquals(0, settings.writeCalls)
     }
 
     @Test
@@ -129,6 +164,7 @@ class SettingsViewModelTest {
             setPauseOnHeadphonesDisconnect = SetPauseOnHeadphonesDisconnectUseCase(settings),
             observeEqualizer = ObserveEqualizerUseCase(equalizerController, equalizerSettings),
         setThemeMode = SetThemeModeUseCase(settings),
+        setShowCoverArt = SetShowCoverArtUseCase(settings),
         )
         assertEquals(0, settings.observeCalls)
 

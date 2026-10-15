@@ -16,6 +16,8 @@
     <string name="settings_min_duration_seconds">%d s</string>
     <string name="settings_hidden_folders_title">Hidden folders</string>
     <string name="settings_hidden_folders_none">None</string>
+    <string name="settings_show_cover_art_title">Show cover art</string>
+    <string name="settings_show_cover_art_subtitle">From music files when available</string>
     <string name="settings_section_playback">Playback</string>
     <string name="settings_pause_on_disconnect_title">Pause when headphones disconnect</string>
     <string name="settings_pause_on_disconnect_subtitle">Wired and Bluetooth</string>

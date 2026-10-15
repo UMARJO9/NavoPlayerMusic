@@ -167,6 +167,14 @@ private fun SettingsContent(
                         SettingsIconTile(icon = NavoIcons.Folder, containerColor = colors.accent, contentColor = colors.onAccent)
                     },
                 )
+                SettingsGroupDivider()
+                SettingsSwitchRow(
+                    title = stringResource(R.string.settings_show_cover_art_title),
+                    subtitle = stringResource(R.string.settings_show_cover_art_subtitle),
+                    checked = state.showCoverArt,
+                    onCheckedChange = { onIntent(SettingsIntent.ShowCoverArtToggled(it)) },
+                    leading = { SettingsIconTile(icon = NavoIcons.Artwork, containerColor = colors.turquoise) },
+                )
             }
         }
         item(key = "playback") {
