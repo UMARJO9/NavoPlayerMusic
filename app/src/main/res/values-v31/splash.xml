@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <item name="navo_splash_icon" type="drawable">@drawable/avd_navo_splash</item>
     <bool name="navo_light_system_bars">true</bool>
     <color name="navo_splash_sweep">@color/navo_icon_crimson</color>
 </resources>

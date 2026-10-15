@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:drawable="@drawable/navo_splash_medallion">
+    <target android:name="disc">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="300"
+                    android:interpolator="@android:anim/overshoot_interpolator"
+                    android:startOffset="0">
+                    <propertyValuesHolder
+                        android:propertyName="scaleX"
+                        android:valueFrom="0.6"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                    <propertyValuesHolder
+                        android:propertyName="scaleY"
+                        android:valueFrom="0.6"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                </objectAnimator>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="disc_fill">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="180"
+                    android:interpolator="@android:interpolator/fast_out_slow_in"
+                    android:propertyName="fillAlpha"
+                    android:startOffset="0"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType" />
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="sweep">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="450"
+                    android:interpolator="@android:interpolator/fast_out_slow_in"
+                    android:propertyName="trimPathEnd"
+                    android:startOffset="0"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType" />
+                <objectAnimator
+                    android:duration="350"
+                    android:interpolator="@android:interpolator/fast_out_linear_in"
+                    android:propertyName="trimPathStart"
+                    android:startOffset="300"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType" />
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="star">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="400"
+                    android:interpolator="@android:interpolator/fast_out_slow_in"
+                    android:propertyName="rotation"
+                    android:startOffset="150"
+                    android:valueFrom="-90"
+                    android:valueTo="0"
+                    android:valueType="floatType" />
+                <objectAnimator
+                    android:duration="400"
+                    android:interpolator="@android:anim/overshoot_interpolator"
+                    android:startOffset="150">
+                    <propertyValuesHolder
+                        android:propertyName="scaleX"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                    <propertyValuesHolder
+                        android:propertyName="scaleY"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                </objectAnimator>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="centre">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="250"
+                    android:interpolator="@android:interpolator/fast_out_slow_in"
+                    android:startOffset="300">
+                    <propertyValuesHolder
+                        android:propertyName="scaleX"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                    <propertyValuesHolder
+                        android:propertyName="scaleY"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                </objectAnimator>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="petal_0">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="180"
+                    android:interpolator="@android:anim/decelerate_interpolator"
+                    android:startOffset="420">
+                    <propertyValuesHolder
+                        android:propertyName="scaleX"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                    <propertyValuesHolder
+                        android:propertyName="scaleY"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                </objectAnimator>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="petal_1">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="180"
+                    android:interpolator="@android:anim/decelerate_interpolator"
+                    android:startOffset="460">
+                    <propertyValuesHolder
+                        android:propertyName="scaleX"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                    <propertyValuesHolder
+                        android:propertyName="scaleY"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                </objectAnimator>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="petal_2">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="180"
+                    android:interpolator="@android:anim/decelerate_interpolator"
+                    android:startOffset="500">
+                    <propertyValuesHolder
+                        android:propertyName="scaleX"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                    <propertyValuesHolder
+                        android:propertyName="scaleY"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                </objectAnimator>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="petal_3">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="180"
+                    android:interpolator="@android:anim/decelerate_interpolator"
+                    android:startOffset="540">
+                    <propertyValuesHolder
+                        android:propertyName="scaleX"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                    <propertyValuesHolder
+                        android:propertyName="scaleY"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                </objectAnimator>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="petal_4">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="180"
+                    android:interpolator="@android:anim/decelerate_interpolator"
+                    android:startOffset="580">
+                    <propertyValuesHolder
+                        android:propertyName="scaleX"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                    <propertyValuesHolder
+                        android:propertyName="scaleY"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                </objectAnimator>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="petal_5">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="180"
+                    android:interpolator="@android:anim/decelerate_interpolator"
+                    android:startOffset="620">
+                    <propertyValuesHolder
+                        android:propertyName="scaleX"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                    <propertyValuesHolder
+                        android:propertyName="scaleY"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                </objectAnimator>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="petal_6">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="180"
+                    android:interpolator="@android:anim/decelerate_interpolator"
+                    android:startOffset="660">
+                    <propertyValuesHolder
+                        android:propertyName="scaleX"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                    <propertyValuesHolder
+                        android:propertyName="scaleY"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                </objectAnimator>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="petal_7">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="180"
+                    android:interpolator="@android:anim/decelerate_interpolator"
+                    android:startOffset="700">
+                    <propertyValuesHolder
+                        android:propertyName="scaleX"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                    <propertyValuesHolder
+                        android:propertyName="scaleY"
+                        android:valueFrom="0"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                </objectAnimator>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="dot">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:duration="90"
+                    android:interpolator="@android:anim/decelerate_interpolator"
+                    android:startOffset="720">
+                    <propertyValuesHolder
+                        android:propertyName="scaleX"
+                        android:valueFrom="0"
+                        android:valueTo="1.4"
+                        android:valueType="floatType" />
+                    <propertyValuesHolder
+                        android:propertyName="scaleY"
+                        android:valueFrom="0"
+                        android:valueTo="1.4"
+                        android:valueType="floatType" />
+                </objectAnimator>
+                <objectAnimator
+                    android:duration="90"
+                    android:interpolator="@android:interpolator/fast_out_slow_in"
+                    android:startOffset="810">
+                    <propertyValuesHolder
+                        android:propertyName="scaleX"
+                        android:valueFrom="1.4"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                    <propertyValuesHolder
+                        android:propertyName="scaleY"
+                        android:valueFrom="1.4"
+                        android:valueTo="1"
+                        android:valueType="floatType" />
+                </objectAnimator>
+            </set>
+        </aapt:attr>
+    </target>
+</animated-vector>
