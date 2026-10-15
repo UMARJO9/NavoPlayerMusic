@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -34,11 +36,12 @@ internal fun SearchLoadingIndicator(modifier: Modifier = Modifier) {
     val motion = rememberMotionEnabled()
     val rotation = rememberMedallionRotation(running = motion, periodMillis = LOADER_ROTATION_MILLIS)
     val alpha = remember { Animatable(0f) }
-    LaunchedEffect(motion) {
-        if (motion) {
-            alpha.animateTo(1f, tween(LOADER_FADE_MILLIS, delayMillis = LOADER_DELAY_MILLIS, easing = LinearOutSlowInEasing))
+    val currentMotion by rememberUpdatedState(motion)
+    LaunchedEffect(Unit) {
+        delay(LOADER_DELAY_MILLIS.toLong())
+        if (currentMotion) {
+            alpha.animateTo(1f, tween(LOADER_FADE_MILLIS, easing = LinearOutSlowInEasing))
         } else {
-            delay(LOADER_DELAY_MILLIS.toLong())
             alpha.snapTo(1f)
         }
     }
