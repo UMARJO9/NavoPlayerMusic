@@ -42,6 +42,7 @@ fun PhasedContent(
     error: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     empty: @Composable () -> Unit = {},
+    loading: @Composable () -> Unit = { DefaultLoading() },
     content: @Composable () -> Unit,
 ) {
     AnimatedContent(
@@ -51,9 +52,7 @@ fun PhasedContent(
         label = "contentPhase",
     ) { target ->
         when (target) {
-            ContentPhase.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = NavoTheme.colors.accent)
-            }
+            ContentPhase.Loading -> loading()
             ContentPhase.Content -> content()
             ContentPhase.Empty -> empty()
             ContentPhase.Error -> error()
@@ -68,6 +67,7 @@ fun StateMessage(
     actionLabel: String? = null,
     onAction: () -> Unit = {},
     modifier: Modifier = Modifier,
+    illustration: @Composable () -> Unit = { Medallion(palette = palette, modifier = Modifier.size(104.dp)) },
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
@@ -75,7 +75,7 @@ fun StateMessage(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Medallion(palette = palette, modifier = Modifier.size(104.dp))
+            illustration()
             Text(
                 text = message,
                 style = NavoTheme.typography.titleS,
@@ -86,5 +86,12 @@ fun StateMessage(
                 NavoButton(text = actionLabel, onClick = onAction, height = NavoSpacing.MinTouchTarget)
             }
         }
+    }
+}
+
+@Composable
+private fun DefaultLoading() {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator(color = NavoTheme.colors.accent)
     }
 }
