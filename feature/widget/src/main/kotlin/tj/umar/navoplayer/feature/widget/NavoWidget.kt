@@ -42,11 +42,17 @@ class NavoWidget : GlanceAppWidget() {
         val states = entryPoint.observeNowPlaying().invoke().map { it.toWidgetUiState() }
         val initial = states.first()
         val artworkPx = (ARTWORK_DP * context.resources.displayMetrics.density).roundToInt()
+        val colors = NavoWidgetAppearance.Dark.widgetColors()
         provideContent {
             val state by states.collectAsState(initial)
             val trackId = (state as? NavoWidgetUiState.Playing)?.trackId
             val artwork = remember(trackId) { trackId?.let { MedallionPalettes.forKey(it).renderBitmap(artworkPx) } }
-            NavoWidgetContent(state = state, artwork = artwork, actions = widgetActions(context, state))
+            NavoWidgetContent(
+                state = state,
+                artwork = artwork,
+                actions = widgetActions(context, state),
+                colors = colors,
+            )
         }
     }
 }

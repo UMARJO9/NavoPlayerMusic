@@ -47,7 +47,12 @@ internal data class NavoWidgetActions(
 )
 
 @Composable
-internal fun NavoWidgetContent(state: NavoWidgetUiState, artwork: Bitmap?, actions: NavoWidgetActions) {
+internal fun NavoWidgetContent(
+    state: NavoWidgetUiState,
+    artwork: Bitmap?,
+    actions: NavoWidgetActions,
+    colors: NavoWidgetColors,
+) {
     val size = LocalSize.current
     val tall = size.height >= TallWidgetMinHeight
     val wide = size.width >= WideWidgetMinWidth
@@ -55,7 +60,7 @@ internal fun NavoWidgetContent(state: NavoWidgetUiState, artwork: Bitmap?, actio
         modifier = GlanceModifier
             .fillMaxSize()
             .appWidgetBackground()
-            .background(ImageProvider(R.drawable.navo_widget_background))
+            .background(ImageProvider(colors.background))
             .cornerRadius(R.dimen.navo_widget_corner_radius)
             .clickable(actions.open)
             .padding(horizontal = 12.dp, vertical = if (tall) 12.dp else 4.dp),
@@ -66,7 +71,7 @@ internal fun NavoWidgetContent(state: NavoWidgetUiState, artwork: Bitmap?, actio
                 Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Artwork(artwork = artwork, size = 64.dp)
                     Spacer(modifier = GlanceModifier.width(12.dp))
-                    TrackText(state = state, titleLines = 2)
+                    TrackText(state = state, titleLines = 2, colors = colors)
                 }
                 Spacer(modifier = GlanceModifier.height(10.dp))
                 Row(
@@ -74,7 +79,7 @@ internal fun NavoWidgetContent(state: NavoWidgetUiState, artwork: Bitmap?, actio
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Controls(state = state, actions = actions, showPrevious = true, playSize = 52.dp)
+                    Controls(state = state, actions = actions, showPrevious = true, playSize = 52.dp, colors = colors)
                 }
             }
         } else {
@@ -82,9 +87,9 @@ internal fun NavoWidgetContent(state: NavoWidgetUiState, artwork: Bitmap?, actio
                 Artwork(artwork = artwork, size = 40.dp)
                 Spacer(modifier = GlanceModifier.width(12.dp))
                 Box(modifier = GlanceModifier.defaultWeight()) {
-                    TrackText(state = state, titleLines = 1)
+                    TrackText(state = state, titleLines = 1, colors = colors)
                 }
-                Controls(state = state, actions = actions, showPrevious = wide, playSize = 40.dp)
+                Controls(state = state, actions = actions, showPrevious = wide, playSize = 40.dp, colors = colors)
             }
         }
     }
@@ -97,7 +102,7 @@ private fun Artwork(artwork: Bitmap?, size: Dp) {
 }
 
 @Composable
-private fun TrackText(state: NavoWidgetUiState, titleLines: Int) {
+private fun TrackText(state: NavoWidgetUiState, titleLines: Int, colors: NavoWidgetColors) {
     val context = LocalContext.current
     val (title, subtitle) = when (state) {
         NavoWidgetUiState.Empty ->
@@ -111,7 +116,7 @@ private fun TrackText(state: NavoWidgetUiState, titleLines: Int) {
             text = title,
             maxLines = titleLines,
             style = TextStyle(
-                color = NavoWidgetColors.content,
+                color = colors.content,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
             ),
@@ -119,13 +124,19 @@ private fun TrackText(state: NavoWidgetUiState, titleLines: Int) {
         Text(
             text = subtitle,
             maxLines = 1,
-            style = TextStyle(color = NavoWidgetColors.contentSecondary, fontSize = 12.sp),
+            style = TextStyle(color = colors.contentSecondary, fontSize = 12.sp),
         )
     }
 }
 
 @Composable
-private fun Controls(state: NavoWidgetUiState, actions: NavoWidgetActions, showPrevious: Boolean, playSize: Dp) {
+private fun Controls(
+    state: NavoWidgetUiState,
+    actions: NavoWidgetActions,
+    showPrevious: Boolean,
+    playSize: Dp,
+    colors: NavoWidgetColors,
+) {
     val context = LocalContext.current
     val isPlaying = state is NavoWidgetUiState.Playing && state.isPlaying
     if (showPrevious) {
@@ -133,19 +144,20 @@ private fun Controls(state: NavoWidgetUiState, actions: NavoWidgetActions, showP
             icon = DesignR.drawable.navo_ic_skip_previous,
             description = context.getString(R.string.navo_widget_previous),
             action = actions.previous,
+            colors = colors,
         )
     }
     Box(
         modifier = GlanceModifier
             .size(playSize)
-            .background(ImageProvider(R.drawable.navo_widget_play_background))
+            .background(ImageProvider(colors.playBackground))
             .clickable(actions.togglePlayPause ?: actions.open),
         contentAlignment = Alignment.Center,
     ) {
         Image(
             provider = ImageProvider(if (isPlaying) DesignR.drawable.navo_ic_pause else DesignR.drawable.navo_ic_play),
             contentDescription = context.getString(if (isPlaying) R.string.navo_widget_pause else R.string.navo_widget_play),
-            colorFilter = ColorFilter.tint(NavoWidgetColors.onAccent),
+            colorFilter = ColorFilter.tint(colors.onAccent),
             modifier = GlanceModifier.size(playSize / 2),
         )
     }
@@ -153,22 +165,26 @@ private fun Controls(state: NavoWidgetUiState, actions: NavoWidgetActions, showP
         icon = DesignR.drawable.navo_ic_skip_next,
         description = context.getString(R.string.navo_widget_next),
         action = actions.next,
+        colors = colors,
     )
 }
 
 @Composable
-private fun TransportButton(icon: Int, description: String, action: Action?) {
+private fun TransportButton(icon: Int, description: String, action: Action?, colors: NavoWidgetColors) {
     val enabled = action != null
     val modifier = GlanceModifier.size(40.dp).padding(10.dp)
     Image(
         provider = ImageProvider(icon),
         contentDescription = description,
         colorFilter = ColorFilter.tint(
-            if (enabled) NavoWidgetColors.content else NavoWidgetColors.disabled,
+            if (enabled) colors.content else colors.disabled,
         ),
         modifier = if (action != null) modifier.clickable(action) else modifier,
     )
 }
+
+private val previewDark = NavoWidgetAppearance.Dark.widgetColors()
+private val previewLight = NavoWidgetAppearance.Light.widgetColors()
 
 private val previewPlaying = NavoWidgetUiState.Playing(
     trackId = 1,
@@ -189,26 +205,57 @@ private fun previewActions(enabled: Boolean) = NavoWidgetActions(
 @Preview(widthDp = 180, heightDp = 64)
 @Composable
 private fun NavoWidgetNarrowPreview() {
-    NavoWidgetContent(state = previewPlaying, artwork = null, actions = previewActions(enabled = true))
+    NavoWidgetContent(state = previewPlaying, artwork = null, actions = previewActions(enabled = true), colors = previewDark)
 }
 
 @OptIn(ExperimentalGlancePreviewApi::class)
 @Preview(widthDp = 280, heightDp = 64)
 @Composable
 private fun NavoWidgetWidePreview() {
-    NavoWidgetContent(state = previewPlaying, artwork = null, actions = previewActions(enabled = true))
+    NavoWidgetContent(state = previewPlaying, artwork = null, actions = previewActions(enabled = true), colors = previewDark)
 }
 
 @OptIn(ExperimentalGlancePreviewApi::class)
 @Preview(widthDp = 280, heightDp = 130)
 @Composable
 private fun NavoWidgetTallPreview() {
-    NavoWidgetContent(state = previewPlaying.copy(isPlaying = false), artwork = null, actions = previewActions(enabled = true))
+    NavoWidgetContent(
+        state = previewPlaying.copy(isPlaying = false),
+        artwork = null,
+        actions = previewActions(enabled = true),
+        colors = previewDark,
+    )
 }
 
 @OptIn(ExperimentalGlancePreviewApi::class)
 @Preview(widthDp = 280, heightDp = 64)
 @Composable
 private fun NavoWidgetEmptyPreview() {
-    NavoWidgetContent(state = NavoWidgetUiState.Empty, artwork = null, actions = previewActions(enabled = false))
+    NavoWidgetContent(state = NavoWidgetUiState.Empty, artwork = null, actions = previewActions(enabled = false), colors = previewDark)
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 280, heightDp = 64)
+@Composable
+private fun NavoWidgetWideLightPreview() {
+    NavoWidgetContent(state = previewPlaying, artwork = null, actions = previewActions(enabled = true), colors = previewLight)
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 280, heightDp = 130)
+@Composable
+private fun NavoWidgetTallLightPreview() {
+    NavoWidgetContent(
+        state = previewPlaying.copy(isPlaying = false),
+        artwork = null,
+        actions = previewActions(enabled = true),
+        colors = previewLight,
+    )
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 280, heightDp = 64)
+@Composable
+private fun NavoWidgetEmptyLightPreview() {
+    NavoWidgetContent(state = NavoWidgetUiState.Empty, artwork = null, actions = previewActions(enabled = false), colors = previewLight)
 }
