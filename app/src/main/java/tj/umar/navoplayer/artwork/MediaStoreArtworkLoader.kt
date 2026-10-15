@@ -12,8 +12,8 @@ internal class MediaStoreArtworkLoader @Inject constructor(
 ) : ArtworkLoader {
 
     override fun cached(key: ArtworkKey, sizePx: Int): Bitmap? =
-        if (preference.enabled.value) source.cached(key, sizePx) else null
+        if (preference.isKnownEnabled) source.cached(key, sizePx) else null
 
     override suspend fun load(key: ArtworkKey, sizePx: Int): Bitmap? =
-        if (preference.enabled.value) source.load(key, sizePx) else null
+        if (preference.isEnabled()) source.load(key, sizePx) else null
 }

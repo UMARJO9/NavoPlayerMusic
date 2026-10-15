@@ -89,6 +89,28 @@ class CoverOrMedallionPlaybackArtworkTest {
     }
 
     @Test
+    fun `stored setting is read before the first load`() = runTest {
+        settings.emit(UserSettings(showCoverArt = false))
+        val source = StubArtworkSource(Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888))
+        val preference = CoverArtPreference(ObserveShowCoverArtUseCase(settings), backgroundScope)
+
+        val result = CoverOrMedallionPlaybackArtwork(source, preference).load(ArtworkKey(1, 10), 128)
+
+        assertEquals(128, result.width)
+        assertTrue(source.requests.isEmpty())
+    }
+
+    @Test
+    fun `loader skips cache until setting is known`() = runTest {
+        val cover = Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888)
+        val loader = MediaStoreArtworkLoader(StubArtworkSource(cover), CoverArtPreference(ObserveShowCoverArtUseCase(settings), backgroundScope))
+
+        assertNull(loader.cached(ArtworkKey(1, 10), 64))
+        assertSame(cover, loader.load(ArtworkKey(1, 10), 64))
+        assertSame(cover, loader.cached(ArtworkKey(1, 10), 64))
+    }
+
+    @Test
     fun `loader is gated by the setting`() = runTest {
         val cover = Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888)
         val loader = MediaStoreArtworkLoader(StubArtworkSource(cover), preference())
@@ -107,6 +129,6 @@ class CoverOrMedallionPlaybackArtworkTest {
     fun `preference defaults to shown when settings fail`() = runTest {
         settings.observeError = IllegalStateException("disk")
 
-        assertTrue(preference().enabled.value)
+        assertTrue(preference().isEnabled())
     }
 }

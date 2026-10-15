@@ -20,7 +20,7 @@ internal class CoverOrMedallionPlaybackArtwork @Inject constructor(
             ?: MedallionPalettes.forKey(key.trackId).renderBitmap(minOf(sizePx, MAX_MEDALLION_BITMAP_PX), opaque = true)
 
     private suspend fun cover(key: ArtworkKey, sizePx: Int): Bitmap? =
-        if (preference.enabled.value) source.load(key, sizePx)?.scaledDownTo(sizePx) else null
+        if (preference.isEnabled()) source.load(key, sizePx)?.scaledDownTo(sizePx) else null
 }
 
 private fun Bitmap.scaledDownTo(sizePx: Int): Bitmap {
