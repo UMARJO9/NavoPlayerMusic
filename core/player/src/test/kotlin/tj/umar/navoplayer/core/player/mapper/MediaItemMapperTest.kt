@@ -9,7 +9,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import tj.umar.navoplayer.core.domain.model.QueueItem
 import tj.umar.navoplayer.core.domain.model.QueueItemId
-import tj.umar.navoplayer.core.player.artwork.artworkTrackId
+import tj.umar.navoplayer.core.domain.model.ArtworkKey
+import tj.umar.navoplayer.core.player.artwork.artworkKey
 import tj.umar.navoplayer.core.testing.data.TestTracks
 
 @RunWith(RobolectricTestRunner::class)
@@ -27,8 +28,16 @@ class MediaItemMapperTest {
     }
 
     @Test
-    fun `artwork uri points at track medallion`() {
-        assertEquals(TestTracks.alpha.id, TestTracks.alpha.toMediaItem("q1").mediaMetadata.artworkUri?.artworkTrackId())
+    fun `artwork uri carries track and album`() {
+        assertEquals(ArtworkKey(1, 10), TestTracks.alpha.toMediaItem("q1").mediaMetadata.artworkUri?.artworkKey())
+        assertEquals(ArtworkKey(2, null), TestTracks.beta.toMediaItem("q1").mediaMetadata.artworkUri?.artworkKey())
+    }
+
+    @Test
+    fun `media item artwork key matches track key`() {
+        assertEquals(ArtworkKey(1, 10), TestTracks.alpha.toMediaItem("q1").artworkKey())
+        assertEquals(ArtworkKey(2, null), TestTracks.beta.toMediaItem("q1").artworkKey())
+        assertNull(MediaItem.Builder().setMediaId("x").build().artworkKey())
     }
 
     @Test

@@ -21,7 +21,7 @@ internal class TrackArtworkBitmapLoader(
     override fun decodeBitmap(data: ByteArray): ListenableFuture<Bitmap> = fallback.decodeBitmap(data)
 
     override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
-        val trackId = uri.artworkTrackId() ?: return fallback.loadBitmap(uri)
+        val trackId = uri.artworkKey()?.trackId ?: return fallback.loadBitmap(uri)
         return executor.submit<Bitmap> {
             val png = checkNotNull(artwork.render(trackId)) { "No artwork for track $trackId" }
             checkNotNull(BitmapFactory.decodeByteArray(png, 0, png.size)) { "Undecodable artwork for track $trackId" }

@@ -15,6 +15,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import tj.umar.navoplayer.core.domain.model.ArtworkKey
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutionException
 
@@ -49,15 +50,26 @@ class TrackArtworkBitmapLoaderTest {
     )
 
     @Test
-    fun `artwork uri round trips track id`() {
-        assertEquals(42L, trackArtworkUri(42).artworkTrackId())
-        assertNull(Uri.parse("content://media/external/audio/media/42").artworkTrackId())
-        assertNull(Uri.parse("navo-artwork://track/abc").artworkTrackId())
+    fun `artwork uri round trips track and album`() {
+        assertEquals(ArtworkKey(42, 7), trackArtworkUri(ArtworkKey(42, 7)).artworkKey())
+        assertEquals(ArtworkKey(42, null), trackArtworkUri(ArtworkKey(42, null)).artworkKey())
+    }
+
+    @Test
+    fun `malformed album id is dropped`() {
+        assertEquals(ArtworkKey(42, null), Uri.parse("navo-artwork://track/42?album=abc").artworkKey())
+    }
+
+    @Test
+    fun `foreign or malformed uris have no key`() {
+        assertNull(Uri.parse("content://media/external/audio/media/42").artworkKey())
+        assertNull(Uri.parse("navo-artwork://track/abc").artworkKey())
+        assertNull(Uri.parse("navo-artwork://album/42").artworkKey())
     }
 
     @Test
     fun `track artwork uri renders medallion`() {
-        val bitmap = loader { png(8) }.loadBitmap(trackArtworkUri(7)).get()
+        val bitmap = loader { png(8) }.loadBitmap(trackArtworkUri(ArtworkKey(7, null))).get()
 
         assertEquals(8, bitmap.width)
         assertEquals(listOf(7L), renderedIds)
@@ -77,7 +89,7 @@ class TrackArtworkBitmapLoaderTest {
 
     @Test
     fun `missing artwork fails future`() {
-        val failure = runCatching { loader { null }.loadBitmap(trackArtworkUri(3)).get() }.exceptionOrNull()
+        val failure = runCatching { loader { null }.loadBitmap(trackArtworkUri(ArtworkKey(3, null))).get() }.exceptionOrNull()
 
         assertTrue(failure is ExecutionException)
     }
