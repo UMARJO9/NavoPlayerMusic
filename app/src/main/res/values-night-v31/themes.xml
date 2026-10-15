@@ -3,5 +3,9 @@
 
     <style name="Base.Theme.NavoPlayerMusic" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/navo_window_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">@bool/navo_light_system_bars</item>
+        <item name="android:windowLightNavigationBar">@bool/navo_light_system_bars</item>
     </style>
 </resources>
