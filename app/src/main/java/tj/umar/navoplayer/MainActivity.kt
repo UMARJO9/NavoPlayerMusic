@@ -46,9 +46,10 @@ class MainActivity : ComponentActivity() {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         resolvedDarkTheme = isNightConfiguration()
-        applySystemBars(darkTheme = resolvedDarkTheme)
+        applySystemBars(darkTheme = !resources.getBoolean(R.bool.navo_light_system_bars))
         splashScreen.setKeepOnScreenCondition { viewModel.uiState.value is MainActivityUiState.Loading }
         splashScreen.setOnExitAnimationListener { provider ->
+            applySystemBars(resolvedDarkTheme)
             provider.playNavoExitAnimation(animatorDurationScale()) { applySystemBars(resolvedDarkTheme) }
         }
         val fromHistory = (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0
