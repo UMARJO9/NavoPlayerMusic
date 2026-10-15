@@ -2,6 +2,7 @@ package tj.umar.navoplayer.feature.library.library
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,6 +32,7 @@ import tj.umar.navoplayer.core.designsystem.component.StateMessage
 import tj.umar.navoplayer.core.designsystem.component.ContentPhase
 import tj.umar.navoplayer.core.designsystem.component.navoListPadding
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
+import tj.umar.navoplayer.core.designsystem.medallion.KhotamHaloMedallion
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
@@ -102,16 +104,7 @@ private fun PlaylistList(state: LibraryState, onIntent: (LibraryIntent) -> Unit)
         }
         if (state.playlists.isEmpty()) {
             item(key = "empty", contentType = "note") {
-                Text(
-                    text = stringResource(R.string.library_playlists_empty),
-                    style = NavoTheme.typography.secondary,
-                    color = NavoTheme.colors.contentSecondary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .animatedListItem(this, 2, motion, entrance)
-                        .fillMaxWidth()
-                        .padding(NavoSpacing.Large),
-                )
+                PlaylistsEmptyNote(modifier = Modifier.animatedListItem(this, 2, motion, entrance))
             }
         }
         itemsIndexed(state.playlists, key = { _, playlist -> playlist.id }, contentType = { _, _ -> "playlist" }) { index, playlist ->
@@ -152,6 +145,25 @@ private fun PlaylistsSummary(count: Int, onIntent: (LibraryIntent) -> Unit, modi
 }
 
 @Composable
+private fun PlaylistsEmptyNote(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(NavoSpacing.Large),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(NavoSpacing.Small),
+    ) {
+        KhotamHaloMedallion(palette = MedallionPalettes.all[3], medallionSize = 72.dp)
+        Text(
+            text = stringResource(R.string.library_playlists_empty),
+            style = NavoTheme.typography.secondary,
+            color = NavoTheme.colors.contentSecondary,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
 private fun PlaylistSummary.subtitle(): String {
     val minutes = durationMinutes()
     return stringResource(
@@ -182,6 +194,18 @@ private fun PlaylistsTabPreview() {
 @Composable
 private fun EmptyPlaylistsTabPreview() {
     NavoTheme {
+        PlaylistsTabContent(
+            state = LibraryState(isLoadingPlaylists = false),
+            onIntent = {},
+            modifier = Modifier.fillMaxSize().background(NavoTheme.colors.background),
+        )
+    }
+}
+
+@Preview(widthDp = 390, heightDp = 600)
+@Composable
+private fun EmptyPlaylistsTabLightPreview() {
+    NavoTheme(darkTheme = false) {
         PlaylistsTabContent(
             state = LibraryState(isLoadingPlaylists = false),
             onIntent = {},
