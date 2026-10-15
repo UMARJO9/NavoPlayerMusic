@@ -45,6 +45,8 @@ internal class AddToPlaylistViewModel @Inject constructor(
         if (request.token != currentState.token) {
             stopObserving()
             setState { AddToPlaylistState(token = request.token, trackIds = request.trackIds) }
+        } else {
+            setState { copy(addedPlaylistId = null) }
         }
         startObserving()
     }
@@ -54,7 +56,7 @@ internal class AddToPlaylistViewModel @Inject constructor(
         val token = state.token ?: return
         if (state.isSaving || state.trackIds.isEmpty()) return
         val playlist = state.playlists.firstOrNull { it.id == playlistId } ?: return
-        setState { copy(isSaving = true) }
+        setState { copy(isSaving = true, savingPlaylistId = playlistId, addedPlaylistId = null) }
         viewModelScope.launch {
             val effect = when (val result = addTracksToPlaylist(playlistId, state.trackIds)) {
                 is NavoResult.Success -> AddToPlaylistEffect.Added(token, playlist.name, result.data)
@@ -106,7 +108,13 @@ internal class AddToPlaylistViewModel @Inject constructor(
 
     private fun finishSaving(effect: AddToPlaylistEffect) {
         if (effect.token != currentState.token) return
-        setState { copy(isSaving = false) }
+        setState {
+            when (effect) {
+                is AddToPlaylistEffect.Added -> copy(isSaving = false, savingPlaylistId = null, addedPlaylistId = savingPlaylistId)
+                is AddToPlaylistEffect.Failed -> copy(isSaving = false, savingPlaylistId = null, addedPlaylistId = null)
+                else -> copy(isSaving = false, savingPlaylistId = null)
+            }
+        }
         sendEffect(effect)
     }
 

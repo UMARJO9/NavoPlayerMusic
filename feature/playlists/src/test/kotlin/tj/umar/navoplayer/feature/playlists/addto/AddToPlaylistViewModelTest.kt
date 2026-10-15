@@ -200,6 +200,86 @@ class AddToPlaylistViewModelTest {
     }
 
     @Test
+    fun `playlist click marks playlist as saving`() = runTest {
+        opened(TestTracks.beta.id)
+        val gate = CompletableDeferred<Unit>()
+        playlists.writeGate = gate
+
+        viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
+
+        val state = viewModel.state.value
+        assertTrue(state.isSaving)
+        assertEquals(TestPlaylists.morning.id, state.savingPlaylistId)
+        assertNull(state.addedPlaylistId)
+        gate.complete(Unit)
+    }
+
+    @Test
+    fun `successful add marks playlist as added`() = runTest {
+        opened(TestTracks.beta.id)
+
+        viewModel.effects.test {
+            viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
+            awaitItem()
+        }
+
+        val state = viewModel.state.value
+        assertNull(state.savingPlaylistId)
+        assertEquals(TestPlaylists.morning.id, state.addedPlaylistId)
+    }
+
+    @Test
+    fun `failed add clears saving and added marks`() = runTest {
+        opened(TestTracks.beta.id)
+        playlists.writeError = IllegalStateException("disk full")
+
+        viewModel.effects.test {
+            viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
+            awaitItem()
+        }
+
+        val state = viewModel.state.value
+        assertFalse(state.isSaving)
+        assertNull(state.savingPlaylistId)
+        assertNull(state.addedPlaylistId)
+    }
+
+    @Test
+    fun `reopening clears added mark`() = runTest {
+        val request = opened(TestTracks.beta.id)
+        viewModel.effects.test {
+            viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
+            awaitItem()
+        }
+        viewModel.onIntent(AddToPlaylistIntent.Dismissed)
+
+        viewModel.onIntent(AddToPlaylistIntent.Opened(request))
+        assertNull(viewModel.state.value.addedPlaylistId)
+
+        viewModel.effects.test {
+            viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
+            awaitItem()
+        }
+        opened(TestTracks.longMix.id)
+        assertNull(viewModel.state.value.addedPlaylistId)
+    }
+
+    @Test
+    fun `favorite toggle leaves playlist marks untouched`() = runTest {
+        opened(TestTracks.beta.id)
+        viewModel.effects.test {
+            viewModel.onIntent(AddToPlaylistIntent.PlaylistClicked(TestPlaylists.morning.id))
+            awaitItem()
+            viewModel.onIntent(AddToPlaylistIntent.FavoriteClicked)
+            assertEquals(AddToPlaylistEffect.FavoriteChanged(1, true), awaitItem())
+        }
+
+        val state = viewModel.state.value
+        assertNull(state.savingPlaylistId)
+        assertEquals(TestPlaylists.morning.id, state.addedPlaylistId)
+    }
+
+    @Test
     fun `single track request loads favorite state`() = runTest {
         opened(TestTracks.alpha.id)
 

@@ -13,6 +13,8 @@ internal data class AddToPlaylistState(
     val isNameFormVisible: Boolean = false,
     val isSaving: Boolean = false,
     val isFavorite: Boolean? = null,
+    val savingPlaylistId: Long? = null,
+    val addedPlaylistId: Long? = null,
 ) {
     val favoriteTrackId: Long?
         get() = trackIds.singleOrNull()
