@@ -15,6 +15,7 @@
         android:theme="@style/Theme.NavoPlayerMusic">
         <activity
             android:name=".MainActivity"
+            android:configChanges="uiMode"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.NavoPlayerMusic"
