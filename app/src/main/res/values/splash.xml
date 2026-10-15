@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="navo_splash_icon" type="drawable">@drawable/ic_launcher_foreground</item>
+    <bool name="navo_light_system_bars">false</bool>
+    <integer name="navo_splash_icon_duration_millis">900</integer>
+    <color name="navo_splash_sweep">@color/navo_icon_saffron</color>
+</resources>

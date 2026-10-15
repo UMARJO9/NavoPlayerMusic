@@ -5,8 +5,6 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.view.View
-import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -18,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.channels.Channel
@@ -40,9 +39,10 @@ class MainActivity : ComponentActivity() {
     private val openNowPlayingFlow = openNowPlayingRequests.receiveAsFlow()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         applySystemBars(darkTheme = isNightConfiguration())
-        holdFirstFrameUntilThemeLoaded()
+        splashScreen.setKeepOnScreenCondition { viewModel.uiState.value is MainActivityUiState.Loading }
         val fromHistory = (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0
         if (savedInstanceState == null && !fromHistory && intent.isOpenNowPlayingRequest()) {
             openNowPlayingRequests.trySend(Unit)
@@ -78,19 +78,6 @@ class MainActivity : ComponentActivity() {
 
     private fun isNightConfiguration(): Boolean =
         (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-
-    private fun holdFirstFrameUntilThemeLoaded() {
-        val content = findViewById<View>(android.R.id.content)
-        content.viewTreeObserver.addOnPreDrawListener(
-            object : ViewTreeObserver.OnPreDrawListener {
-                override fun onPreDraw(): Boolean {
-                    if (viewModel.uiState.value is MainActivityUiState.Loading) return false
-                    content.viewTreeObserver.removeOnPreDrawListener(this)
-                    return true
-                }
-            },
-        )
-    }
 
     private fun applySystemBars(darkTheme: Boolean) {
         if (darkTheme) {

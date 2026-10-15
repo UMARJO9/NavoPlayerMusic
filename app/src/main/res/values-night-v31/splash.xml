@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="navo_light_system_bars">false</bool>
+    <color name="navo_splash_sweep">@color/navo_icon_saffron</color>
+</resources>
