@@ -1,6 +1,16 @@
 package tj.umar.navoplayer.feature.playlists.addto
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -55,6 +65,10 @@ import tj.umar.navoplayer.feature.playlists.R
 
 private const val PLAYLIST_ROW_PRESSED_SCALE = 0.98f
 private const val STATUS_CROSSFADE_MILLIS = 160
+private const val ICON_POP_DAMPING = 0.45f
+private const val ICON_POP_START_SCALE = 0.6f
+private const val ICON_FADE_IN_MILLIS = 120
+private const val ICON_EXIT_MILLIS = 90
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -190,6 +204,7 @@ private fun ActionRow(
     modifier: Modifier = Modifier,
 ) {
     val colors = NavoTheme.colors
+    val motion = rememberMotionEnabled()
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -207,7 +222,31 @@ private fun ActionRow(
                 .background(colors.accent),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(imageVector = icon, contentDescription = null, tint = colors.onAccent)
+            AnimatedContent(
+                targetState = icon,
+                transitionSpec = {
+                    if (motion) {
+                        (
+                            scaleIn(
+                                animationSpec = spring(
+                                    dampingRatio = ICON_POP_DAMPING,
+                                    stiffness = Spring.StiffnessMediumLow,
+                                ),
+                                initialScale = ICON_POP_START_SCALE,
+                            ) + fadeIn(tween(ICON_FADE_IN_MILLIS))
+                        ).togetherWith(
+                            scaleOut(tween(ICON_EXIT_MILLIS), targetScale = ICON_POP_START_SCALE) +
+                                fadeOut(tween(ICON_EXIT_MILLIS)),
+                        )
+                    } else {
+                        EnterTransition.None togetherWith ExitTransition.None
+                    }
+                },
+                contentAlignment = Alignment.Center,
+                label = "actionIcon",
+            ) { shownIcon ->
+                Icon(imageVector = shownIcon, contentDescription = null, tint = colors.onAccent)
+            }
         }
         Text(
             text = label,
