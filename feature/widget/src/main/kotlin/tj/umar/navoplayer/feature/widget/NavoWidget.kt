@@ -17,15 +17,14 @@ import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import dagger.hilt.android.EntryPointAccessors
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 import tj.umar.navoplayer.core.domain.model.ThemeMode
 import tj.umar.navoplayer.core.domain.model.TransportCommand
 import tj.umar.navoplayer.feature.widget.action.TransportActionCallback
@@ -46,10 +45,11 @@ class NavoWidget : GlanceAppWidget() {
         ),
     )
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override suspend fun provideGlance(context: Context, id: GlanceId) {
+    override suspend fun provideGlance(context: Context, id: GlanceId): Unit = coroutineScope {
         val entryPoint = EntryPointAccessors.fromApplication(context, NavoWidgetEntryPoint::class.java)
-        val states = entryPoint.observeNowPlaying().invoke().map { it.toWidgetUiState() }
+        val states = entryPoint.observeNowPlaying().invoke()
+            .map { it.toWidgetUiState() }
+            .shareIn(this, SharingStarted.Eagerly, replay = 1)
         val initial = states.first()
         val artworkPx = (ARTWORK_DP * context.resources.displayMetrics.density).roundToInt()
         val themeModes = entryPoint.observeThemeMode()().catch { emit(ThemeMode.Default) }
@@ -58,18 +58,12 @@ class NavoWidget : GlanceAppWidget() {
         val loader = entryPoint.artworkLoader()
         val dispatcher = entryPoint.defaultDispatcher()
         val showCoverArt = entryPoint.observeShowCoverArt()().catch { emit(true) }
-        val initialShowCoverArt = showCoverArt.first()
-        val artworkKeys = states.map { (it as? NavoWidgetUiState.Playing)?.artworkKey }.distinctUntilChanged()
-        val artworks = combine(artworkKeys, showCoverArt) { key, show -> key to show }
-            .distinctUntilChanged()
-            .mapLatest { (key, show) -> key?.let { widgetArtwork(loader.enabledWhen(show), it, artworkPx) } }
+        val artworks = widgetArtworks(states, showCoverArt, loader, artworkPx)
             .flowOn(dispatcher)
-        val initialArtwork = (initial as? NavoWidgetUiState.Playing)?.artworkKey?.let { key ->
-            withContext(dispatcher) { widgetArtwork(loader.enabledWhen(initialShowCoverArt), key, artworkPx) }
-        }
+            .stateIn(this)
         provideContent {
             val state by states.collectAsState(initial)
-            val artwork by artworks.collectAsState(initialArtwork)
+            val artwork by artworks.collectAsState()
             val themeMode by themeModes.collectAsState(initialThemeMode)
             val trackedNight by trackedNights.collectAsState()
             val night = trackedNight ?: LocalContext.current.isSystemInNightMode()

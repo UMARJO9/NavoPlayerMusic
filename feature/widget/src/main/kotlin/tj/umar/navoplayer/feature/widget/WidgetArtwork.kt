@@ -6,6 +6,12 @@ import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Shader
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.medallion.renderBitmap
 import tj.umar.navoplayer.core.domain.model.ArtworkKey
@@ -13,6 +19,19 @@ import tj.umar.navoplayer.core.ui.artwork.ArtworkLoader
 
 internal suspend fun widgetArtwork(loader: ArtworkLoader, key: ArtworkKey, sizePx: Int): Bitmap =
     loader.load(key, sizePx)?.circleCropped(sizePx) ?: MedallionPalettes.forKey(key.trackId).renderBitmap(sizePx)
+
+@OptIn(ExperimentalCoroutinesApi::class)
+internal fun widgetArtworks(
+    states: Flow<NavoWidgetUiState>,
+    showCoverArt: Flow<Boolean>,
+    loader: ArtworkLoader,
+    sizePx: Int,
+): Flow<Bitmap?> {
+    val keys = states.map { (it as? NavoWidgetUiState.Playing)?.artworkKey }.distinctUntilChanged()
+    return combine(keys, showCoverArt.distinctUntilChanged()) { key, show -> key to show }
+        .distinctUntilChanged()
+        .mapLatest { (key, show) -> key?.let { widgetArtwork(loader.enabledWhen(show), it, sizePx) } }
+}
 
 internal fun ArtworkLoader.enabledWhen(enabled: Boolean): ArtworkLoader = if (enabled) this else ArtworkLoader.None
 

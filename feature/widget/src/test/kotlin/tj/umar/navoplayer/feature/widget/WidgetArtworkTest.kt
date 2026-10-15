@@ -2,6 +2,11 @@ package tj.umar.navoplayer.feature.widget
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -67,5 +72,34 @@ class WidgetArtworkTest {
 
         assertEquals(100, result.width)
         assertEquals(emptyList<Pair<ArtworkKey, Int>>(), loader.requests)
+    }
+
+    @Test
+    fun `artwork is loaded once per key and setting`() = runTest {
+        val loader = StubArtworkLoader(Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888))
+        val playing = NavoWidgetUiState.Playing(1, "a", "b", isPlaying = true, artworkKey = ArtworkKey(1, 10))
+        val states = flowOf(playing, playing.copy(isPlaying = false), playing.copy(trackId = 2, artworkKey = ArtworkKey(2, 10)))
+
+        val results = widgetArtworks(states, flowOf(true), loader, 50).toList()
+
+        assertEquals(listOf(ArtworkKey(1, 10) to 50, ArtworkKey(2, 10) to 50), loader.requests)
+        assertEquals(2, results.size)
+    }
+
+    @Test
+    fun `turning cover art off reloads as medallion`() = runTest {
+        val loader = StubArtworkLoader(Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888))
+        val playing = NavoWidgetUiState.Playing(1, "a", "b", isPlaying = true, artworkKey = ArtworkKey(1, 10))
+        val show = MutableStateFlow(true)
+
+        val results = mutableListOf<Bitmap?>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            widgetArtworks(flowOf(playing), show, loader, 50).collect { results += it }
+        }
+        show.value = false
+        job.cancel()
+
+        assertEquals(2, results.size)
+        assertEquals(listOf(ArtworkKey(1, 10) to 50), loader.requests)
     }
 }
