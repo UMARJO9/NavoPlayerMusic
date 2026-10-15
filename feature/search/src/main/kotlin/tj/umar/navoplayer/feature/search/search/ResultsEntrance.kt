@@ -60,8 +60,13 @@ internal fun Modifier.resultEntrance(index: Int, entrance: () -> Float): Modifie
     translationY = (1f - progress) * EntranceOffset.toPx()
 }
 
-internal fun LazyItemScope.resultItem(index: Int, motion: Boolean, entrance: () -> Float): Modifier =
-    Modifier
+internal fun Modifier.resultItem(
+    scope: LazyItemScope,
+    index: Int,
+    motion: Boolean,
+    entrance: () -> Float,
+): Modifier = with(scope) {
+    this@resultItem
         .animateItem(
             fadeInSpec = if (motion) tween(ITEM_FADE_IN_MILLIS) else null,
             placementSpec = if (motion) {
@@ -72,3 +77,4 @@ internal fun LazyItemScope.resultItem(index: Int, motion: Boolean, entrance: () 
             fadeOutSpec = if (motion) tween(ITEM_FADE_OUT_MILLIS) else null,
         )
         .resultEntrance(index, entrance)
+}

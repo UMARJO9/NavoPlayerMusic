@@ -198,7 +198,7 @@ private fun ResultsColumn(
                 SectionHeader(
                     title = stringResource(R.string.search_section_tracks),
                     count = state.tracks.size,
-                    modifier = resultItem(tracksStart, motion.enabled, motion.entrance),
+                    modifier = Modifier.resultItem(this, tracksStart, motion.enabled, motion.entrance),
                 )
             }
             itemsIndexed(state.tracks, key = { _, track -> "t:${track.id}" }, contentType = { _, _ -> "track" }) { index, track ->
@@ -209,7 +209,7 @@ private fun ResultsColumn(
                     onClick = { onIntent(SearchIntent.TrackClicked(track.id)) },
                     onLongClick = { onIntent(SearchIntent.TrackLongPressed(track.id)) },
                     onLongClickLabel = trackOptionsLabel,
-                    modifier = resultItem(tracksStart + 1 + index, motion.enabled, motion.entrance),
+                    modifier = Modifier.resultItem(this, tracksStart + 1 + index, motion.enabled, motion.entrance),
                 )
             }
         }
@@ -248,7 +248,7 @@ private fun LazyListScope.groupSection(
         SectionHeader(
             title = stringResource(titleRes),
             count = maxOf(totalCount, groups.size),
-            modifier = resultItem(startIndex, motion.enabled, motion.entrance),
+            modifier = Modifier.resultItem(this, startIndex, motion.enabled, motion.entrance),
         )
     }
     itemsIndexed(groups, key = { _, group -> "$name:${group.key.stableKey()}" }, contentType = { _, _ -> "group" }) { index, group ->
@@ -257,7 +257,7 @@ private fun LazyListScope.groupSection(
             subtitle = group.displaySubtitle(),
             leading = group.key.leading(),
             onClick = { onIntent(SearchIntent.GroupClicked(group.key)) },
-            modifier = resultItem(startIndex + 1 + index, motion.enabled, motion.entrance),
+            modifier = Modifier.resultItem(this, startIndex + 1 + index, motion.enabled, motion.entrance),
         )
     }
     return startIndex + 1 + groups.size
