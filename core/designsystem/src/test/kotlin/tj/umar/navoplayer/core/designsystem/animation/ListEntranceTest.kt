@@ -1,9 +1,9 @@
-package tj.umar.navoplayer.feature.search.search
+package tj.umar.navoplayer.core.designsystem.animation
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class ResultsEntranceTest {
+class ListEntranceTest {
 
     @Test
     fun firstItemStartsHiddenAndFinishesAfterItemDuration() {
@@ -29,7 +29,7 @@ class ResultsEntranceTest {
     @Test
     fun everyItemIsVisibleAtTotal() {
         (0..50).forEach { index ->
-            assertEquals(1f, entranceFraction(ENTRANCE_TOTAL_MILLIS.toFloat(), index), TOLERANCE)
+            assertEquals(1f, entranceFraction(LIST_ENTRANCE_TOTAL_MILLIS.toFloat(), index), TOLERANCE)
         }
     }
 

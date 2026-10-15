@@ -44,6 +44,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.filter
+import tj.umar.navoplayer.core.designsystem.animation.animatedListItem
+import tj.umar.navoplayer.core.designsystem.animation.rememberListEntrance
 import tj.umar.navoplayer.core.designsystem.animation.rememberMotionEnabled
 import tj.umar.navoplayer.core.designsystem.component.ContentPhase
 import tj.umar.navoplayer.core.designsystem.component.GroupRow
@@ -148,7 +150,7 @@ private fun SearchResultsList(state: SearchState, onIntent: (SearchIntent) -> Un
     val listState = rememberLazyListState()
     val trackOptionsLabel = stringResource(CoreUiR.string.core_ui_track_options)
     val motionEnabled = rememberMotionEnabled()
-    val entrance = rememberResultsEntrance()
+    val entrance = rememberListEntrance()
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrollInProgress }.filter { it }.collect { onScroll() }
     }
@@ -198,7 +200,7 @@ private fun ResultsColumn(
                 SectionHeader(
                     title = stringResource(R.string.search_section_tracks),
                     count = state.tracks.size,
-                    modifier = Modifier.resultItem(this, tracksStart, motion.enabled, motion.entrance),
+                    modifier = Modifier.animatedListItem(this, tracksStart, motion.enabled, motion.entrance),
                 )
             }
             itemsIndexed(state.tracks, key = { _, track -> "t:${track.id}" }, contentType = { _, _ -> "track" }) { index, track ->
@@ -209,7 +211,7 @@ private fun ResultsColumn(
                     onClick = { onIntent(SearchIntent.TrackClicked(track.id)) },
                     onLongClick = { onIntent(SearchIntent.TrackLongPressed(track.id)) },
                     onLongClickLabel = trackOptionsLabel,
-                    modifier = Modifier.resultItem(this, tracksStart + 1 + index, motion.enabled, motion.entrance),
+                    modifier = Modifier.animatedListItem(this, tracksStart + 1 + index, motion.enabled, motion.entrance),
                 )
             }
         }
@@ -248,7 +250,7 @@ private fun LazyListScope.groupSection(
         SectionHeader(
             title = stringResource(titleRes),
             count = maxOf(totalCount, groups.size),
-            modifier = Modifier.resultItem(this, startIndex, motion.enabled, motion.entrance),
+            modifier = Modifier.animatedListItem(this, startIndex, motion.enabled, motion.entrance),
         )
     }
     itemsIndexed(groups, key = { _, group -> "$name:${group.key.stableKey()}" }, contentType = { _, _ -> "group" }) { index, group ->
@@ -257,7 +259,7 @@ private fun LazyListScope.groupSection(
             subtitle = group.displaySubtitle(),
             leading = group.key.leading(),
             onClick = { onIntent(SearchIntent.GroupClicked(group.key)) },
-            modifier = Modifier.resultItem(this, startIndex + 1 + index, motion.enabled, motion.entrance),
+            modifier = Modifier.animatedListItem(this, startIndex + 1 + index, motion.enabled, motion.entrance),
         )
     }
     return startIndex + 1 + groups.size
