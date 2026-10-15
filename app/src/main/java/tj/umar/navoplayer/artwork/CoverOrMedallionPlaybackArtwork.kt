@@ -1,6 +1,7 @@
 package tj.umar.navoplayer.artwork
 
 import android.graphics.Bitmap
+import androidx.core.graphics.scale
 import tj.umar.navoplayer.core.designsystem.medallion.MAX_MEDALLION_BITMAP_PX
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.medallion.renderBitmap
@@ -26,11 +27,9 @@ internal class CoverOrMedallionPlaybackArtwork @Inject constructor(
 private fun Bitmap.scaledDownTo(sizePx: Int): Bitmap {
     val shortSide = minOf(width, height)
     if (sizePx <= 0 || shortSide <= sizePx) return this
-    val scale = sizePx.toFloat() / shortSide
-    return Bitmap.createScaledBitmap(
-        this,
-        (width * scale).roundToInt().coerceAtLeast(1),
-        (height * scale).roundToInt().coerceAtLeast(1),
-        true,
+    val factor = sizePx.toFloat() / shortSide
+    return scale(
+        (width * factor).roundToInt().coerceAtLeast(1),
+        (height * factor).roundToInt().coerceAtLeast(1),
     )
 }
