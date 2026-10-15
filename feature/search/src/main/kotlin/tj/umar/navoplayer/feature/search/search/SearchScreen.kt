@@ -232,7 +232,7 @@ private fun ResultCountAnnouncement(total: Int) {
     )
 }
 
-private class ResultsMotion(val enabled: Boolean, val entrance: () -> Float)
+private data class ResultsMotion(val enabled: Boolean, val entrance: () -> Float)
 
 private fun LazyListScope.groupSection(
     name: String,
