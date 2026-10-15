@@ -42,6 +42,8 @@ import tj.umar.navoplayer.core.ui.R as CoreUiR
 import tj.umar.navoplayer.core.ui.playlist.PlaylistNameSheet
 import tj.umar.navoplayer.feature.library.R
 
+private const val PLAYLIST_ROW_PRESSED_SCALE = 0.98f
+
 @Composable
 internal fun PlaylistsTabContent(state: LibraryState, onIntent: (LibraryIntent) -> Unit, modifier: Modifier = Modifier) {
     PhasedContent(
@@ -99,6 +101,7 @@ private fun PlaylistList(state: LibraryState, onIntent: (LibraryIntent) -> Unit)
                 ),
                 leading = GroupLeading.Favorites,
                 onClick = { onIntent(LibraryIntent.FavoritesClicked) },
+                pressedScale = PLAYLIST_ROW_PRESSED_SCALE,
                 modifier = Modifier.animatedListItem(this, 1, motion, entrance),
             )
         }
@@ -113,6 +116,7 @@ private fun PlaylistList(state: LibraryState, onIntent: (LibraryIntent) -> Unit)
                 subtitle = playlist.subtitle(),
                 leading = GroupLeading.Artwork(MedallionPalettes.forKey(playlist.id)),
                 onClick = { onIntent(LibraryIntent.PlaylistClicked(playlist.id)) },
+                pressedScale = PLAYLIST_ROW_PRESSED_SCALE,
                 modifier = Modifier.animatedListItem(this, 2 + index, motion, entrance),
             )
         }
