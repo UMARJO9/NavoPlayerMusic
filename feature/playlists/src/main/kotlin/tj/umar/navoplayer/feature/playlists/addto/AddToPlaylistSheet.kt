@@ -122,23 +122,25 @@ internal fun AddToPlaylistContent(state: AddToPlaylistState, onIntent: (AddToPla
             item(key = "favorite", contentType = "action") {
                 val isFavorite = state.isFavorite == true
                 ActionRow(
-                    icon = if (isFavorite) NavoIcons.HeartFilled else NavoIcons.Heart,
                     label = stringResource(
                         if (isFavorite) R.string.playlists_sheet_favorite_remove else R.string.playlists_sheet_favorite_add,
                     ),
                     enabled = !state.isLocked && state.isFavorite != null,
                     onClick = { onIntent(AddToPlaylistIntent.FavoriteClicked) },
                     modifier = Modifier.semantics { selected = isFavorite },
-                )
+                ) {
+                    FavoriteIcon(isFavorite = state.isFavorite)
+                }
             }
         }
         item(key = "new", contentType = "action") {
             ActionRow(
-                icon = NavoIcons.Plus,
                 label = stringResource(CoreUiR.string.core_ui_new_playlist),
                 enabled = !state.isLocked,
                 onClick = { onIntent(AddToPlaylistIntent.NewPlaylistClicked) },
-            )
+            ) {
+                ActionIcon(NavoIcons.Plus)
+            }
         }
         when {
             state.isLoading -> item(key = "loading", contentType = "status") { LoadingRow() }
@@ -197,14 +199,13 @@ private fun RowStatus(status: PlaylistRowStatus, motion: Boolean) {
 
 @Composable
 private fun ActionRow(
-    icon: ImageVector,
     label: String,
     enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    icon: @Composable () -> Unit,
 ) {
     val colors = NavoTheme.colors
-    val motion = rememberMotionEnabled()
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -222,37 +223,48 @@ private fun ActionRow(
                 .background(colors.accent),
             contentAlignment = Alignment.Center,
         ) {
-            AnimatedContent(
-                targetState = icon,
-                transitionSpec = {
-                    if (motion) {
-                        (
-                            scaleIn(
-                                animationSpec = spring(
-                                    dampingRatio = ICON_POP_DAMPING,
-                                    stiffness = Spring.StiffnessMediumLow,
-                                ),
-                                initialScale = ICON_POP_START_SCALE,
-                            ) + fadeIn(tween(ICON_FADE_IN_MILLIS))
-                        ).togetherWith(
-                            scaleOut(tween(ICON_EXIT_MILLIS), targetScale = ICON_POP_START_SCALE) +
-                                fadeOut(tween(ICON_EXIT_MILLIS)),
-                        )
-                    } else {
-                        EnterTransition.None togetherWith ExitTransition.None
-                    }
-                },
-                contentAlignment = Alignment.Center,
-                label = "actionIcon",
-            ) { shownIcon ->
-                Icon(imageVector = shownIcon, contentDescription = null, tint = colors.onAccent)
-            }
+            icon()
         }
         Text(
             text = label,
             style = NavoTheme.typography.itemTitle,
             color = colors.content,
         )
+    }
+}
+
+@Composable
+private fun ActionIcon(icon: ImageVector) {
+    Icon(imageVector = icon, contentDescription = null, tint = NavoTheme.colors.onAccent)
+}
+
+@Composable
+private fun FavoriteIcon(isFavorite: Boolean?) {
+    val motion = rememberMotionEnabled()
+    AnimatedContent(
+        targetState = isFavorite,
+        transitionSpec = {
+            if (motion && initialState != null) {
+                (
+                    scaleIn(
+                        animationSpec = spring(
+                            dampingRatio = ICON_POP_DAMPING,
+                            stiffness = Spring.StiffnessMediumLow,
+                        ),
+                        initialScale = ICON_POP_START_SCALE,
+                    ) + fadeIn(tween(ICON_FADE_IN_MILLIS))
+                ).togetherWith(
+                    scaleOut(tween(ICON_EXIT_MILLIS), targetScale = ICON_POP_START_SCALE) +
+                        fadeOut(tween(ICON_EXIT_MILLIS)),
+                )
+            } else {
+                EnterTransition.None togetherWith ExitTransition.None
+            }
+        },
+        contentAlignment = Alignment.Center,
+        label = "favoriteIcon",
+    ) { shownFavorite ->
+        ActionIcon(if (shownFavorite == true) NavoIcons.HeartFilled else NavoIcons.Heart)
     }
 }
 
