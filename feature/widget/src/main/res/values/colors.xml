@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="navo_widget_background">#FF13204A</color>
-    <color name="navo_widget_content">#FFF3EEDF</color>
-    <color name="navo_widget_content_secondary">#FFA9B4D6</color>
-    <color name="navo_widget_accent">#FFE3B04B</color>
-    <color name="navo_widget_on_accent">#FF13204A</color>
+    <color name="navo_widget_dark_background">#FF13204A</color>
+    <color name="navo_widget_dark_content">#FFF3EEDF</color>
+    <color name="navo_widget_dark_content_secondary">#FFA9B4D6</color>
+    <color name="navo_widget_dark_accent">#FFE3B04B</color>
+    <color name="navo_widget_dark_on_accent">#FF13204A</color>
+    <color name="navo_widget_light_background">#FFF6F0E1</color>
+    <color name="navo_widget_light_content">#FF13204A</color>
+    <color name="navo_widget_light_content_secondary">#FF4A5582</color>
+    <color name="navo_widget_light_accent">#FF7F5208</color>
+    <color name="navo_widget_light_on_accent">#FFFFFBF2</color>
+    <color name="navo_widget_light_stroke">#FFB9A982</color>
+    <color name="navo_widget_stroke">@color/navo_widget_dark_background</color>
+    <color name="navo_widget_background">@color/navo_widget_dark_background</color>
+    <color name="navo_widget_content">@color/navo_widget_dark_content</color>
+    <color name="navo_widget_content_secondary">@color/navo_widget_dark_content_secondary</color>
+    <color name="navo_widget_accent">@color/navo_widget_dark_accent</color>
+    <color name="navo_widget_on_accent">@color/navo_widget_dark_on_accent</color>
 </resources>
