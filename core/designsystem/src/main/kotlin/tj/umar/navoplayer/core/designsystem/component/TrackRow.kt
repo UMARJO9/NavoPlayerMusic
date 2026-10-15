@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
@@ -29,7 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.equalizer.EqualizerBars
-import tj.umar.navoplayer.core.designsystem.medallion.Medallion
+import tj.umar.navoplayer.core.designsystem.medallion.MedallionArtwork
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalette
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
@@ -50,6 +51,7 @@ fun TrackRow(
     onClick: () -> Unit = {},
     onLongClick: (() -> Unit)? = null,
     onLongClickLabel: String? = null,
+    artwork: ImageBitmap? = null,
 ) {
     val colors = NavoTheme.colors
     val typography = NavoTheme.typography
@@ -87,7 +89,7 @@ fun TrackRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Medallion(palette = palette, modifier = Modifier.size(48.dp))
+        MedallionArtwork(palette = palette, image = artwork, modifier = Modifier.size(48.dp))
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(3.dp),

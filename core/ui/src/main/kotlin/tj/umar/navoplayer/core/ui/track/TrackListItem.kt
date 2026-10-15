@@ -4,11 +4,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.component.TrackRow
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.domain.model.Track
+import tj.umar.navoplayer.core.domain.model.artworkKey
+import tj.umar.navoplayer.core.ui.artwork.rememberArtwork
 import tj.umar.navoplayer.core.ui.format.formatDuration
 import tj.umar.navoplayer.core.ui.R
+
+private val TrackArtworkSize = 48.dp
 
 @Composable
 fun TrackListItem(
@@ -31,6 +36,7 @@ fun TrackListItem(
         onClick = onClick,
         onLongClick = onLongClick,
         onLongClickLabel = onLongClickLabel,
+        artwork = rememberArtwork(track.artworkKey, TrackArtworkSize).value,
         modifier = modifier,
     )
 }
