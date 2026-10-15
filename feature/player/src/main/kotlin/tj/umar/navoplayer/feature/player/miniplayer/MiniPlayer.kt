@@ -46,13 +46,15 @@ import androidx.compose.ui.unit.sp
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
 import tj.umar.navoplayer.core.designsystem.component.ProgressRing
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
-import tj.umar.navoplayer.core.designsystem.medallion.Medallion
+import tj.umar.navoplayer.core.designsystem.medallion.MedallionArtwork
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.medallion.khotamWatermark
 import tj.umar.navoplayer.core.designsystem.modifier.pressScale
 import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.Track
+import tj.umar.navoplayer.core.domain.model.artworkKey
+import tj.umar.navoplayer.core.ui.artwork.rememberArtwork
 import tj.umar.navoplayer.feature.player.R
 import tj.umar.navoplayer.core.ui.R as CoreUiR
 
@@ -146,7 +148,12 @@ internal fun MiniPlayer(
                     label = "miniMedallionChange",
                 ) { shownTrack ->
                     val palette = remember(shownTrack.id) { MedallionPalettes.forKey(shownTrack.id) }
-                    Medallion(palette = palette, modifier = Modifier.size(MedallionSize), rotationDegrees = rotation)
+                    MedallionArtwork(
+                        palette = palette,
+                        image = rememberArtwork(shownTrack.artworkKey, MedallionSize).value,
+                        modifier = Modifier.size(MedallionSize),
+                        rotationDegrees = rotation,
+                    )
                 }
             }
             AnimatedContent(
