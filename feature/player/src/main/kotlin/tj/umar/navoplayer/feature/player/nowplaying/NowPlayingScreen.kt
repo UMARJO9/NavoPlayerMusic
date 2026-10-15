@@ -62,7 +62,7 @@ import tj.umar.navoplayer.core.designsystem.animation.rememberSmoothProgress
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
 import tj.umar.navoplayer.core.designsystem.component.NavoSeekBar
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
-import tj.umar.navoplayer.core.designsystem.medallion.Medallion
+import tj.umar.navoplayer.core.designsystem.medallion.MedallionArtwork
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionVariant
 import tj.umar.navoplayer.core.designsystem.medallion.rememberMedallionRotation
@@ -72,6 +72,8 @@ import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.RepeatMode
 import tj.umar.navoplayer.core.domain.model.SleepTimer
 import tj.umar.navoplayer.core.domain.model.Track
+import tj.umar.navoplayer.core.domain.model.artworkKey
+import tj.umar.navoplayer.core.ui.artwork.rememberArtwork
 import tj.umar.navoplayer.core.ui.format.formatDuration
 import tj.umar.navoplayer.feature.player.R
 import kotlin.math.roundToInt
@@ -140,7 +142,7 @@ internal fun NowPlayingScreen(
                         transitionSpec = { medallionTransition(state.trackChangeDirection) },
                         label = "medallionChange",
                     ) { shownTrack ->
-                        RotatingMedallion(trackId = shownTrack.id, rotationDegrees = medallionRotation)
+                        RotatingMedallion(track = shownTrack, rotationDegrees = medallionRotation)
                     }
                 }
             }
@@ -250,16 +252,17 @@ private fun TopBar(source: PlaybackSource?, onIntent: (NowPlayingIntent) -> Unit
 }
 
 @Composable
-private fun RotatingMedallion(trackId: Long, rotationDegrees: () -> Float) {
-    val palette = remember(trackId) { MedallionPalettes.forKey(trackId) }
+private fun RotatingMedallion(track: Track, rotationDegrees: () -> Float) {
+    val palette = remember(track.id) { MedallionPalettes.forKey(track.id) }
     Box(
         modifier = Modifier
             .sizeIn(maxWidth = MedallionMaxSize, maxHeight = MedallionMaxSize)
             .aspectRatio(1f, matchHeightConstraintsFirst = true)
             .dropShadow(CircleShape, NavoTheme.shadows.medallion),
     ) {
-        Medallion(
+        MedallionArtwork(
             palette = palette,
+            image = rememberArtwork(track.artworkKey, MedallionMaxSize).value,
             modifier = Modifier.fillMaxSize(),
             variant = MedallionVariant.Detailed,
             rotationDegrees = rotationDegrees,
