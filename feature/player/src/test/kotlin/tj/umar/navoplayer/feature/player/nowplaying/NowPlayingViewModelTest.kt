@@ -182,14 +182,22 @@ class NowPlayingViewModelTest {
     }
 
     @Test
-    fun `more click changes nothing`() = runTest {
+    fun `more click opens actions for current track`() = runTest {
         startWith()
-        val before = viewModel.state.value
 
-        viewModel.onIntent(NowPlayingIntent.MoreClicked)
-
-        assertEquals(before, viewModel.state.value)
+        viewModel.effects.test {
+            viewModel.onIntent(NowPlayingIntent.MoreClicked)
+            assertEquals(NowPlayingEffect.OpenTrackActions(listOf(TestTracks.alpha.id)), awaitItem())
+        }
         assertTrue(controller.commands.isEmpty())
+    }
+
+    @Test
+    fun `more click without track does nothing`() = runTest {
+        viewModel.effects.test {
+            viewModel.onIntent(NowPlayingIntent.MoreClicked)
+            expectNoEvents()
+        }
     }
 
     @Test

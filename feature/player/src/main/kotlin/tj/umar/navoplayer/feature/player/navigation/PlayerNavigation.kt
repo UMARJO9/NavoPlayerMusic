@@ -30,7 +30,11 @@ fun NavController.navigateToQueue() {
     navigate(QueueDestination) { launchSingleTop = true }
 }
 
-fun NavGraphBuilder.nowPlayingScreen(onCollapse: () -> Unit, onOpenQueue: () -> Unit) {
+fun NavGraphBuilder.nowPlayingScreen(
+    onCollapse: () -> Unit,
+    onOpenQueue: () -> Unit,
+    onOpenTrackActions: (List<Long>) -> Unit,
+) {
     composable<NowPlayingDestination>(
         enterTransition = { slideInVertically(tween(SLIDE_IN_MILLIS)) { it } },
         exitTransition = {
@@ -49,7 +53,7 @@ fun NavGraphBuilder.nowPlayingScreen(onCollapse: () -> Unit, onOpenQueue: () -> 
         },
         popExitTransition = { slideOutVertically(tween(SLIDE_OUT_MILLIS)) { it } },
     ) {
-        NowPlayingRoute(onCollapse = onCollapse, onOpenQueue = onOpenQueue)
+        NowPlayingRoute(onCollapse = onCollapse, onOpenQueue = onOpenQueue, onOpenTrackActions = onOpenTrackActions)
     }
 }
 

@@ -179,6 +179,7 @@ fun NavoNavHost(
                 }
             },
             onOpenQueue = { if (isResumed()) navController.navigateToQueue() },
+            onOpenTrackActions = onTrackActions,
         )
         queueScreen(
             onClose = {
