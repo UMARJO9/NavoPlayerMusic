@@ -29,7 +29,7 @@ import tj.umar.navoplayer.core.common.time.NavoClock
 import tj.umar.navoplayer.core.domain.model.EqualizerStatus
 import tj.umar.navoplayer.core.domain.usecase.LoadResumableQueueUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveEqualizerUseCase
-import tj.umar.navoplayer.core.player.artwork.ResumptionArtwork
+import tj.umar.navoplayer.core.player.artwork.PlaybackArtwork
 import tj.umar.navoplayer.core.player.artwork.TrackArtworkBitmapLoader
 import tj.umar.navoplayer.core.player.equalizer.AndroidSoundEffects
 import tj.umar.navoplayer.core.player.equalizer.EqualizerApplier
@@ -94,7 +94,7 @@ class PlaybackService : MediaLibraryService() {
     lateinit var defaultDispatcher: CoroutineDispatcher
 
     @Inject
-    lateinit var resumptionArtwork: ResumptionArtwork
+    lateinit var playbackArtwork: PlaybackArtwork
 
     private var serviceScope: CoroutineScope? = null
 
@@ -117,7 +117,7 @@ class PlaybackService : MediaLibraryService() {
         serviceScope = scope
         val pendingShuffleOrder = PendingShuffleOrder()
         val queuePlayer = ExoQueuePlayer(player, sourceStore, pendingShuffleOrder)
-        val restorer = QueueRestorer(loadResumableQueue, queuePlayer, defaultDispatcher, resumptionArtwork)
+        val restorer = QueueRestorer(loadResumableQueue, queuePlayer, defaultDispatcher, playbackArtwork)
             .also { queueRestorer = it }
         val persister = QueuePersister(queuePlayer, queueWriter, defaultDispatcher).also { queuePersister = it }
         val callback = PlaybackSessionCallback(
@@ -127,7 +127,7 @@ class PlaybackService : MediaLibraryService() {
             preview = { restorer.preview(scope) },
         )
         val builder = MediaLibraryService.MediaLibrarySession.Builder(this, player, callback)
-            .setBitmapLoader(CacheBitmapLoader(trackArtworkBitmapLoader()))
+            .setBitmapLoader(CacheBitmapLoader(trackArtworkBitmapLoader(scope)))
         launchIntent()?.let(builder::setSessionActivity)
         mediaSession = builder.build()
         player.addListener(ShuffleOrderListener(player, pending = pendingShuffleOrder))
@@ -189,10 +189,11 @@ class PlaybackService : MediaLibraryService() {
     }
 
     @OptIn(UnstableApi::class)
-    private fun trackArtworkBitmapLoader(): BitmapLoader = TrackArtworkBitmapLoader(
-        artwork = resumptionArtwork,
+    private fun trackArtworkBitmapLoader(scope: CoroutineScope): BitmapLoader = TrackArtworkBitmapLoader(
+        artwork = playbackArtwork,
         fallback = DataSourceBitmapLoader.Builder(this).build(),
-        executor = DataSourceBitmapLoader.DEFAULT_EXECUTOR_SERVICE.get(),
+        scope = scope,
+        dispatcher = defaultDispatcher,
     )
 
     private fun launchIntent(): PendingIntent? {

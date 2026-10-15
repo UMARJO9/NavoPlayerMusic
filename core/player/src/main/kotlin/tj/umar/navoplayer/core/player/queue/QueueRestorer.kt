@@ -16,20 +16,25 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import tj.umar.navoplayer.core.domain.model.ArtworkKey
 import tj.umar.navoplayer.core.domain.model.QueueResumeResult
 import tj.umar.navoplayer.core.domain.model.ResumableQueue
 import tj.umar.navoplayer.core.domain.usecase.LoadResumableQueueUseCase
-import tj.umar.navoplayer.core.player.artwork.ResumptionArtwork
+import tj.umar.navoplayer.core.player.artwork.PlaybackArtwork
+import tj.umar.navoplayer.core.player.artwork.encodeJpeg
+import tj.umar.navoplayer.core.player.mapper.artworkKey
 import tj.umar.navoplayer.core.player.mapper.toMediaItem
 import tj.umar.navoplayer.core.player.mapper.toPlayerRepeatMode
 import tj.umar.navoplayer.core.player.mapper.toResumptionPreview
+
+private const val PREVIEW_ARTWORK_PX = 256
 
 @OptIn(UnstableApi::class)
 internal class QueueRestorer(
     private val loadResumableQueue: LoadResumableQueueUseCase,
     private val player: QueuePlayer,
     private val mappingDispatcher: CoroutineDispatcher,
-    private val artwork: ResumptionArtwork = ResumptionArtwork { null },
+    private val artwork: PlaybackArtwork,
 ) {
     private val settledState = MutableStateFlow(false)
     private var loaded: Deferred<RestoredMediaQueue?>? = null
@@ -83,10 +88,16 @@ internal class QueueRestorer(
                 queue.items.getOrNull(queue.startIndex)?.let { it to queue.startPositionMs }
             }
             ?: return null
-        val png = withContext(mappingDispatcher) {
-            item.mediaId.toLongOrNull()?.let { trackId -> runCatching { artwork.render(trackId) }.getOrNull() }
-        }
-        return MediaSession.MediaItemsWithStartPosition(listOf(item.toResumptionPreview(png)), 0, position)
+        val artworkData = item.artworkKey()?.let { key -> previewArtwork(key) }
+        return MediaSession.MediaItemsWithStartPosition(listOf(item.toResumptionPreview(artworkData)), 0, position)
+    }
+
+    private suspend fun previewArtwork(key: ArtworkKey): ByteArray? = try {
+        withContext(mappingDispatcher) { artwork.load(key, PREVIEW_ARTWORK_PX).encodeJpeg() }
+    } catch (cancellation: CancellationException) {
+        throw cancellation
+    } catch (failure: Exception) {
+        null
     }
 
     private suspend fun resolveResumption(scope: CoroutineScope): MediaSession.MediaItemsWithStartPosition? {

@@ -50,4 +50,5 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
 
     testImplementation(projects.core.testing)
+    testImplementation(libs.robolectric)
 }

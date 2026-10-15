@@ -1,5 +1,7 @@
 package tj.umar.navoplayer.core.player.queue
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.media3.common.MediaItem
 import androidx.media3.session.MediaSession
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -17,8 +19,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 import tj.umar.navoplayer.core.domain.usecase.LoadResumableQueueUseCase
-import tj.umar.navoplayer.core.player.artwork.ResumptionArtwork
+import tj.umar.navoplayer.core.domain.model.ArtworkKey
+import tj.umar.navoplayer.core.player.artwork.PlaybackArtwork
 import tj.umar.navoplayer.core.player.mapper.queueItemId
 import tj.umar.navoplayer.core.player.mapper.toMediaItem
 import tj.umar.navoplayer.core.testing.app.FakeAudioAccessChecker
@@ -26,6 +30,8 @@ import tj.umar.navoplayer.core.testing.data.TestSavedQueues
 import tj.umar.navoplayer.core.testing.data.TestTracks
 import tj.umar.navoplayer.core.testing.repository.FakePlaybackQueueRepository
 import tj.umar.navoplayer.core.testing.repository.FakeTrackRepository
+
+private val JPEG_MAGIC = byteArrayOf(0xFF.toByte(), 0xD8.toByte())
 
 private class RecordingQueuePlayer : QueuePlayer {
     val applied = mutableListOf<RestoredMediaQueue>()
@@ -50,6 +56,7 @@ private class RecordingQueuePlayer : QueuePlayer {
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class QueueRestorerTest {
 
     private val queues = FakePlaybackQueueRepository(TestSavedQueues.alphaBeta)
@@ -57,9 +64,11 @@ class QueueRestorerTest {
     private val access = FakeAudioAccessChecker()
     private val player = RecordingQueuePlayer()
     private val renderedIds = mutableListOf<Long>()
-    private val artwork = ResumptionArtwork { id ->
-        renderedIds += id
-        byteArrayOf(id.toByte())
+    private val artwork = object : PlaybackArtwork {
+        override suspend fun load(key: ArtworkKey, sizePx: Int): Bitmap {
+            renderedIds += key.trackId
+            return Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+        }
     }
 
     private suspend fun TestScope.restorer(): QueueRestorer {
@@ -142,6 +151,7 @@ class QueueRestorerTest {
             LoadResumableQueueUseCase(FakePlaybackQueueRepository(), tracks, access),
             player,
             StandardTestDispatcher(testScheduler),
+            artwork,
         )
 
         val failure = runCatching { restorer.resumption(backgroundScope).await() }.exceptionOrNull()
@@ -187,7 +197,9 @@ class QueueRestorerTest {
         assertEquals(12_000L, result.startPositionMs)
         assertEquals(true, item.mediaMetadata.isPlayable)
         assertEquals(listOf(TestTracks.beta.id), renderedIds)
-        assertArrayEquals(byteArrayOf(TestTracks.beta.id.toByte()), item.mediaMetadata.artworkData)
+        val artworkData = checkNotNull(item.mediaMetadata.artworkData)
+        assertArrayEquals(JPEG_MAGIC, artworkData.copyOfRange(0, 2))
+        assertEquals(256, BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size).width)
         assertTrue(player.prepared.isEmpty())
         assertTrue(player.applied.isEmpty())
     }
@@ -249,7 +261,9 @@ class QueueRestorerTest {
             LoadResumableQueueUseCase(queues, tracks, access),
             player,
             StandardTestDispatcher(testScheduler),
-            ResumptionArtwork { error("render failed") },
+            object : PlaybackArtwork {
+                override suspend fun load(key: ArtworkKey, sizePx: Int): Bitmap = error("render failed")
+            },
         )
 
         val item = restorer.preview(backgroundScope).await().mediaItems.single()
