@@ -10,6 +10,8 @@ internal const val HEADER_ITEM_KEY = "header"
 private const val COLLAPSED_ALPHA_DROP = 0.7f
 private const val COLLAPSED_SCALE_DROP = 0.15f
 private const val PARALLAX_FACTOR = 0.5f
+private const val TITLE_FADE_START = 0.6f
+private const val TITLE_FADE_RANGE = 0.4f
 private val BottomCenter = TransformOrigin(0.5f, 1f)
 
 internal fun collapseFraction(firstVisibleIndex: Int, firstVisibleOffsetPx: Int, headerHeightPx: Int): Float = when {
@@ -34,3 +36,6 @@ internal fun Modifier.collapsingHeader(fraction: () -> Float, motion: Boolean): 
         transformOrigin = BottomCenter
     }
 }
+
+internal fun collapsedTitleAlpha(collapse: Float): Float =
+    ((collapse - TITLE_FADE_START) / TITLE_FADE_RANGE).coerceIn(0f, 1f)

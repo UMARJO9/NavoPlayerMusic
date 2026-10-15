@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -55,11 +57,13 @@ import tj.umar.navoplayer.core.ui.R as CoreUiR
 import tj.umar.navoplayer.core.ui.playlist.PlaylistNameSheet
 import tj.umar.navoplayer.core.ui.track.TrackListItem
 import tj.umar.navoplayer.feature.playlists.R
+import tj.umar.navoplayer.feature.playlists.component.CollapsedTitle
 import tj.umar.navoplayer.feature.playlists.component.CollectionEmptyNote
 import tj.umar.navoplayer.feature.playlists.component.CollectionHeader
 import tj.umar.navoplayer.feature.playlists.component.CollectionSummary
 import tj.umar.navoplayer.feature.playlists.component.HEADER_ITEM_KEY
 import tj.umar.navoplayer.feature.playlists.component.UnavailableTracksNote
+import tj.umar.navoplayer.feature.playlists.component.headerCollapseFraction
 
 private const val SETTLE_START_DEGREES = -18f
 private const val SETTLE_MILLIS = 600
@@ -71,13 +75,20 @@ internal fun PlaylistDetailScreen(
     onIntent: (PlaylistDetailIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val listState = rememberLazyListState()
+    val collapse = remember(listState) { { listState.headerCollapseFraction() } }
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(NavoTheme.colors.background)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)),
     ) {
-        TopBar(showMenu = state.playlist != null && !state.isDeleting, onIntent = onIntent)
+        TopBar(
+            title = state.playlist?.name.orEmpty(),
+            collapse = collapse,
+            showMenu = state.playlist != null && !state.isDeleting,
+            onIntent = onIntent,
+        )
         val phase = if (state.isMissing) {
             ContentPhase.Empty
         } else {
@@ -104,14 +115,21 @@ internal fun PlaylistDetailScreen(
             },
         ) {
             val playlist = state.playlist
-            if (playlist != null) PlaylistTrackList(state = state, playlist = playlist, onIntent = onIntent)
+            if (playlist != null) {
+                PlaylistTrackList(state = state, playlist = playlist, listState = listState, collapse = collapse, onIntent = onIntent)
+            }
         }
     }
     PlaylistDialogs(state = state, onIntent = onIntent)
 }
 
 @Composable
-private fun TopBar(showMenu: Boolean, onIntent: (PlaylistDetailIntent) -> Unit) {
+private fun TopBar(
+    title: String,
+    collapse: () -> Float,
+    showMenu: Boolean,
+    onIntent: (PlaylistDetailIntent) -> Unit,
+) {
     var isMenuOpen by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
@@ -124,7 +142,13 @@ private fun TopBar(showMenu: Boolean, onIntent: (PlaylistDetailIntent) -> Unit) 
             contentDescription = stringResource(R.string.playlists_back),
             onClick = { onIntent(PlaylistDetailIntent.BackClicked) },
         )
-        Spacer(modifier = Modifier.weight(1f))
+        CollapsedTitle(
+            title = title,
+            collapse = collapse,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 8.dp),
+        )
         if (showMenu) {
             Box {
                 NavoIconButton(
@@ -147,6 +171,8 @@ private fun TopBar(showMenu: Boolean, onIntent: (PlaylistDetailIntent) -> Unit) 
                     }
                 }
             }
+        } else {
+            Spacer(modifier = Modifier.size(44.dp))
         }
     }
 }
@@ -163,6 +189,8 @@ private fun MenuItem(text: String, onClick: () -> Unit) {
 private fun PlaylistTrackList(
     state: PlaylistDetailState,
     playlist: PlaylistDetail,
+    listState: LazyListState,
+    collapse: () -> Float,
     onIntent: (PlaylistDetailIntent) -> Unit,
 ) {
     val removeLabel = stringResource(R.string.playlists_remove_track_label)
@@ -171,6 +199,7 @@ private fun PlaylistTrackList(
     val settle = rememberMedallionSettle(key = playlist.id, motion = motion)
     val trackCount = playlist.tracks.size
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = navoListPadding(state.hasActivePlayback),
         verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -178,6 +207,7 @@ private fun PlaylistTrackList(
         item(key = HEADER_ITEM_KEY, contentType = "header") {
             CollectionHeader(
                 title = playlist.name,
+                collapse = collapse,
                 modifier = Modifier.animatedListItem(this, 0, motion, entrance),
             ) {
                 val palette = remember(playlist.id) { MedallionPalettes.forKey(playlist.id) }

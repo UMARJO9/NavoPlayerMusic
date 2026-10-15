@@ -32,6 +32,14 @@ class HeaderCollapseTest {
         assertEquals(0f, collapseFraction(firstVisibleIndex = 0, firstVisibleOffsetPx = -40, headerHeightPx = 400), TOLERANCE)
     }
 
+    @Test
+    fun collapsedTitleFadesInOverLastPartOfCollapse() {
+        assertEquals(0f, collapsedTitleAlpha(0.6f), TOLERANCE)
+        assertEquals(0.5f, collapsedTitleAlpha(0.8f), TOLERANCE)
+        assertEquals(1f, collapsedTitleAlpha(1f), TOLERANCE)
+        assertEquals(0f, collapsedTitleAlpha(0f), TOLERANCE)
+    }
+
     private companion object {
         const val TOLERANCE = 1e-5f
     }

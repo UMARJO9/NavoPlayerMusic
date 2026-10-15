@@ -1,6 +1,7 @@
 package tj.umar.navoplayer.feature.playlists.component
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -10,14 +11,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import tj.umar.navoplayer.core.designsystem.animation.rememberMotionEnabled
 import tj.umar.navoplayer.core.designsystem.component.NavoButton
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
 import tj.umar.navoplayer.core.designsystem.component.NavoSummaryHorizontalPadding
@@ -28,7 +32,13 @@ import tj.umar.navoplayer.core.ui.R as CoreUiR
 import tj.umar.navoplayer.feature.playlists.R
 
 @Composable
-internal fun CollectionHeader(title: String, modifier: Modifier = Modifier, artwork: @Composable () -> Unit) {
+internal fun CollectionHeader(
+    title: String,
+    modifier: Modifier = Modifier,
+    collapse: () -> Float = { 0f },
+    artwork: @Composable () -> Unit,
+) {
+    val motion = rememberMotionEnabled()
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -36,7 +46,9 @@ internal fun CollectionHeader(title: String, modifier: Modifier = Modifier, artw
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        artwork()
+        Box(modifier = Modifier.collapsingHeader(collapse, motion)) {
+            artwork()
+        }
         Text(
             text = title,
             style = NavoTheme.typography.displayM,
@@ -47,6 +59,21 @@ internal fun CollectionHeader(title: String, modifier: Modifier = Modifier, artw
             modifier = Modifier.semantics { heading() },
         )
     }
+}
+
+@Composable
+internal fun CollapsedTitle(title: String, collapse: () -> Float, modifier: Modifier = Modifier) {
+    Text(
+        text = title,
+        style = NavoTheme.typography.titleS,
+        color = NavoTheme.colors.content,
+        textAlign = TextAlign.Center,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier
+            .graphicsLayer { alpha = collapsedTitleAlpha(collapse()) }
+            .clearAndSetSemantics { },
+    )
 }
 
 @Composable
