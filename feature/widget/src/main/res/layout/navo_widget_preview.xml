@@ -42,7 +42,8 @@
         android:layout_height="40dp"
         android:importantForAccessibility="no"
         android:padding="10dp"
-        android:src="@drawable/navo_ic_skip_previous" />
+        android:src="@drawable/navo_ic_skip_previous"
+        android:tint="@color/navo_widget_content" />
 
     <ImageView
         android:layout_width="44dp"
@@ -58,5 +59,6 @@
         android:layout_height="40dp"
         android:importantForAccessibility="no"
         android:padding="10dp"
-        android:src="@drawable/navo_ic_skip_next" />
+        android:src="@drawable/navo_ic_skip_next"
+        android:tint="@color/navo_widget_content" />
 </LinearLayout>
