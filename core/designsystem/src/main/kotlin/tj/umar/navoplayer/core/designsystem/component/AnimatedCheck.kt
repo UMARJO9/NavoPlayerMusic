@@ -18,7 +18,6 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.coroutineScope
@@ -38,7 +37,7 @@ fun AnimatedCheck(
     modifier: Modifier = Modifier,
     tint: Color = NavoTheme.colors.accent,
 ) {
-    val motion = rememberMotionEnabled() && !LocalInspectionMode.current
+    val motion = rememberMotionEnabled()
     val reveal = remember { Animatable(if (visible && !motion) 1f else 0f) }
     val scale = remember { Animatable(if (visible && !motion) 1f else CHECK_START_SCALE) }
     LaunchedEffect(visible, motion) {
