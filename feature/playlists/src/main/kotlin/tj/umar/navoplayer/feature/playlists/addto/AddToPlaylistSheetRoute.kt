@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -52,6 +53,8 @@ internal fun AddToPlaylistSheetRoute(
     val currentOnDismiss by rememberUpdatedState(onDismiss)
     val currentRequest by rememberUpdatedState(request)
     val currentMotion by rememberUpdatedState(rememberMotionEnabled())
+    val dismissGate = remember(request.token) { DismissGate() }
+    val dismissOnce = { if (dismissGate.pass()) currentOnDismiss() }
 
     LaunchedEffect(request) {
         viewModel.onIntent(AddToPlaylistIntent.Opened(request))
@@ -67,7 +70,7 @@ internal fun AddToPlaylistSheetRoute(
             scope.launch {
                 if (hold) delay(CONFIRM_HOLD_MILLIS)
                 sheetState.hide()
-            }.invokeOnCompletion { currentOnDismiss() }
+            }.invokeOnCompletion { cause -> if (cause == null) dismissOnce() }
         }
     }
 
@@ -75,9 +78,19 @@ internal fun AddToPlaylistSheetRoute(
         state = state,
         sheetState = sheetState,
         onIntent = viewModel::onIntent,
-        onDismissRequest = { currentOnDismiss() },
+        onDismissRequest = dismissOnce,
         modifier = modifier,
     )
+}
+
+private class DismissGate {
+    private var passed = false
+
+    fun pass(): Boolean {
+        if (passed) return false
+        passed = true
+        return true
+    }
 }
 
 private fun AddToPlaylistEffect.showsConfirmation(): Boolean =
