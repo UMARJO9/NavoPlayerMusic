@@ -17,11 +17,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import tj.umar.navoplayer.core.designsystem.animation.rememberMotionEnabled
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.PlaylistSummary
 import tj.umar.navoplayer.core.ui.mvi.CollectEffects
 import tj.umar.navoplayer.feature.playlists.R
+
+private const val CONFIRM_HOLD_MILLIS = 360L
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,6 +51,7 @@ internal fun AddToPlaylistSheetRoute(
     val scope = rememberCoroutineScope()
     val currentOnDismiss by rememberUpdatedState(onDismiss)
     val currentRequest by rememberUpdatedState(request)
+    val currentMotion by rememberUpdatedState(rememberMotionEnabled())
 
     LaunchedEffect(request) {
         viewModel.onIntent(AddToPlaylistIntent.Opened(request))
@@ -58,7 +63,11 @@ internal fun AddToPlaylistSheetRoute(
     viewModel.effects.CollectEffects { effect ->
         Toast.makeText(context, effect.message(context), Toast.LENGTH_SHORT).show()
         if (effect.token == currentRequest.token) {
-            scope.launch { sheetState.hide() }.invokeOnCompletion { currentOnDismiss() }
+            val hold = currentMotion && effect.showsConfirmation()
+            scope.launch {
+                if (hold) delay(CONFIRM_HOLD_MILLIS)
+                sheetState.hide()
+            }.invokeOnCompletion { currentOnDismiss() }
         }
     }
 
@@ -70,6 +79,9 @@ internal fun AddToPlaylistSheetRoute(
         modifier = modifier,
     )
 }
+
+private fun AddToPlaylistEffect.showsConfirmation(): Boolean =
+    this is AddToPlaylistEffect.Added || this is AddToPlaylistEffect.FavoriteChanged
 
 private fun AddToPlaylistEffect.message(context: Context): String = when (this) {
     is AddToPlaylistEffect.Added -> context.getString(
@@ -95,6 +107,7 @@ private fun AddToPlaylistContentPreview() {
                     isFavorite = true,
                     trackIds = listOf(1),
                     isLoading = false,
+                    addedPlaylistId = 1,
                     playlists = listOf(
                         PlaylistSummary(id = 1, name = "Утро в горах", trackCount = 12, durationMs = 2_940_000),
                         PlaylistSummary(id = 2, name = "Дорога", trackCount = 3, durationMs = 640_000),

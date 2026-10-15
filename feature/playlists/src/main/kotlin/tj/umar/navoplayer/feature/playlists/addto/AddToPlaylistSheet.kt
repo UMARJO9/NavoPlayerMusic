@@ -1,5 +1,8 @@
 package tj.umar.navoplayer.feature.playlists.addto
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +15,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,10 +31,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
+import tj.umar.navoplayer.core.designsystem.animation.animatedListItem
+import tj.umar.navoplayer.core.designsystem.animation.rememberListEntrance
+import tj.umar.navoplayer.core.designsystem.animation.rememberMotionEnabled
+import tj.umar.navoplayer.core.designsystem.component.AnimatedCheck
 import tj.umar.navoplayer.core.designsystem.component.GroupLeading
 import tj.umar.navoplayer.core.designsystem.component.GroupRow
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
@@ -44,6 +52,9 @@ import tj.umar.navoplayer.core.domain.model.durationMinutes
 import tj.umar.navoplayer.core.ui.R as CoreUiR
 import tj.umar.navoplayer.core.ui.playlist.PlaylistNameForm
 import tj.umar.navoplayer.feature.playlists.R
+
+private const val PLAYLIST_ROW_PRESSED_SCALE = 0.98f
+private const val STATUS_CROSSFADE_MILLIS = 160
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,6 +87,8 @@ internal fun AddToPlaylistSheet(
 
 @Composable
 internal fun AddToPlaylistContent(state: AddToPlaylistState, onIntent: (AddToPlaylistIntent) -> Unit) {
+    val motion = rememberMotionEnabled()
+    val entrance = rememberListEntrance()
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(start = 8.dp, end = 8.dp, bottom = NavoSpacing.Large),
@@ -118,14 +131,52 @@ internal fun AddToPlaylistContent(state: AddToPlaylistState, onIntent: (AddToPla
             state.loadFailed -> item(key = "error", contentType = "status") {
                 ErrorRow(onRetry = { onIntent(AddToPlaylistIntent.RetryLoad) })
             }
-            else -> items(state.playlists, key = { it.id }, contentType = { "playlist" }) { playlist ->
+            else -> itemsIndexed(
+                state.playlists,
+                key = { _, playlist -> playlist.id },
+                contentType = { _, _ -> "playlist" },
+            ) { index, playlist ->
                 GroupRow(
                     title = playlist.name,
                     subtitle = playlist.subtitle(),
                     leading = GroupLeading.Artwork(MedallionPalettes.forKey(playlist.id)),
                     onClick = { onIntent(AddToPlaylistIntent.PlaylistClicked(playlist.id)) },
+                    modifier = Modifier.animatedListItem(this, index, motion, entrance),
+                    pressedScale = PLAYLIST_ROW_PRESSED_SCALE,
+                    trailing = {
+                        RowStatus(
+                            status = when (playlist.id) {
+                                state.savingPlaylistId -> PlaylistRowStatus.Saving
+                                state.addedPlaylistId -> PlaylistRowStatus.Added
+                                else -> PlaylistRowStatus.Idle
+                            },
+                            motion = motion,
+                        )
+                    },
                 )
             }
+        }
+    }
+}
+
+private enum class PlaylistRowStatus { Idle, Saving, Added }
+
+@Composable
+private fun RowStatus(status: PlaylistRowStatus, motion: Boolean) {
+    Crossfade(
+        targetState = status,
+        animationSpec = if (motion) tween(STATUS_CROSSFADE_MILLIS) else snap(),
+        label = "playlistRowStatus",
+        modifier = Modifier.clearAndSetSemantics { },
+    ) { shown ->
+        when (shown) {
+            PlaylistRowStatus.Idle -> Unit
+            PlaylistRowStatus.Saving -> CircularProgressIndicator(
+                color = NavoTheme.colors.accent,
+                strokeWidth = 2.dp,
+                modifier = Modifier.size(20.dp),
+            )
+            PlaylistRowStatus.Added -> AnimatedCheck(visible = true)
         }
     }
 }
