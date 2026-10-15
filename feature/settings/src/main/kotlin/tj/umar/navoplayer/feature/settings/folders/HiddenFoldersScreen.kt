@@ -65,7 +65,7 @@ internal fun HiddenFoldersScreen(
                 StateMessage(
                     message = stringResource(R.string.settings_folders_error),
                     palette = MedallionPalettes.all[0],
-                    actionLabel = stringResource(R.string.settings_folders_retry),
+                    actionLabel = stringResource(R.string.settings_retry),
                     onAction = { onIntent(HiddenFoldersIntent.RetryLoad) },
                 )
             },

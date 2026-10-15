@@ -5,6 +5,9 @@
     <string name="settings_theme_system">Как в системе</string>
     <string name="settings_theme_light">Светлая</string>
     <string name="settings_theme_dark">Тёмная</string>
+    <string name="settings_tagline">Офлайн-плеер, без интернета</string>
+    <string name="settings_version">Версия %1$s</string>
+    <string name="settings_retry">Повторить</string>
     <string name="settings_section_library">Медиатека</string>
     <string name="settings_min_duration_title">Скрывать короткие треки</string>
     <string name="settings_min_duration_subtitle">Треки короче выбранного скрываются везде</string>
@@ -21,8 +24,6 @@
     <string name="settings_folders_hint">Отключите папку, чтобы скрыть её треки везде</string>
     <string name="settings_folders_empty">Папки с музыкой не найдены</string>
     <string name="settings_folders_error">Не удалось загрузить папки</string>
-    <string name="settings_folders_retry">Повторить</string>
-    <string name="settings_about_subtitle">Версия %1$s\nОфлайн-плеер, без интернета</string>
     <string name="settings_load_error">Не удалось загрузить настройки</string>
     <string name="equalizer_title">Эквалайзер</string>
     <string name="equalizer_enable_title">Эквалайзер</string>
