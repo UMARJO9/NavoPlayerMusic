@@ -12,6 +12,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.toArgb
@@ -24,16 +25,22 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.ThemeMode
 import tj.umar.navoplayer.core.domain.model.resolveDarkTheme
+import tj.umar.navoplayer.core.ui.artwork.ArtworkLoader
+import tj.umar.navoplayer.core.ui.artwork.LocalArtworkLoader
 import tj.umar.navoplayer.feature.widget.navigation.isOpenNowPlayingRequest
 import tj.umar.navoplayer.splash.animatorDurationScale
 import tj.umar.navoplayer.splash.playNavoExitAnimation
 import tj.umar.navoplayer.theme.syncApplicationNightMode
 import tj.umar.navoplayer.ui.NavoApp
+import javax.inject.Inject
 
 private const val LIGHT_NAVIGATION_FALLBACK_SCRIM = 0x8013204A.toInt()
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var artworkLoader: ArtworkLoader
 
     private val viewModel: MainActivityViewModel by viewModels()
 
@@ -82,7 +89,9 @@ class MainActivity : ComponentActivity() {
                 applySystemBars(darkTheme)
                 window.setBackgroundDrawable(ColorDrawable(background))
             }
-            NavoApp(openNowPlayingRequests = openNowPlayingFlow)
+            CompositionLocalProvider(LocalArtworkLoader provides artworkLoader) {
+                NavoApp(openNowPlayingRequests = openNowPlayingFlow)
+            }
         }
     }
 
