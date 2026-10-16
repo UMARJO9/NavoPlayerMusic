@@ -1,9 +1,11 @@
 package tj.umar.navoplayer.feature.player.queue
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -30,9 +32,13 @@ internal fun QueueSheetRoute(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     val currentOnDismiss by rememberUpdatedState(onDismiss)
-    val dismiss = {
-        viewModel.onIntent(QueueIntent.SheetDismissed)
-        currentOnDismiss()
+    val dismiss = { currentOnDismiss() }
+    val activity = LocalActivity.current
+
+    DisposableEffect(viewModel) {
+        onDispose {
+            if (activity?.isChangingConfigurations != true) viewModel.onIntent(QueueIntent.SheetDismissed)
+        }
     }
 
     LifecycleStartEffect(Unit) {

@@ -2,9 +2,11 @@ package tj.umar.navoplayer.feature.player.nowplaying
 
 import android.content.res.Resources
 import android.widget.Toast
+import androidx.activity.compose.LocalActivity
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -47,9 +49,13 @@ internal fun NowPlayingSheetRoute(
     val currentOnDismiss by rememberUpdatedState(onDismiss)
     val currentOnOpenTrackActions by rememberUpdatedState(onOpenTrackActions)
     val context = LocalContext.current
-    val dismiss = {
-        viewModel.onIntent(NowPlayingIntent.SheetDismissed)
-        currentOnDismiss()
+    val dismiss = { currentOnDismiss() }
+    val activity = LocalActivity.current
+
+    DisposableEffect(viewModel) {
+        onDispose {
+            if (activity?.isChangingConfigurations != true) viewModel.onIntent(NowPlayingIntent.SheetDismissed)
+        }
     }
 
     LifecycleStartEffect(Unit) {
