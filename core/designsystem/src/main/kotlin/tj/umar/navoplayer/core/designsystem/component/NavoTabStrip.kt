@@ -22,8 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
@@ -58,7 +60,6 @@ import kotlin.math.roundToInt
 
 private val StripInset = 4.dp
 private val IndicatorCorner = 16.dp
-private val StripShape = RoundedCornerShape(IndicatorCorner + StripInset)
 private val IndicatorShape = RoundedCornerShape(IndicatorCorner)
 private val TabMinHeight = NavoSpacing.MinTouchTarget
 private val TabMinHorizontalPadding = 8.dp
@@ -100,7 +101,6 @@ fun NavoTabStrip(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(colors.raised, StripShape)
                 .padding(StripInset),
         ) {
             TabLabels(
@@ -120,7 +120,7 @@ fun NavoTabStrip(
                         }
                     }
                     .navoGlassSource(glassBackdrop)
-                    .drawBehind { drawStripGlow(colors.raised, colors.accent, colors.turquoise, indicatorCornerPx) },
+                    .drawBehind { drawStripGlow(colors.raised, colors.accent, colors.turquoise, StripInset.toPx(), indicatorCornerPx + StripInset.toPx()) },
                 tabModifier = { index ->
                     Modifier
                         .onPlaced { coordinates ->
@@ -267,8 +267,10 @@ private fun NavoTabStripLightPreview() {
 
 private const val STRIP_GLOW_ALPHA = 0.18f
 
-private fun DrawScope.drawStripGlow(base: Color, warm: Color, cool: Color, corner: Float) {
-    drawRoundRect(base, cornerRadius = CornerRadius(corner))
+private fun DrawScope.drawStripGlow(base: Color, warm: Color, cool: Color, bleed: Float, corner: Float) {
+    val topLeft = Offset(-bleed, -bleed)
+    val area = Size(size.width + bleed * 2, size.height + bleed * 2)
+    drawRoundRect(base, topLeft = topLeft, size = area, cornerRadius = CornerRadius(corner))
     drawRoundRect(
         Brush.horizontalGradient(
             0f to Color.Transparent,
@@ -278,6 +280,8 @@ private fun DrawScope.drawStripGlow(base: Color, warm: Color, cool: Color, corne
             0.9f to warm.copy(alpha = STRIP_GLOW_ALPHA / 2f),
             1f to Color.Transparent,
         ),
+        topLeft = topLeft,
+        size = area,
         cornerRadius = CornerRadius(corner),
     )
 }
