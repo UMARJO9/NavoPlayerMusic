@@ -35,6 +35,7 @@
     <string name="playlists_favorites_remove_label">Remove from favorites</string>
     <string name="playlists_favorites_removed">“%1$s” removed from favorites</string>
     <string name="playlists_favorites_remove_failed">Couldn’t remove from favorites</string>
+    <string name="playlists_favorites_restore_failed">Couldn’t return to favorites</string>
     <string name="playlists_sheet_favorite_add">Add to favorites</string>
     <string name="playlists_sheet_favorite_remove">Remove from favorites</string>
     <string name="playlists_sheet_favorite_added">Added to favorites</string>

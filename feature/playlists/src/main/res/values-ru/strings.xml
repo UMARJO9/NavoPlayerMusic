@@ -35,6 +35,7 @@
     <string name="playlists_favorites_remove_label">Убрать из избранного</string>
     <string name="playlists_favorites_removed">«%1$s» убран из избранного</string>
     <string name="playlists_favorites_remove_failed">Не удалось убрать из избранного</string>
+    <string name="playlists_favorites_restore_failed">Не удалось вернуть в избранное</string>
     <string name="playlists_sheet_favorite_add">В избранное</string>
     <string name="playlists_sheet_favorite_remove">Убрать из избранного</string>
     <string name="playlists_sheet_favorite_added">Добавлено в избранное</string>

@@ -10,6 +10,7 @@ import tj.umar.navoplayer.core.domain.model.isFavorites
 internal data class FavoritesState(
     val isLoading: Boolean = true,
     val favorites: FavoriteTracks? = null,
+    val removingTrackIds: Set<Long> = emptySet(),
     val totalMinutes: Int = 0,
     val loadFailed: Boolean = false,
     val currentTrackId: Long? = null,
@@ -20,7 +21,7 @@ internal data class FavoritesState(
         get() = currentTrackId != null
 
     val tracks: List<Track>
-        get() = favorites?.tracks.orEmpty()
+        get() = favorites?.tracks.orEmpty().filterNot { it.id in removingTrackIds }
 
     val isFavoritesActive: Boolean
         get() = currentTrackId != null && currentSource.isFavorites()
@@ -38,11 +39,15 @@ internal sealed interface FavoritesIntent {
     data object ShuffleClicked : FavoritesIntent
     data class TrackClicked(val trackId: Long) : FavoritesIntent
     data class TrackLongPressed(val trackId: Long) : FavoritesIntent
+    data class RemoveTrackRequested(val trackId: Long) : FavoritesIntent
+    data class UndoRemoveClicked(val token: Long) : FavoritesIntent
+    data class UndoRemoveDismissed(val token: Long) : FavoritesIntent
 }
 
 internal sealed interface FavoritesEffect {
     data object NavigateBack : FavoritesEffect
     data object NavigateToWelcome : FavoritesEffect
-    data class TrackRemoved(val title: String) : FavoritesEffect
+    data class ShowRemoveUndo(val token: Long, val title: String) : FavoritesEffect
     data object RemoveFailed : FavoritesEffect
+    data object RestoreFailed : FavoritesEffect
 }

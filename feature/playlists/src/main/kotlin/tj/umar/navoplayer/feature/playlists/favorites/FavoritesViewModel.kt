@@ -2,20 +2,24 @@ package tj.umar.navoplayer.feature.playlists.favorites
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import tj.umar.navoplayer.core.common.result.onError
-import tj.umar.navoplayer.core.common.result.onSuccess
+import tj.umar.navoplayer.core.common.result.NavoResult
 import tj.umar.navoplayer.core.domain.model.FavoriteTracks
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
+import tj.umar.navoplayer.core.domain.model.RemovedFavorite
 import tj.umar.navoplayer.core.domain.model.totalDurationMinutes
 import tj.umar.navoplayer.core.domain.usecase.ObserveFavoriteTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
 import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
-import tj.umar.navoplayer.core.domain.usecase.SetFavoriteUseCase
+import tj.umar.navoplayer.core.domain.usecase.RemoveFavoriteUseCase
+import tj.umar.navoplayer.core.domain.usecase.RestoreFavoriteUseCase
 import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
 import tj.umar.navoplayer.core.ui.mvi.MviViewModel
@@ -28,12 +32,15 @@ internal class FavoritesViewModel @Inject constructor(
     private val playTracks: PlayTracksUseCase,
     private val shufflePlayTracks: ShufflePlayTracksUseCase,
     private val togglePlayPause: TogglePlayPauseUseCase,
-    private val setFavorite: SetFavoriteUseCase,
+    private val removeFavorite: RemoveFavoriteUseCase,
+    private val restoreFavorite: RestoreFavoriteUseCase,
 ) : MviViewModel<FavoritesState, FavoritesIntent, FavoritesEffect>(FavoritesState()) {
 
     private var favoritesJob: Job? = null
     private var playbackJob: Job? = null
     private var hasLoaded = false
+    private var pendingUndo: PendingFavoriteUndo? = null
+    private var undoTokenCounter = 0L
 
     override fun onIntent(intent: FavoritesIntent) {
         when (intent) {
@@ -44,7 +51,10 @@ internal class FavoritesViewModel @Inject constructor(
             FavoritesIntent.PlayClicked -> onPlayClicked()
             FavoritesIntent.ShuffleClicked -> onShuffleClicked()
             is FavoritesIntent.TrackClicked -> onTrackClicked(intent.trackId)
-            is FavoritesIntent.TrackLongPressed -> onTrackLongPressed(intent.trackId)
+            is FavoritesIntent.TrackLongPressed -> onRemoveTrackRequested(intent.trackId)
+            is FavoritesIntent.RemoveTrackRequested -> onRemoveTrackRequested(intent.trackId)
+            is FavoritesIntent.UndoRemoveClicked -> onUndoRemoveClicked(intent.token)
+            is FavoritesIntent.UndoRemoveDismissed -> onUndoRemoveDismissed(intent.token)
         }
     }
 
@@ -86,14 +96,56 @@ internal class FavoritesViewModel @Inject constructor(
         viewModelScope.launch { playTracks(tracks, index, PlaybackSource.Favorites) }
     }
 
-    private fun onTrackLongPressed(trackId: Long) {
-        val track = currentState.tracks.firstOrNull { it.id == trackId } ?: return
+    private fun onRemoveTrackRequested(trackId: Long) {
+        val state = currentState
+        if (trackId in state.removingTrackIds) return
+        val track = state.tracks.firstOrNull { it.id == trackId } ?: return
+        val token = ++undoTokenCounter
+        setRemoving(state.removingTrackIds + trackId)
+        val removal = viewModelScope.async(start = CoroutineStart.LAZY) {
+            when (val result = removeFavorite(trackId)) {
+                is NavoResult.Success -> result.data
+                is NavoResult.Error -> {
+                    onRemoveFailed(token, trackId)
+                    null
+                }
+            }
+        }
+        pendingUndo = PendingFavoriteUndo(token, trackId, removal)
+        sendEffect(FavoritesEffect.ShowRemoveUndo(token, track.title))
+        removal.start()
+    }
+
+    private fun onRemoveFailed(token: Long, trackId: Long) {
+        if (pendingUndo?.token == token) pendingUndo = null
+        setRemoving(currentState.removingTrackIds - trackId)
+        sendEffect(FavoritesEffect.RemoveFailed)
+    }
+
+    private fun onUndoRemoveClicked(token: Long) {
+        val pending = pendingUndo?.takeIf { it.token == token } ?: return
+        pendingUndo = null
         viewModelScope.launch {
-            setFavorite(track.id, false)
-                .onSuccess { changed -> if (changed) sendEffect(FavoritesEffect.TrackRemoved(track.title)) }
-                .onError { sendEffect(FavoritesEffect.RemoveFailed) }
+            val removed = pending.removal.await() ?: return@launch
+            when (val result = restoreFavorite(removed)) {
+                is NavoResult.Success -> {
+                    setRemoving(currentState.removingTrackIds - pending.trackId)
+                    if (!result.data) sendEffect(FavoritesEffect.RestoreFailed)
+                }
+                is NavoResult.Error -> sendEffect(FavoritesEffect.RestoreFailed)
+            }
         }
     }
+
+    private fun onUndoRemoveDismissed(token: Long) {
+        if (pendingUndo?.token == token) pendingUndo = null
+    }
+
+    private fun setRemoving(removing: Set<Long>) {
+        setState { copy(removingTrackIds = removing).withTotalMinutes() }
+    }
+
+    private fun FavoritesState.withTotalMinutes(): FavoritesState = copy(totalMinutes = tracks.totalDurationMinutes())
 
     private fun startObservingFavorites() {
         if (favoritesJob?.isActive == true) return
@@ -106,12 +158,13 @@ internal class FavoritesViewModel @Inject constructor(
 
     private fun onFavorites(favorites: FavoriteTracks) {
         hasLoaded = true
+        val presentIds = favorites.tracks.mapTo(HashSet()) { it.id }
         setState {
             copy(
                 isLoading = false,
                 favorites = favorites,
-                totalMinutes = favorites.tracks.totalDurationMinutes(),
-            )
+                removingTrackIds = removingTrackIds.filterTo(HashSet()) { it in presentIds },
+            ).withTotalMinutes()
         }
     }
 
@@ -138,3 +191,9 @@ internal class FavoritesViewModel @Inject constructor(
         playbackJob = null
     }
 }
+
+private class PendingFavoriteUndo(
+    val token: Long,
+    val trackId: Long,
+    val removal: Deferred<RemovedFavorite?>,
+)

@@ -14,7 +14,8 @@ import tj.umar.navoplayer.core.domain.usecase.ObserveFavoriteTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObserveTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
-import tj.umar.navoplayer.core.domain.usecase.SetFavoriteUseCase
+import tj.umar.navoplayer.core.domain.usecase.RemoveFavoriteUseCase
+import tj.umar.navoplayer.core.domain.usecase.RestoreFavoriteUseCase
 import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
 import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
@@ -46,7 +47,8 @@ class FavoritesViewModelTest {
         playTracks = PlayTracksUseCase(playback),
         shufflePlayTracks = ShufflePlayTracksUseCase(playback),
         togglePlayPause = TogglePlayPauseUseCase(playback),
-        setFavorite = SetFavoriteUseCase(favorites),
+        removeFavorite = RemoveFavoriteUseCase(favorites),
+        restoreFavorite = RestoreFavoriteUseCase(favorites),
     )
 
     private suspend fun FavoritesViewModel.started(): FavoritesViewModel = apply {
@@ -140,25 +142,81 @@ class FavoritesViewModelTest {
     }
 
     @Test
-    fun `long press removes track`() = runTest {
+    fun `long press hides track and offers undo`() = runTest {
         val viewModel = viewModel().started()
 
         viewModel.effects.test {
             viewModel.onIntent(FavoritesIntent.TrackLongPressed(TestTracks.alpha.id))
-            assertEquals(FavoritesEffect.TrackRemoved(TestTracks.alpha.title), awaitItem())
+            assertEquals(FavoritesEffect.ShowRemoveUndo(1, TestTracks.alpha.title), awaitItem())
         }
+        assertEquals(listOf(TestTracks.longMix), viewModel.state.value.tracks)
+        assertEquals(listOf(TestTracks.longMix).totalDurationMinutes(), viewModel.state.value.totalMinutes)
+        assertTrue(TestTracks.alpha.id !in favorites.current)
+    }
+
+    @Test
+    fun `undo restores favorite at original position`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.onIntent(FavoritesIntent.RemoveTrackRequested(TestTracks.longMix.id))
+        favorites.addFavorite(TestTracks.beta.id)
+        viewModel.onIntent(FavoritesIntent.UndoRemoveClicked(1))
+
+        assertEquals(listOf(TestTracks.beta.id, TestTracks.longMix.id, 999L, TestTracks.alpha.id), favorites.current)
+        assertEquals(listOf(TestTracks.beta, TestTracks.longMix, TestTracks.alpha), viewModel.state.value.tracks)
+        assertTrue(viewModel.state.value.removingTrackIds.isEmpty())
+    }
+
+    @Test
+    fun `undo after dismiss is ignored`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.onIntent(FavoritesIntent.RemoveTrackRequested(TestTracks.alpha.id))
+        viewModel.onIntent(FavoritesIntent.UndoRemoveDismissed(1))
+        viewModel.onIntent(FavoritesIntent.UndoRemoveClicked(1))
+
+        assertTrue(favorites.restoreCalls.isEmpty())
         assertEquals(listOf(TestTracks.longMix), viewModel.state.value.tracks)
     }
 
     @Test
-    fun `remove failure shows message`() = runTest {
+    fun `new removal makes previous undo stale`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.onIntent(FavoritesIntent.RemoveTrackRequested(TestTracks.alpha.id))
+        viewModel.onIntent(FavoritesIntent.RemoveTrackRequested(TestTracks.longMix.id))
+        viewModel.onIntent(FavoritesIntent.UndoRemoveClicked(1))
+        assertTrue(favorites.restoreCalls.isEmpty())
+
+        viewModel.onIntent(FavoritesIntent.UndoRemoveClicked(2))
+        assertEquals(listOf(TestTracks.longMix), viewModel.state.value.tracks)
+    }
+
+    @Test
+    fun `remove failure brings track back and shows message`() = runTest {
         val viewModel = viewModel().started()
         favorites.writeError = IllegalStateException("locked")
 
         viewModel.effects.test {
             viewModel.onIntent(FavoritesIntent.TrackLongPressed(TestTracks.alpha.id))
+            assertEquals(FavoritesEffect.ShowRemoveUndo(1, TestTracks.alpha.title), awaitItem())
             assertEquals(FavoritesEffect.RemoveFailed, awaitItem())
         }
+        assertEquals(favoriteTracks, viewModel.state.value.tracks)
+    }
+
+    @Test
+    fun `restore failure shows message`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.effects.test {
+            viewModel.onIntent(FavoritesIntent.RemoveTrackRequested(TestTracks.alpha.id))
+            awaitItem()
+            favorites.writeError = IllegalStateException("locked")
+            viewModel.onIntent(FavoritesIntent.UndoRemoveClicked(1))
+            assertEquals(FavoritesEffect.RestoreFailed, awaitItem())
+        }
+        assertEquals(listOf(TestTracks.longMix), viewModel.state.value.tracks)
     }
 
     @Test
@@ -191,7 +249,7 @@ class FavoritesViewModelTest {
     }
 
     @Test
-    fun `long press on already removed track shows nothing`() = runTest {
+    fun `repeated removal of hidden track is ignored`() = runTest {
         val viewModel = viewModel().started()
         val gate = CompletableDeferred<Unit>()
         favorites.writeGate = gate
@@ -200,7 +258,8 @@ class FavoritesViewModelTest {
             viewModel.onIntent(FavoritesIntent.TrackLongPressed(TestTracks.alpha.id))
             viewModel.onIntent(FavoritesIntent.TrackLongPressed(TestTracks.alpha.id))
             gate.complete(Unit)
-            assertEquals(FavoritesEffect.TrackRemoved(TestTracks.alpha.title), awaitItem())
+            assertEquals(1, favorites.writeCalls)
+            assertEquals(FavoritesEffect.ShowRemoveUndo(1, TestTracks.alpha.title), awaitItem())
             expectNoEvents()
         }
     }

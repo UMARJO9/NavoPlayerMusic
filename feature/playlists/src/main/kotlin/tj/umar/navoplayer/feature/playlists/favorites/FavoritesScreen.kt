@@ -46,6 +46,7 @@ import tj.umar.navoplayer.core.designsystem.component.contentPhase
 import tj.umar.navoplayer.core.designsystem.component.navoListPadding
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
+import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.FavoriteTracks
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
@@ -57,6 +58,7 @@ import tj.umar.navoplayer.feature.playlists.component.CollectionEmptyNote
 import tj.umar.navoplayer.feature.playlists.component.CollectionHeader
 import tj.umar.navoplayer.feature.playlists.component.CollectionSummary
 import tj.umar.navoplayer.feature.playlists.component.HEADER_ITEM_KEY
+import tj.umar.navoplayer.feature.playlists.component.SwipeToRemoveBox
 import tj.umar.navoplayer.feature.playlists.component.UnavailableTracksNote
 import tj.umar.navoplayer.feature.playlists.component.headerCollapseFraction
 import tj.umar.navoplayer.feature.playlists.detail.previewPlaylist
@@ -140,7 +142,7 @@ private fun FavoriteTrackList(
     val motion = rememberMotionEnabled()
     val entrance = rememberListEntrance()
     val heartBeat = rememberHeartBeat(motion)
-    val trackCount = favorites.tracks.size
+    val trackCount = state.tracks.size
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
@@ -174,18 +176,24 @@ private fun FavoriteTrackList(
                 modifier = Modifier.animatedListItem(this, 1, motion, entrance),
             )
         }
-        itemsIndexed(favorites.tracks, key = { _, track -> track.id }, contentType = { _, _ -> "track" }) { index, track ->
-            TrackListItem(
-                track = track,
-                isCurrent = track.id == state.currentTrackId,
-                isPlaying = track.id == state.currentTrackId && state.isPlaying,
-                onClick = { onIntent(FavoritesIntent.TrackClicked(track.id)) },
-                onLongClick = { onIntent(FavoritesIntent.TrackLongPressed(track.id)) },
-                onLongClickLabel = removeLabel,
+        itemsIndexed(state.tracks, key = { _, track -> track.id }, contentType = { _, _ -> "track" }) { index, track ->
+            SwipeToRemoveBox(
+                enabled = true,
+                onRemove = { onIntent(FavoritesIntent.RemoveTrackRequested(track.id)) },
                 modifier = Modifier.animatedListItem(this, 2 + index, motion, entrance),
-            )
+            ) {
+                TrackListItem(
+                    track = track,
+                    isCurrent = track.id == state.currentTrackId,
+                    isPlaying = track.id == state.currentTrackId && state.isPlaying,
+                    onClick = { onIntent(FavoritesIntent.TrackClicked(track.id)) },
+                    onLongClick = { onIntent(FavoritesIntent.TrackLongPressed(track.id)) },
+                    onLongClickLabel = removeLabel,
+                    modifier = Modifier.background(NavoTheme.colors.background, NavoShapes.TrackRow),
+                )
+            }
         }
-        if (favorites.tracks.isEmpty() && favorites.missingTrackCount == 0) {
+        if (state.tracks.isEmpty() && favorites.missingTrackCount == 0) {
             item(key = "empty", contentType = "note") {
                 CollectionEmptyNote(
                     title = stringResource(R.string.playlists_favorites_empty),
