@@ -3,7 +3,6 @@ package tj.umar.navoplayer.feature.player.nowplaying
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -13,41 +12,29 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.stateDescription
@@ -56,7 +43,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.animation.rememberSmoothProgress
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
@@ -76,12 +62,9 @@ import tj.umar.navoplayer.core.domain.model.artworkKey
 import tj.umar.navoplayer.core.ui.artwork.rememberArtwork
 import tj.umar.navoplayer.core.ui.format.formatDuration
 import tj.umar.navoplayer.feature.player.R
-import kotlin.math.roundToInt
 import tj.umar.navoplayer.core.ui.R as CoreUiR
 
 private val MedallionMaxSize = 300.dp
-private const val COLLAPSE_DISTANCE_FRACTION = 0.25f
-private val CollapseVelocity = 1200.dp
 private const val TRACK_CHANGE_MILLIS = 350
 private const val MEDALLION_CHANGE_SCALE = 0.85f
 private const val TRACK_INFO_SLIDE_DIVISOR = 3
@@ -92,92 +75,61 @@ internal fun NowPlayingScreen(
     onIntent: (NowPlayingIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val colors = NavoTheme.colors
-    val density = LocalDensity.current
-    var dragOffset by remember { mutableFloatStateOf(0f) }
-    var screenHeightPx by remember { mutableIntStateOf(0) }
-    Box(
+    Column(
         modifier = modifier
             .fillMaxSize()
-            .onSizeChanged { screenHeightPx = it.height }
-            .offset { IntOffset(0, dragOffset.roundToInt()) }
-            .background(colors.background)
-            .draggable(
-                orientation = Orientation.Vertical,
-                state = rememberDraggableState { delta ->
-                    dragOffset = (dragOffset + delta).coerceAtLeast(0f)
-                },
-                onDragStopped = { velocity ->
-                    val threshold = screenHeightPx * COLLAPSE_DISTANCE_FRACTION
-                    val fastFling = velocity > with(density) { CollapseVelocity.toPx() }
-                    if (dragOffset > threshold || fastFling) {
-                        onIntent(NowPlayingIntent.CollapseClicked)
-                    } else {
-                        animate(initialValue = dragOffset, targetValue = 0f) { value, _ -> dragOffset = value }
-                    }
-                },
-            ),
+            .padding(start = NavoSpacing.ScreenHorizontal, top = 4.dp, end = NavoSpacing.ScreenHorizontal, bottom = 20.dp),
     ) {
-        Column(
+        TopBar(source = state.source, onIntent = onIntent)
+        val track = state.track
+        val medallionRotation = rememberMedallionRotation(running = state.isPlaying)
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-                .padding(start = NavoSpacing.ScreenHorizontal, top = 12.dp, end = NavoSpacing.ScreenHorizontal, bottom = 20.dp),
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(vertical = 24.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            TopBar(source = state.source, onIntent = onIntent)
-            val track = state.track
-            val medallionRotation = rememberMedallionRotation(running = state.isPlaying)
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(vertical = 24.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (track != null) {
-                    AnimatedContent(
-                        targetState = track,
-                        contentKey = { it.id },
-                        contentAlignment = Alignment.Center,
-                        transitionSpec = { medallionTransition(state.trackChangeDirection) },
-                        label = "medallionChange",
-                    ) { shownTrack ->
-                        RotatingMedallion(track = shownTrack, rotationDegrees = medallionRotation)
-                    }
-                }
-            }
             if (track != null) {
                 AnimatedContent(
                     targetState = track,
                     contentKey = { it.id },
-                    transitionSpec = { trackInfoTransition(state.trackChangeDirection) },
-                    label = "trackInfoChange",
+                    contentAlignment = Alignment.Center,
+                    transitionSpec = { medallionTransition(state.trackChangeDirection) },
+                    label = "medallionChange",
                 ) { shownTrack ->
-                    val isCurrent = shownTrack.id == state.track?.id
-                    val shownFavorite = remember { mutableStateOf(state.isFavorite) }
-                    if (isCurrent) shownFavorite.value = state.isFavorite
-                    TrackInfo(
-                        track = shownTrack,
-                        isFavorite = shownFavorite.value,
-                        onIntent = { intent -> if (isCurrent) onIntent(intent) },
-                    )
+                    RotatingMedallion(track = shownTrack, rotationDegrees = medallionRotation)
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
-            SeekBar(state = state, onIntent = onIntent)
-            Spacer(modifier = Modifier.height(20.dp))
-            PlayerControls(
-                isPlaying = state.isPlaying,
-                shuffleEnabled = state.shuffleEnabled,
-                repeatMode = state.repeatMode,
-                onIntent = onIntent,
-            )
-            Spacer(modifier = Modifier.height(28.dp))
-            BottomRow(nextTrack = state.nextTrack, sleepTimer = state.sleepTimer, onIntent = onIntent)
         }
-    }
-    if (state.isSleepTimerSheetVisible) {
-        SleepTimerSheet(sleepTimer = state.sleepTimer, onIntent = onIntent)
+        if (track != null) {
+            AnimatedContent(
+                targetState = track,
+                contentKey = { it.id },
+                transitionSpec = { trackInfoTransition(state.trackChangeDirection) },
+                label = "trackInfoChange",
+            ) { shownTrack ->
+                val isCurrent = shownTrack.id == state.track?.id
+                val shownFavorite = remember { mutableStateOf(state.isFavorite) }
+                if (isCurrent) shownFavorite.value = state.isFavorite
+                TrackInfo(
+                    track = shownTrack,
+                    isFavorite = shownFavorite.value,
+                    onIntent = { intent -> if (isCurrent) onIntent(intent) },
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        SeekBar(state = state, onIntent = onIntent)
+        Spacer(modifier = Modifier.height(20.dp))
+        PlayerControls(
+            isPlaying = state.isPlaying,
+            shuffleEnabled = state.shuffleEnabled,
+            repeatMode = state.repeatMode,
+            onIntent = onIntent,
+        )
+        Spacer(modifier = Modifier.height(28.dp))
+        BottomRow(nextTrack = state.nextTrack, sleepTimer = state.sleepTimer, onIntent = onIntent)
     }
 }
 
@@ -418,18 +370,31 @@ private fun PlaybackSource.label(): String = when (this) {
     PlaybackSource.Queue -> stringResource(R.string.player_source_queue)
 }
 
-@Preview(widthDp = 390, heightDp = 844)
+@Composable
+private fun SheetPreviewFrame(content: @Composable () -> Unit) {
+    NavoTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(NavoTheme.colors.background, RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)),
+        ) {
+            content()
+        }
+    }
+}
+
+@Preview(widthDp = 390, heightDp = 800)
 @Composable
 private fun NowPlayingScreenPreview() {
-    NavoTheme {
+    SheetPreviewFrame {
         NowPlayingScreen(state = previewNowPlayingState, onIntent = {})
     }
 }
 
-@Preview(widthDp = 390, heightDp = 844)
+@Preview(widthDp = 390, heightDp = 800)
 @Composable
 private fun NowPlayingScreenRepeatOnePreview() {
-    NavoTheme {
+    SheetPreviewFrame {
         NowPlayingScreen(
             state = previewNowPlayingState.copy(isPlaying = false, shuffleEnabled = true, isFavorite = true, repeatMode = RepeatMode.One),
             onIntent = {},
@@ -437,10 +402,10 @@ private fun NowPlayingScreenRepeatOnePreview() {
     }
 }
 
-@Preview(widthDp = 390, heightDp = 844)
+@Preview(widthDp = 390, heightDp = 800)
 @Composable
 private fun NowPlayingScreenSleepTimerPreview() {
-    NavoTheme {
+    SheetPreviewFrame {
         NowPlayingScreen(state = previewNowPlayingState.copy(sleepTimer = SleepTimer.Countdown(872_000, 900_000)), onIntent = {})
     }
 }

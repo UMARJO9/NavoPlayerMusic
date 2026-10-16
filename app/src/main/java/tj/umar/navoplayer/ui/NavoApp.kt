@@ -25,8 +25,7 @@ import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.ui.permission.hasAudioReadPermission
 import tj.umar.navoplayer.feature.library.navigation.LibraryDestination
 import tj.umar.navoplayer.feature.player.miniplayer.MiniPlayerRoute
-import tj.umar.navoplayer.feature.player.navigation.NowPlayingDestination
-import tj.umar.navoplayer.feature.player.navigation.navigateToNowPlaying
+import tj.umar.navoplayer.feature.player.nowplaying.NowPlayingSheetRoute
 import tj.umar.navoplayer.feature.player.trackactions.TrackActionsRequest
 import tj.umar.navoplayer.feature.player.trackactions.TrackActionsSheetRoute
 import tj.umar.navoplayer.feature.playlists.addto.AddToPlaylistRequest
@@ -53,11 +52,13 @@ fun NavoApp(
     var trackActionsRequest by rememberSaveable(stateSaver = TrackActionsRequest.Saver) {
         mutableStateOf<TrackActionsRequest?>(null)
     }
+    var isNowPlayingVisible by rememberSaveable { mutableStateOf(false) }
     val isOnWelcome = currentEntry?.destination?.hasRoute<WelcomeDestination>() == true
     LaunchedEffect(isOnWelcome) {
         if (isOnWelcome) {
             addToPlaylistRequest = null
             trackActionsRequest = null
+            isNowPlayingVisible = false
         }
     }
     LaunchedEffect(navController, openNowPlayingRequests) {
@@ -65,9 +66,7 @@ fun NavoApp(
             if (navController.currentDestination?.hasRoute<WelcomeDestination>() != true) {
                 addToPlaylistRequest = null
                 trackActionsRequest = null
-                if (!navController.popBackStack<NowPlayingDestination>(inclusive = false)) {
-                    navController.navigateToNowPlaying()
-                }
+                isNowPlayingVisible = true
             }
         }
     }
@@ -84,9 +83,15 @@ fun NavoApp(
         )
         MiniPlayerRoute(
             visible = showMiniPlayer,
-            onOpenNowPlaying = navController::navigateToNowPlaying,
+            onOpenNowPlaying = { isNowPlayingVisible = true },
             modifier = Modifier.align(Alignment.BottomCenter),
         )
+        if (isNowPlayingVisible) {
+            NowPlayingSheetRoute(
+                onDismiss = { isNowPlayingVisible = false },
+                onOpenTrackActions = { trackIds -> trackActionsRequest = TrackActionsRequest.of(trackIds) },
+            )
+        }
         trackActionsRequest?.let { request ->
             TrackActionsSheetRoute(
                 request = request,

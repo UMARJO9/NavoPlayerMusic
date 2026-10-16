@@ -2,29 +2,55 @@ package tj.umar.navoplayer.feature.player.nowplaying
 
 import android.content.res.Resources
 import android.widget.Toast
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
+import tj.umar.navoplayer.core.designsystem.component.NavoFullSheet
 import tj.umar.navoplayer.core.ui.mvi.CollectEffects
 import tj.umar.navoplayer.feature.player.R
 import tj.umar.navoplayer.feature.player.queue.QueueSheetRoute
 
 @Composable
-internal fun NowPlayingRoute(
-    onCollapse: () -> Unit,
+fun NowPlayingSheetRoute(
+    onDismiss: () -> Unit,
     onOpenTrackActions: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: NowPlayingViewModel = hiltViewModel(),
+) {
+    NowPlayingSheetRoute(
+        onDismiss = onDismiss,
+        onOpenTrackActions = onOpenTrackActions,
+        modifier = modifier,
+        viewModel = hiltViewModel(),
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun NowPlayingSheetRoute(
+    onDismiss: () -> Unit,
+    onOpenTrackActions: (List<Long>) -> Unit,
+    modifier: Modifier,
+    viewModel: NowPlayingViewModel,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val currentOnCollapse by rememberUpdatedState(onCollapse)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+    val currentOnDismiss by rememberUpdatedState(onDismiss)
     val currentOnOpenTrackActions by rememberUpdatedState(onOpenTrackActions)
     val context = LocalContext.current
+    val dismiss = {
+        viewModel.onIntent(NowPlayingIntent.SheetDismissed)
+        currentOnDismiss()
+    }
 
     LifecycleStartEffect(Unit) {
         viewModel.onIntent(NowPlayingIntent.ScreenStarted)
@@ -33,20 +59,25 @@ internal fun NowPlayingRoute(
 
     viewModel.effects.CollectEffects { effect ->
         when (effect) {
-            NowPlayingEffect.Collapse -> currentOnCollapse()
+            NowPlayingEffect.Collapse -> scope.launch { sheetState.hide() }.invokeOnCompletion { dismiss() }
             is NowPlayingEffect.OpenTrackActions -> currentOnOpenTrackActions(effect.trackIds)
             is NowPlayingEffect.ShowMessage ->
                 Toast.makeText(context, effect.message.text(context.resources), Toast.LENGTH_SHORT).show()
         }
     }
 
-    NowPlayingScreen(
-        state = state,
-        onIntent = viewModel::onIntent,
+    NavoFullSheet(
+        sheetState = sheetState,
+        onDismissRequest = dismiss,
         modifier = modifier,
-    )
-    if (state.isQueueSheetVisible) {
-        QueueSheetRoute(onDismiss = { viewModel.onIntent(NowPlayingIntent.QueueSheetDismissed) })
+    ) {
+        NowPlayingScreen(state = state, onIntent = viewModel::onIntent)
+        if (state.isSleepTimerSheetVisible) {
+            SleepTimerSheet(sleepTimer = state.sleepTimer, onIntent = viewModel::onIntent)
+        }
+        if (state.isQueueSheetVisible) {
+            QueueSheetRoute(onDismiss = { viewModel.onIntent(NowPlayingIntent.QueueSheetDismissed) })
+        }
     }
 }
 

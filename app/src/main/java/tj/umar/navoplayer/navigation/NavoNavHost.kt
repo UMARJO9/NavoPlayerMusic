@@ -1,8 +1,6 @@
 package tj.umar.navoplayer.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
@@ -17,8 +15,6 @@ import tj.umar.navoplayer.feature.library.navigation.groupDetailScreen
 import tj.umar.navoplayer.feature.library.navigation.libraryScreen
 import tj.umar.navoplayer.feature.library.navigation.navigateToGroupDetail
 import tj.umar.navoplayer.feature.library.navigation.navigateToLibrary
-import tj.umar.navoplayer.feature.player.navigation.NowPlayingDestination
-import tj.umar.navoplayer.feature.player.navigation.nowPlayingScreen
 import tj.umar.navoplayer.feature.playlists.navigation.FavoritesDestination
 import tj.umar.navoplayer.feature.playlists.navigation.favoritesScreen
 import tj.umar.navoplayer.feature.playlists.navigation.navigateToFavorites
@@ -65,22 +61,8 @@ fun NavoNavHost(
         startDestination = startDestination,
         modifier = modifier,
         enterTransition = { if (involvesWelcome()) fadeThroughEnter() else sharedAxisForwardEnter() },
-        exitTransition = {
-            if (targetState.destination.hasRoute<NowPlayingDestination>()) {
-                ExitTransition.KeepUntilTransitionsFinished
-            } else if (involvesWelcome()) {
-                fadeThroughExit()
-            } else {
-                sharedAxisForwardExit()
-            }
-        },
-        popEnterTransition = {
-            if (initialState.destination.hasRoute<NowPlayingDestination>()) {
-                EnterTransition.None
-            } else {
-                sharedAxisBackwardEnter()
-            }
-        },
+        exitTransition = { if (involvesWelcome()) fadeThroughExit() else sharedAxisForwardExit() },
+        popEnterTransition = { sharedAxisBackwardEnter() },
         popExitTransition = { sharedAxisBackwardExit() },
     ) {
         welcomeScreen(
@@ -168,14 +150,6 @@ fun NavoNavHost(
                     navController.popBackStack()
                 }
             },
-        )
-        nowPlayingScreen(
-            onCollapse = {
-                if (navController.currentDestination?.hasRoute<NowPlayingDestination>() == true) {
-                    navController.popBackStack()
-                }
-            },
-            onOpenTrackActions = onTrackActions,
         )
     }
 }
