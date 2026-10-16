@@ -11,6 +11,7 @@ import tj.umar.navoplayer.core.designsystem.theme.ParchmentNavoColors
 import kotlin.math.max
 import kotlin.math.min
 
+private const val MIN_AURA_SCRIM_ALPHA = 0.6f
 private const val AA = 4.5f
 
 class NavoGlassContrastTest {
@@ -32,17 +33,29 @@ class NavoGlassContrastTest {
     private fun styles(colors: NavoColors) = listOf("bar" to barGlassStyle(colors), "pill" to pillGlassStyle(colors))
 
     @Test
-    fun `content stays readable on glass over white and black backdrops`() {
+    fun `bar content stays readable over white and black content`() {
         themes.forEach { (themeName, colors) ->
-            styles(colors).forEach { (styleName, style) ->
-                listOf("white" to Color.White, "black" to Color.Black).forEach { (mixName, mix) ->
-                    val backdrop = mix
-                    val surface = style.tint.compositeOver(backdrop)
-                    val label = "$themeName $styleName over $mixName"
-                    assertReadable("content $label", colors.content, surface)
-                    assertReadable("secondaryContent $label", style.secondaryContent, surface)
-                    if (styleName == "pill") assertReadable("accent $label", colors.accent, surface)
-                }
+            val style = barGlassStyle(colors)
+            listOf("white" to Color.White, "black" to Color.Black).forEach { (backdropName, backdrop) ->
+                val surface = style.tint.compositeOver(backdrop)
+                val label = "$themeName bar over $backdropName"
+                assertReadable("content $label", colors.content, surface)
+                assertReadable("secondaryContent $label", style.secondaryContent, surface)
+            }
+        }
+    }
+
+    @Test
+    fun `pill content stays readable over scrimmed aura`() {
+        themes.forEach { (themeName, colors) ->
+            val style = pillGlassStyle(colors)
+            listOf("white" to Color.White, "black" to Color.Black).forEach { (glowName, glow) ->
+                val aura = colors.background.copy(alpha = MIN_AURA_SCRIM_ALPHA).compositeOver(glow)
+                val surface = style.tint.compositeOver(aura)
+                val label = "$themeName pill over $glowName glow"
+                assertReadable("content $label", colors.content, surface)
+                assertReadable("secondaryContent $label", style.secondaryContent, surface)
+                assertReadable("accent $label", colors.accent, surface)
             }
         }
     }

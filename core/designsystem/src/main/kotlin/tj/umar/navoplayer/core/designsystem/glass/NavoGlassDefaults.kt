@@ -8,8 +8,8 @@ import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.theme.NavoColors
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 
-private const val TINT_ALPHA = 0.72f
-private const val PILL_DARK_TINT_ALPHA = 0.72f
+private const val TINT_ALPHA = 0.8f
+private const val PILL_TINT_ALPHA = 0.7f
 private const val FALLBACK_ALPHA = 0.88f
 private const val RIM_TOP_ALPHA = 0.20f
 private const val RIM_BOTTOM_ALPHA = 0.04f
@@ -19,7 +19,7 @@ private const val LIGHT_SATURATION = 1.3f
 private const val LIGHT_BRIGHTNESS = 0.04f
 private const val DARK_HIGHLIGHT_ALPHA = 0.6f
 private const val LIGHT_HIGHLIGHT_ALPHA = 0.85f
-private const val DARK_SECONDARY_ALPHA = 0.8f
+private const val DARK_SECONDARY_ALPHA = 0.9f
 private val RimWidth = 1.dp
 
 object NavoGlassDefaults {
@@ -50,7 +50,7 @@ internal fun pillGlassStyle(colors: NavoColors): NavoGlassStyle {
     return glassStyle(
         colors = colors,
         surface = surface,
-        tintAlpha = if (colors.isDark) PILL_DARK_TINT_ALPHA else TINT_ALPHA,
+        tintAlpha = PILL_TINT_ALPHA,
         blurRadius = 8.dp,
         refractionHeight = 12.dp,
         refractionAmount = 24.dp,
