@@ -323,4 +323,20 @@ class FavoritesViewModelTest {
         assertEquals(1, favorites.restoreCalls.size)
         assertTrue(TestTracks.alpha in viewModel.state.value.tracks)
     }
+
+    @Test
+    fun `undo while removal write is in flight restores after it lands`() = runTest {
+        val viewModel = viewModel().started()
+        val gate = CompletableDeferred<Unit>()
+        favorites.writeGate = gate
+
+        viewModel.onIntent(FavoritesIntent.RemoveTrackRequested(TestTracks.alpha.id))
+        viewModel.onIntent(FavoritesIntent.UndoRemoveClicked(1))
+        assertTrue(favorites.restoreCalls.isEmpty())
+        gate.complete(Unit)
+
+        assertEquals(listOf(TestTracks.longMix.id, 999L, TestTracks.alpha.id), favorites.current)
+        assertEquals(favoriteTracks, viewModel.state.value.tracks)
+        assertTrue(viewModel.state.value.removingTrackIds.isEmpty())
+    }
 }

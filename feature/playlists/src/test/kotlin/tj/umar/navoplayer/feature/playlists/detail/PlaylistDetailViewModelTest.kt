@@ -567,4 +567,39 @@ class PlaylistDetailViewModelTest {
         assertEquals(1, playlists.restoreCalls.size)
         assertEquals(morningTracks, viewModel.state.value.tracks)
     }
+
+    @Test
+    fun `undo while removal write is in flight restores after it lands`() = runTest {
+        val viewModel = viewModel().started()
+        val gate = CompletableDeferred<Unit>()
+        playlists.writeGate = gate
+
+        viewModel.onIntent(PlaylistDetailIntent.RemoveTrackRequested(TestTracks.alpha.id))
+        viewModel.onIntent(PlaylistDetailIntent.UndoRemoveClicked(1))
+        assertTrue(playlists.restoreCalls.isEmpty())
+        gate.complete(Unit)
+
+        assertEquals(listOf(RemovedPlaylistTrack(morning.id, TestTracks.alpha.id, 2)), playlists.restoreCalls)
+        assertEquals(morning.trackIds, storedOrder())
+        assertEquals(morningTracks, viewModel.state.value.tracks)
+        assertTrue(viewModel.state.value.removingTrackIds.isEmpty())
+    }
+
+    @Test
+    fun `move then remove then undo within debounce keeps moved order`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.onIntent(PlaylistDetailIntent.MoveTrack(TestTracks.alpha.id, 0))
+        viewModel.onIntent(PlaylistDetailIntent.RemoveTrackRequested(TestTracks.longMix.id))
+        assertEquals(listOf(TestTracks.alpha), viewModel.state.value.tracks)
+        viewModel.onIntent(PlaylistDetailIntent.UndoRemoveClicked(1))
+        assertEquals(listOf(TestTracks.alpha, TestTracks.longMix), viewModel.state.value.tracks)
+
+        advanceTimeBy(401)
+        runCurrent()
+
+        assertEquals(listOf(TestTracks.alpha.id, TestPlaylists.MISSING_TRACK_ID, TestTracks.longMix.id), storedOrder())
+        assertEquals(listOf(TestTracks.alpha, TestTracks.longMix), viewModel.state.value.tracks)
+        assertNull(viewModel.state.value.orderOverride)
+    }
 }

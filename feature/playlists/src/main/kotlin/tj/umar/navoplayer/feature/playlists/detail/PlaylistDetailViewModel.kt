@@ -209,7 +209,13 @@ internal class PlaylistDetailViewModel @AssistedInject constructor(
         pendingOrder = null
         val result = withContext(NonCancellable) { reorderPlaylistTracks(currentState.playlistId, order) }
         val saved = result is NavoResult.Success && result.data
-        if (saved) return
+        if (saved) {
+            setState {
+                val settled = orderOverride == order && pendingOrder == null && playlist?.tracks.orEmpty().matchesOrder(order)
+                if (settled) reprojected(override = null) else this
+            }
+            return
+        }
         if (currentState.orderOverride == order) {
             setState { reprojected(override = null) }
         }
@@ -286,7 +292,7 @@ internal class PlaylistDetailViewModel @AssistedInject constructor(
                     isMissing = playlist == null,
                     dialog = if (playlist == null) null else dialog,
                 ).reprojected(
-                    override = orderOverride?.takeUnless { stored.matchesOrder(it) },
+                    override = orderOverride?.takeUnless { pendingOrder == null && stored.matchesOrder(it) },
                     removing = removingTrackIds.filterTo(HashSet()) { it in storedIds },
                 )
             }
