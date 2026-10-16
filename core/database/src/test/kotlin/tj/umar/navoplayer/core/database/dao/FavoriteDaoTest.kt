@@ -7,6 +7,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -66,5 +67,35 @@ class FavoriteDaoTest {
             assertFalse(awaitItem())
             cancelAndIgnoreRemainingEvents()
         }
+    }
+
+    @Test
+    fun `find returns stored favorite`() = runTest {
+        dao.insert(FavoriteEntity(trackId = 4, addedAt = 40))
+
+        assertEquals(FavoriteEntity(trackId = 4, addedAt = 40), dao.find(4))
+        assertNull(dao.find(5))
+    }
+
+    @Test
+    fun `remove returning gives back removed row`() = runTest {
+        dao.insert(FavoriteEntity(trackId = 1, addedAt = 10))
+
+        assertEquals(FavoriteEntity(trackId = 1, addedAt = 10), dao.removeReturning(1))
+        assertNull(dao.removeReturning(1))
+        assertTrue(dao.observeFavoriteIds().first().isEmpty())
+    }
+
+    @Test
+    fun `restoring removed row with same time restores order`() = runTest {
+        dao.insert(FavoriteEntity(trackId = 1, addedAt = 10))
+        dao.insert(FavoriteEntity(trackId = 2, addedAt = 20))
+        dao.insert(FavoriteEntity(trackId = 3, addedAt = 30))
+
+        val removed = dao.removeReturning(2)!!
+        assertEquals(listOf(3L, 1L), dao.observeFavoriteIds().first())
+
+        dao.insert(removed)
+        assertEquals(listOf(3L, 2L, 1L), dao.observeFavoriteIds().first())
     }
 }
