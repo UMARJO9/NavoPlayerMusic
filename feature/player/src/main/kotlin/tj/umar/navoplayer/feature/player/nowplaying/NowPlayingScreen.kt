@@ -75,8 +75,16 @@ internal fun NowPlayingScreen(
     onIntent: (NowPlayingIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    Box(modifier = modifier.fillMaxSize()) {
+        NowPlayingBackdrop(track = state.track, modifier = Modifier.matchParentSize())
+        NowPlayingContent(state = state, onIntent = onIntent)
+    }
+}
+
+@Composable
+private fun NowPlayingContent(state: NowPlayingState, onIntent: (NowPlayingIntent) -> Unit) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .padding(start = NavoSpacing.ScreenHorizontal, top = 4.dp, end = NavoSpacing.ScreenHorizontal, bottom = 20.dp),
     ) {
