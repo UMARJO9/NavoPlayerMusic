@@ -1,5 +1,9 @@
 package tj.umar.navoplayer.core.designsystem.component
 
+import android.os.Build
+import android.view.View
+import android.view.Window
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -22,10 +26,13 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.SheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.window.DialogWindowProvider
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
@@ -68,6 +75,12 @@ fun NavoFullSheet(
             isAppearanceLightNavigationBars = !colors.isDark,
         ),
     ) {
+        val view = LocalView.current
+        LaunchedEffect(view) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                view.dialogWindow()?.isNavigationBarContrastEnforced = false
+            }
+        }
         val contentPadding = WindowInsets.safeDrawing
             .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
             .add(WindowInsets(top = HandleAreaHeight))
@@ -98,3 +111,9 @@ private fun NavoSheetHandle(modifier: Modifier = Modifier) {
         )
     }
 }
+
+private fun View.dialogWindow(): Window? =
+    generateSequence(parent) { it.parent }
+        .filterIsInstance<DialogWindowProvider>()
+        .firstOrNull()
+        ?.window
