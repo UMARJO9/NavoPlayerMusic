@@ -12,6 +12,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleStartEffect
@@ -35,6 +36,7 @@ internal fun PlaylistDetailRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
     val currentOnBack by rememberUpdatedState(onBack)
     val currentOnAudioPermissionMissing by rememberUpdatedState(onAudioPermissionMissing)
     val snackbarHostState = remember { SnackbarHostState() }
@@ -54,7 +56,7 @@ internal fun PlaylistDetailRoute(
             is PlaylistDetailEffect.ShowMessage -> Toast.makeText(context, effect.message.textRes(), Toast.LENGTH_SHORT).show()
             is PlaylistDetailEffect.ShowRemoveUndo -> snackbarScope.showUndoSnackbar(
                 hostState = snackbarHostState,
-                message = context.getString(R.string.playlists_track_removed, effect.title.ifBlank { unknownTitle }),
+                message = resources.getString(R.string.playlists_track_removed, effect.title.ifBlank { unknownTitle }),
                 actionLabel = undoLabel,
             ) { undo ->
                 viewModel.onIntent(
