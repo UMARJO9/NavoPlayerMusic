@@ -201,14 +201,28 @@ class NowPlayingViewModelTest {
     }
 
     @Test
-    fun `queue click opens queue`() = runTest {
+    fun `queue click opens queue sheet and dismiss closes it`() = runTest {
         startWith()
 
         viewModel.effects.test {
             viewModel.onIntent(NowPlayingIntent.QueueClicked)
-            assertEquals(NowPlayingEffect.OpenQueue, awaitItem())
+            assertTrue(viewModel.state.value.isQueueSheetVisible)
+
+            viewModel.onIntent(NowPlayingIntent.QueueSheetDismissed)
+            assertFalse(viewModel.state.value.isQueueSheetVisible)
+            expectNoEvents()
         }
         assertTrue(controller.commands.isEmpty())
+    }
+
+    @Test
+    fun `sheet dismissed closes queue sheet`() = runTest {
+        startWith()
+        viewModel.onIntent(NowPlayingIntent.QueueClicked)
+
+        viewModel.onIntent(NowPlayingIntent.SheetDismissed)
+
+        assertFalse(viewModel.state.value.isQueueSheetVisible)
     }
 
     @Test

@@ -23,6 +23,7 @@ internal data class NowPlayingState(
     val isFavorite: Boolean = false,
     val sleepTimer: SleepTimer = SleepTimer.Off,
     val isSleepTimerSheetVisible: Boolean = false,
+    val isQueueSheetVisible: Boolean = false,
     val trackChangeDirection: TrackChangeDirection = TrackChangeDirection.Forward,
 ) {
     val displayedPositionMs: Long
@@ -62,6 +63,7 @@ internal sealed interface NowPlayingIntent {
     data object CollapseClicked : NowPlayingIntent
     data object MoreClicked : NowPlayingIntent
     data object QueueClicked : NowPlayingIntent
+    data object QueueSheetDismissed : NowPlayingIntent
     data object SleepTimerClicked : NowPlayingIntent
     data object SleepTimerSheetDismissed : NowPlayingIntent
     data class SleepTimerOptionSelected(val option: SleepTimerOption) : NowPlayingIntent
@@ -71,7 +73,6 @@ internal sealed interface NowPlayingIntent {
 
 internal sealed interface NowPlayingEffect {
     data object Collapse : NowPlayingEffect
-    data object OpenQueue : NowPlayingEffect
     data class OpenTrackActions(val trackIds: List<Long>) : NowPlayingEffect
     data class ShowMessage(val message: NowPlayingMessage) : NowPlayingEffect
 }

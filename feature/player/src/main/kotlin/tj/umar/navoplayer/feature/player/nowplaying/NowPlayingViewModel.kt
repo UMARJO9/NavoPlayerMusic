@@ -89,7 +89,8 @@ internal class NowPlayingViewModel @Inject constructor(
             NowPlayingIntent.SeekFinished -> finishSeek()
             NowPlayingIntent.FavoriteClicked -> toggleFavorite()
             NowPlayingIntent.CollapseClicked -> requestCollapse()
-            NowPlayingIntent.QueueClicked -> sendEffect(NowPlayingEffect.OpenQueue)
+            NowPlayingIntent.QueueClicked -> setState { copy(isQueueSheetVisible = true) }
+            NowPlayingIntent.QueueSheetDismissed -> setState { copy(isQueueSheetVisible = false) }
             NowPlayingIntent.MoreClicked -> currentState.track?.let { sendEffect(NowPlayingEffect.OpenTrackActions(listOf(it.id))) }
             NowPlayingIntent.SleepTimerClicked -> setState { copy(isSleepTimerSheetVisible = true) }
             NowPlayingIntent.SleepTimerSheetDismissed -> setState { copy(isSleepTimerSheetVisible = false) }

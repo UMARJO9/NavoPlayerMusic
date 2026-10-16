@@ -2,17 +2,15 @@ package tj.umar.navoplayer.feature.player.queue
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -50,10 +48,7 @@ internal fun QueueScreen(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(NavoTheme.colors.background)
-            .windowInsetsPadding(WindowInsets.safeDrawing),
+        modifier = modifier.fillMaxSize(),
     ) {
         QueueTopBar(
             trackCount = state.items.size,
@@ -150,7 +145,9 @@ private fun QueueList(state: QueueState, onIntent: (QueueIntent) -> Unit) {
 @Composable
 private fun QueueScreenPreview() {
     NavoTheme {
-        QueueScreen(state = previewQueueState, onIntent = {})
+        Box(modifier = Modifier.background(NavoTheme.colors.raised)) {
+            QueueScreen(state = previewQueueState, onIntent = {})
+        }
     }
 }
 
@@ -158,7 +155,9 @@ private fun QueueScreenPreview() {
 @Composable
 private fun QueueScreenLongShuffledPreview() {
     NavoTheme {
-        QueueScreen(state = previewLongQueueState, onIntent = {})
+        Box(modifier = Modifier.background(NavoTheme.colors.raised)) {
+            QueueScreen(state = previewLongQueueState, onIntent = {})
+        }
     }
 }
 
@@ -166,6 +165,8 @@ private fun QueueScreenLongShuffledPreview() {
 @Composable
 private fun QueueScreenPausedPreview() {
     NavoTheme {
-        QueueScreen(state = previewQueueState.copy(isPlaying = false, currentItemId = QueueItemId("q0")), onIntent = {})
+        Box(modifier = Modifier.background(NavoTheme.colors.raised)) {
+            QueueScreen(state = previewQueueState.copy(isPlaying = false, currentItemId = QueueItemId("q0")), onIntent = {})
+        }
     }
 }

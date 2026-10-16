@@ -12,18 +12,17 @@ import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import tj.umar.navoplayer.core.ui.mvi.CollectEffects
 import tj.umar.navoplayer.feature.player.R
+import tj.umar.navoplayer.feature.player.queue.QueueSheetRoute
 
 @Composable
 internal fun NowPlayingRoute(
     onCollapse: () -> Unit,
-    onOpenQueue: () -> Unit,
     onOpenTrackActions: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: NowPlayingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val currentOnCollapse by rememberUpdatedState(onCollapse)
-    val currentOnOpenQueue by rememberUpdatedState(onOpenQueue)
     val currentOnOpenTrackActions by rememberUpdatedState(onOpenTrackActions)
     val context = LocalContext.current
 
@@ -35,7 +34,6 @@ internal fun NowPlayingRoute(
     viewModel.effects.CollectEffects { effect ->
         when (effect) {
             NowPlayingEffect.Collapse -> currentOnCollapse()
-            NowPlayingEffect.OpenQueue -> currentOnOpenQueue()
             is NowPlayingEffect.OpenTrackActions -> currentOnOpenTrackActions(effect.trackIds)
             is NowPlayingEffect.ShowMessage ->
                 Toast.makeText(context, effect.message.text(context.resources), Toast.LENGTH_SHORT).show()
@@ -47,6 +45,9 @@ internal fun NowPlayingRoute(
         onIntent = viewModel::onIntent,
         modifier = modifier,
     )
+    if (state.isQueueSheetVisible) {
+        QueueSheetRoute(onDismiss = { viewModel.onIntent(NowPlayingIntent.QueueSheetDismissed) })
+    }
 }
 
 private fun NowPlayingMessage.text(resources: Resources): String = when (this) {
