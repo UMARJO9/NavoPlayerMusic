@@ -1,28 +1,20 @@
 package tj.umar.navoplayer.core.designsystem.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.LayoutDirection
-import kotlinx.coroutines.flow.first
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -30,28 +22,32 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ClipOp
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import kotlin.math.floor
-import kotlin.math.roundToInt
 
 private val StripInset = 4.dp
 private val TabMinHeight = NavoSpacing.MinTouchTarget
-private val TabHorizontalPadding = 18.dp
+private val TabMinHorizontalPadding = 8.dp
+private const val MIN_TEXT_SCALE = 0.78f
 
 @Composable
 fun NavoTabStrip(
@@ -64,38 +60,28 @@ fun NavoTabStrip(
     indicatorPosition: () -> Float = { selectedIndex.toFloat() },
 ) {
     val colors = NavoTheme.colors
-    val scrollState = rememberScrollState()
+    val density = LocalDensity.current
+    val baseStyle = NavoTheme.typography.label.copy(fontWeight = FontWeight.SemiBold)
+    val textMeasurer = rememberTextMeasurer()
     val tabBounds = remember(titles) { mutableStateMapOf<Int, TabSpan>() }
     val indicatorRect: () -> Rect? = {
         tabBounds.takeIf { it.size == titles.size }?.let { spans ->
-            wormSpan(spans.toSortedMap().values.toList(), indicatorPosition())
+            wormSpan(List(titles.size) { spans.getValue(it) }, indicatorPosition())
         }?.let { span -> Rect(span.start, 0f, span.end, span.height) }
     }
 
-    val density = LocalDensity.current
-    val layoutDirection = LocalLayoutDirection.current
-    val contentLeftPx = with(density) { contentPadding.calculateLeftPadding(layoutDirection).toPx() + StripInset.toPx() }
-    var hasCentered by remember { mutableStateOf(false) }
-    LaunchedEffect(selectedIndex, layoutDirection) {
-        val (span, viewport) = snapshotFlow { tabBounds[selectedIndex] to scrollState.viewportSize }
-            .first { (span, viewport) -> span != null && viewport > 0 }
-        val target = centeredScroll(
-            tabCenter = contentLeftPx + span!!.start + span.width / 2f,
-            viewport = viewport,
-            maxScroll = scrollState.maxValue,
-            rtl = layoutDirection == LayoutDirection.Rtl,
-        )
-        if (hasCentered) scrollState.animateScrollTo(target) else scrollState.scrollTo(target)
-        hasCentered = true
-    }
-
-    Box(
-        modifier = modifier
-            .horizontalScroll(scrollState)
-            .padding(contentPadding),
-    ) {
+    BoxWithConstraints(modifier = modifier.padding(contentPadding)) {
+        val availablePx = constraints.maxWidth - with(density) { StripInset.toPx() * 2 }
+        val fit = remember(titles, availablePx, baseStyle, density) {
+            val textWidths = titles.map { title ->
+                textMeasurer.measure(title, baseStyle, maxLines = 1, softWrap = false).size.width.toFloat()
+            }
+            fitTabs(textWidths, availablePx, with(density) { TabMinHorizontalPadding.toPx() }, MIN_TEXT_SCALE)
+        }
+        val style = baseStyle.copy(fontSize = baseStyle.fontSize * fit.textScale)
         Box(
             modifier = Modifier
+                .fillMaxWidth()
                 .background(colors.raised, NavoShapes.Pill)
                 .padding(StripInset)
                 .drawBehind {
@@ -111,6 +97,8 @@ fun NavoTabStrip(
         ) {
             TabLabels(
                 titles = titles,
+                weights = fit.weights,
+                style = style,
                 color = colors.contentMuted,
                 modifier = Modifier
                     .semantics { description?.let { contentDescription = it } }
@@ -144,6 +132,8 @@ fun NavoTabStrip(
             )
             TabLabels(
                 titles = titles,
+                weights = fit.weights,
+                style = style,
                 color = colors.onAccent,
                 modifier = Modifier
                     .clearAndSetSemantics { }
@@ -160,27 +150,42 @@ fun NavoTabStrip(
 @Composable
 private fun TabLabels(
     titles: List<String>,
+    weights: List<Float>,
+    style: TextStyle,
     color: Color,
     modifier: Modifier,
     tabModifier: (Int) -> Modifier,
 ) {
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         titles.forEachIndexed { index, title ->
             Box(
-                modifier = tabModifier(index)
-                    .heightIn(min = TabMinHeight)
-                    .padding(horizontal = TabHorizontalPadding),
+                modifier = Modifier
+                    .weight(weights[index])
+                    .then(tabModifier(index))
+                    .heightIn(min = TabMinHeight),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = title,
-                    style = NavoTheme.typography.label.copy(fontWeight = FontWeight.SemiBold),
+                    style = style,
                     color = color,
                     maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
     }
+}
+
+@Immutable
+internal data class TabFit(val textScale: Float, val weights: List<Float>)
+
+internal fun fitTabs(textWidths: List<Float>, available: Float, minPadding: Float, minScale: Float): TabFit {
+    val paddings = textWidths.size * minPadding * 2
+    val textTotal = textWidths.sum()
+    val scale = if (textTotal <= 0f) 1f else ((available - paddings) / textTotal).coerceIn(minScale, 1f)
+    return TabFit(textScale = scale, weights = textWidths.map { it * scale + minPadding * 2 })
 }
 
 internal data class TabSpan(val start: Float, val end: Float, val height: Float = 0f) {
@@ -205,39 +210,35 @@ internal fun wormSpan(spans: List<TabSpan>, position: Float): TabSpan? {
     )
 }
 
-internal fun centeredScroll(tabCenter: Float, viewport: Int, maxScroll: Int, rtl: Boolean): Int {
-    val fromLeft = tabCenter - viewport / 2f
-    val target = if (rtl) maxScroll - fromLeft else fromLeft
-    return target.roundToInt().coerceIn(0, maxScroll)
-}
+private fun Rect.toPillPath(): Path = Path().apply { addRoundRect(RoundRect(this@toPillPath, CornerRadius(height / 2f))) }
 
-@Preview
+@Preview(widthDp = 384)
 @Composable
 private fun NavoTabStripPreview() {
     NavoTheme {
-        Box(modifier = Modifier.background(NavoTheme.colors.background).padding(16.dp)) {
+        Box(modifier = Modifier.background(NavoTheme.colors.background).padding(vertical = 16.dp)) {
             NavoTabStrip(
                 titles = listOf("Треки", "Плейлисты", "Альбомы", "Исполнители", "Папки"),
                 selectedIndex = 0,
                 onTabClick = {},
+                contentPadding = PaddingValues(horizontal = 20.dp),
                 indicatorPosition = { 0.4f },
             )
         }
     }
 }
 
-@Preview
+@Preview(widthDp = 384)
 @Composable
 private fun NavoTabStripLightPreview() {
     NavoTheme(darkTheme = false) {
-        Box(modifier = Modifier.background(NavoTheme.colors.background).padding(16.dp)) {
+        Box(modifier = Modifier.background(NavoTheme.colors.background).padding(vertical = 16.dp)) {
             NavoTabStrip(
                 titles = listOf("Треки", "Плейлисты", "Альбомы", "Исполнители", "Папки"),
-                selectedIndex = 2,
+                selectedIndex = 3,
                 onTabClick = {},
+                contentPadding = PaddingValues(horizontal = 20.dp),
             )
         }
     }
 }
-
-private fun Rect.toPillPath(): Path = Path().apply { addRoundRect(RoundRect(this@toPillPath, CornerRadius(height / 2f))) }

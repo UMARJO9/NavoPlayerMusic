@@ -54,15 +54,25 @@ class WormSpanTest {
     }
 
     @Test
-    fun `centered scroll puts tab center in viewport middle`() {
-        assertEquals(150, centeredScroll(tabCenter = 350f, viewport = 400, maxScroll = 500, rtl = false))
-        assertEquals(350, centeredScroll(tabCenter = 350f, viewport = 400, maxScroll = 500, rtl = true))
+    fun `tabs that fit keep full text size`() {
+        val fit = fitTabs(listOf(40f, 60f), available = 300f, minPadding = 10f, minScale = 0.78f)
+
+        assertEquals(1f, fit.textScale, 0.0001f)
+        assertEquals(listOf(60f, 80f), fit.weights)
     }
 
     @Test
-    fun `centered scroll is clamped`() {
-        assertEquals(0, centeredScroll(tabCenter = 50f, viewport = 400, maxScroll = 500, rtl = false))
-        assertEquals(500, centeredScroll(tabCenter = 50f, viewport = 400, maxScroll = 500, rtl = true))
-        assertEquals(500, centeredScroll(tabCenter = 2000f, viewport = 400, maxScroll = 500, rtl = false))
+    fun `tabs that overflow shrink text to fit`() {
+        val fit = fitTabs(listOf(100f, 100f), available = 220f, minPadding = 10f, minScale = 0.5f)
+
+        assertEquals(0.9f, fit.textScale, 0.0001f)
+        assertEquals(220f, fit.weights.sum(), 0.001f)
+    }
+
+    @Test
+    fun `text never shrinks below minimum scale`() {
+        val fit = fitTabs(listOf(200f, 200f), available = 100f, minPadding = 10f, minScale = 0.78f)
+
+        assertEquals(0.78f, fit.textScale, 0.0001f)
     }
 }
