@@ -5,8 +5,11 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
@@ -18,6 +21,7 @@ import tj.umar.navoplayer.core.common.result.onError
 import tj.umar.navoplayer.core.common.result.onSuccess
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.PlaylistDetail
+import tj.umar.navoplayer.core.domain.model.RemovedPlaylistTrack
 import tj.umar.navoplayer.core.domain.model.totalDurationMinutes
 import tj.umar.navoplayer.core.domain.playlist.matchesOrder
 import tj.umar.navoplayer.core.domain.playlist.movedTo
@@ -29,6 +33,7 @@ import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.RemoveTrackFromPlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.RenamePlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.ReorderPlaylistTracksUseCase
+import tj.umar.navoplayer.core.domain.usecase.RestorePlaylistTrackUseCase
 import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
 import tj.umar.navoplayer.core.ui.mvi.MviViewModel
@@ -47,6 +52,7 @@ internal class PlaylistDetailViewModel @AssistedInject constructor(
     private val deletePlaylist: DeletePlaylistUseCase,
     private val removeTrackFromPlaylist: RemoveTrackFromPlaylistUseCase,
     private val reorderPlaylistTracks: ReorderPlaylistTracksUseCase,
+    private val restorePlaylistTrack: RestorePlaylistTrackUseCase,
 ) : MviViewModel<PlaylistDetailState, PlaylistDetailIntent, PlaylistDetailEffect>(PlaylistDetailState(playlistId)) {
 
     @AssistedFactory
@@ -59,6 +65,8 @@ internal class PlaylistDetailViewModel @AssistedInject constructor(
     private var hasLoaded = false
     private var reorderJob: Job? = null
     private var pendingOrder: List<Long>? = null
+    private var pendingUndo: PendingUndo? = null
+    private var undoTokenCounter = 0L
 
     override fun onIntent(intent: PlaylistDetailIntent) {
         when (intent) {
@@ -69,13 +77,15 @@ internal class PlaylistDetailViewModel @AssistedInject constructor(
             PlaylistDetailIntent.PlayClicked -> onPlayClicked()
             PlaylistDetailIntent.ShuffleClicked -> onShuffleClicked()
             is PlaylistDetailIntent.TrackClicked -> onTrackClicked(intent.trackId)
-            is PlaylistDetailIntent.TrackLongPressed -> onTrackLongPressed(intent.trackId)
+            is PlaylistDetailIntent.TrackLongPressed -> onRemoveTrackRequested(intent.trackId)
+            is PlaylistDetailIntent.RemoveTrackRequested -> onRemoveTrackRequested(intent.trackId)
+            is PlaylistDetailIntent.UndoRemoveClicked -> onUndoRemoveClicked(intent.token)
+            is PlaylistDetailIntent.UndoRemoveDismissed -> onUndoRemoveDismissed(intent.token)
             is PlaylistDetailIntent.MoveTrack -> onMoveTrack(intent.trackId, intent.toIndex)
             PlaylistDetailIntent.RenameClicked -> onRenameClicked()
             is PlaylistDetailIntent.RenameConfirmed -> onRenameConfirmed(intent.name)
             PlaylistDetailIntent.DeleteClicked -> onDeleteClicked()
             PlaylistDetailIntent.DeleteConfirmed -> onDeleteConfirmed()
-            PlaylistDetailIntent.RemoveTrackConfirmed -> onRemoveTrackConfirmed()
             PlaylistDetailIntent.DialogDismissed -> setState { copy(dialog = null) }
         }
     }
@@ -124,24 +134,71 @@ internal class PlaylistDetailViewModel @AssistedInject constructor(
         viewModelScope.launch { playTracks(tracks, index, playlist.toPlaybackSource()) }
     }
 
-    private fun onTrackLongPressed(trackId: Long) {
-        val track = currentState.tracks.firstOrNull { it.id == trackId } ?: return
-        setState { copy(dialog = PlaylistDetailDialog.ConfirmRemoveTrack(track.id, track.title)) }
+    private fun onRemoveTrackRequested(trackId: Long) {
+        val state = currentState
+        if (!state.canEdit || trackId in state.removingTrackIds) return
+        val track = state.tracks.firstOrNull { it.id == trackId } ?: return
+        val token = ++undoTokenCounter
+        setState { reprojected(removing = removingTrackIds + trackId) }
+        val removal = viewModelScope.async(start = CoroutineStart.LAZY) {
+            when (val result = removeTrackFromPlaylist(state.playlistId, trackId)) {
+                is NavoResult.Success -> result.data
+                is NavoResult.Error -> {
+                    onRemoveFailed(token, trackId)
+                    null
+                }
+            }
+        }
+        pendingUndo = PendingUndo(token, trackId, removal)
+        sendEffect(PlaylistDetailEffect.ShowRemoveUndo(token, track.title))
+        removal.start()
+    }
+
+    private fun onRemoveFailed(token: Long, trackId: Long) {
+        if (pendingUndo?.token == token) pendingUndo = null
+        setState { reprojected(removing = removingTrackIds - trackId) }
+        sendEffect(PlaylistDetailEffect.ShowMessage(PlaylistDetailMessage.RemoveFailed))
+    }
+
+    private fun onUndoRemoveClicked(token: Long) {
+        val pending = pendingUndo?.takeIf { it.token == token } ?: return
+        pendingUndo = null
+        viewModelScope.launch {
+            val removed = pending.removal.await() ?: return@launch
+            when (val result = restorePlaylistTrack(removed)) {
+                is NavoResult.Success -> {
+                    setState { reprojected(removing = removingTrackIds - pending.trackId) }
+                    if (!result.data) sendEffect(PlaylistDetailEffect.ShowMessage(PlaylistDetailMessage.RestoreFailed))
+                }
+                is NavoResult.Error -> sendEffect(PlaylistDetailEffect.ShowMessage(PlaylistDetailMessage.RestoreFailed))
+            }
+        }
+    }
+
+    private fun onUndoRemoveDismissed(token: Long) {
+        if (pendingUndo?.token == token) pendingUndo = null
+    }
+
+    private fun PlaylistDetailState.reprojected(
+        override: List<Long>? = orderOverride,
+        removing: Set<Long> = removingTrackIds,
+    ): PlaylistDetailState {
+        val projected = playlist?.tracks.orEmpty().projected(override, removing)
+        return copy(
+            tracks = projected,
+            orderOverride = override,
+            removingTrackIds = removing,
+            totalMinutes = projected.totalDurationMinutes(),
+        )
     }
 
     private fun onMoveTrack(trackId: Long, toIndex: Int) {
         val state = currentState
-        val playlist = state.playlist ?: return
         if (!state.canEdit) return
         val currentOrder = state.tracks.map { it.id }
         val newOrder = currentOrder.movedTo(trackId, toIndex)
         if (newOrder == currentOrder) return
-        setState {
-            copy(
-                orderOverride = newOrder,
-                tracks = playlist.tracks.projected(newOrder, removingTrackIds),
-            )
-        }
+        setState { reprojected(override = newOrder) }
         pendingOrder = newOrder
         reorderJob?.cancel()
         reorderJob = viewModelScope.launch {
@@ -157,7 +214,7 @@ internal class PlaylistDetailViewModel @AssistedInject constructor(
         val saved = result is NavoResult.Success && result.data
         if (saved) return
         if (currentState.orderOverride == order) {
-            setState { copy(orderOverride = null, tracks = playlist?.tracks.orEmpty().projected(null, removingTrackIds)) }
+            setState { reprojected(override = null) }
         }
         sendEffect(PlaylistDetailEffect.ShowMessage(PlaylistDetailMessage.ReorderFailed))
     }
@@ -209,15 +266,6 @@ internal class PlaylistDetailViewModel @AssistedInject constructor(
         }
     }
 
-    private fun onRemoveTrackConfirmed() {
-        val dialog = currentState.dialog as? PlaylistDetailDialog.ConfirmRemoveTrack ?: return
-        setState { copy(dialog = null) }
-        viewModelScope.launch {
-            removeTrackFromPlaylist(currentState.playlistId, dialog.trackId)
-                .onError { sendEffect(PlaylistDetailEffect.ShowMessage(PlaylistDetailMessage.RemoveFailed)) }
-        }
-    }
-
     private fun startObservingPlaylist() {
         if (playlistJob?.isActive == true) return
         setState { copy(isLoading = !hasLoaded, loadFailed = false) }
@@ -235,18 +283,14 @@ internal class PlaylistDetailViewModel @AssistedInject constructor(
             } else {
                 val stored = playlist?.tracks.orEmpty()
                 val storedIds = stored.mapTo(HashSet()) { it.id }
-                val override = orderOverride?.takeUnless { stored.matchesOrder(it) }
-                val removing = removingTrackIds.filterTo(HashSet()) { it in storedIds }
-                val tracks = stored.projected(override, removing)
                 copy(
                     isLoading = false,
                     playlist = playlist,
-                    tracks = tracks,
-                    orderOverride = override,
-                    removingTrackIds = removing,
                     isMissing = playlist == null,
-                    totalMinutes = tracks.totalDurationMinutes(),
                     dialog = if (playlist == null) null else dialog,
+                ).reprojected(
+                    override = orderOverride?.takeUnless { stored.matchesOrder(it) },
+                    removing = removingTrackIds.filterTo(HashSet()) { it in storedIds },
                 )
             }
         }
@@ -275,3 +319,9 @@ internal class PlaylistDetailViewModel @AssistedInject constructor(
         playbackJob = null
     }
 }
+
+private class PendingUndo(
+    val token: Long,
+    val trackId: Long,
+    val removal: Deferred<RemovedPlaylistTrack?>,
+)

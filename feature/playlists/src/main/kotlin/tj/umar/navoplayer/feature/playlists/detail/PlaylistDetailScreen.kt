@@ -289,17 +289,6 @@ private fun PlaylistDialogs(state: PlaylistDetailState, onIntent: (PlaylistDetai
             onConfirm = { onIntent(PlaylistDetailIntent.DeleteConfirmed) },
             onDismiss = dismiss,
         )
-        is PlaylistDetailDialog.ConfirmRemoveTrack -> NavoConfirmDialog(
-            title = stringResource(R.string.playlists_remove_track_title),
-            text = stringResource(
-                R.string.playlists_remove_track_message,
-                dialog.title.ifBlank { stringResource(CoreUiR.string.core_ui_unknown_title) },
-            ),
-            confirmLabel = stringResource(R.string.playlists_remove),
-            dismissLabel = stringResource(CoreUiR.string.core_ui_cancel),
-            onConfirm = { onIntent(PlaylistDetailIntent.RemoveTrackConfirmed) },
-            onDismiss = dismiss,
-        )
         null -> Unit
     }
 }

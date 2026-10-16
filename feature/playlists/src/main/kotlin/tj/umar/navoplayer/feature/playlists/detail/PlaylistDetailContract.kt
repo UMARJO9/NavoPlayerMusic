@@ -40,7 +40,6 @@ internal data class PlaylistDetailState(
 internal sealed interface PlaylistDetailDialog {
     data class Rename(val currentName: String) : PlaylistDetailDialog
     data object ConfirmDelete : PlaylistDetailDialog
-    data class ConfirmRemoveTrack(val trackId: Long, val title: String) : PlaylistDetailDialog
 }
 
 internal sealed interface PlaylistDetailIntent {
@@ -53,11 +52,13 @@ internal sealed interface PlaylistDetailIntent {
     data class TrackClicked(val trackId: Long) : PlaylistDetailIntent
     data class TrackLongPressed(val trackId: Long) : PlaylistDetailIntent
     data class MoveTrack(val trackId: Long, val toIndex: Int) : PlaylistDetailIntent
+    data class RemoveTrackRequested(val trackId: Long) : PlaylistDetailIntent
+    data class UndoRemoveClicked(val token: Long) : PlaylistDetailIntent
+    data class UndoRemoveDismissed(val token: Long) : PlaylistDetailIntent
     data object RenameClicked : PlaylistDetailIntent
     data class RenameConfirmed(val name: String) : PlaylistDetailIntent
     data object DeleteClicked : PlaylistDetailIntent
     data object DeleteConfirmed : PlaylistDetailIntent
-    data object RemoveTrackConfirmed : PlaylistDetailIntent
     data object DialogDismissed : PlaylistDetailIntent
 }
 
@@ -65,6 +66,7 @@ internal sealed interface PlaylistDetailEffect {
     data object NavigateBack : PlaylistDetailEffect
     data object NavigateToWelcome : PlaylistDetailEffect
     data class ShowMessage(val message: PlaylistDetailMessage) : PlaylistDetailEffect
+    data class ShowRemoveUndo(val token: Long, val title: String) : PlaylistDetailEffect
 }
 
-internal enum class PlaylistDetailMessage { RenameFailed, DeleteFailed, RemoveFailed, ReorderFailed }
+internal enum class PlaylistDetailMessage { RenameFailed, DeleteFailed, RemoveFailed, RestoreFailed, ReorderFailed }

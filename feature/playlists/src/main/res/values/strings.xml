@@ -9,9 +9,6 @@
     <string name="playlists_delete">Delete</string>
     <string name="playlists_delete_title">Delete playlist?</string>
     <string name="playlists_delete_message">Playlist “%1$s” will be deleted. Tracks stay on the phone.</string>
-    <string name="playlists_remove">Remove</string>
-    <string name="playlists_remove_track_title">Remove from playlist?</string>
-    <string name="playlists_remove_track_message">“%1$s” will be removed from this playlist.</string>
     <string name="playlists_remove_track_label">Remove from playlist</string>
     <string name="playlists_empty">No tracks in this playlist yet</string>
     <string name="playlists_empty_hint">Long-press a track in the library to add it here</string>
@@ -21,6 +18,7 @@
     <string name="playlists_rename_failed">Couldn’t rename the playlist</string>
     <string name="playlists_delete_failed">Couldn’t delete the playlist</string>
     <string name="playlists_remove_failed">Couldn’t remove the track</string>
+    <string name="playlists_restore_failed">Couldn’t bring the track back</string>
     <string name="playlists_reorder_failed">Couldn’t save the new order</string>
     <string name="playlists_sheet_added">Added to “%1$s”</string>
     <string name="playlists_sheet_already_added">Already in “%1$s”</string>

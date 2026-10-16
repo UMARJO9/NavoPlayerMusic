@@ -38,6 +38,7 @@ internal fun PlaylistDetailRoute(
             PlaylistDetailEffect.NavigateBack -> currentOnBack()
             PlaylistDetailEffect.NavigateToWelcome -> currentOnAudioPermissionMissing()
             is PlaylistDetailEffect.ShowMessage -> Toast.makeText(context, effect.message.textRes(), Toast.LENGTH_SHORT).show()
+            is PlaylistDetailEffect.ShowRemoveUndo -> Unit
         }
     }
 
@@ -52,5 +53,6 @@ private fun PlaylistDetailMessage.textRes(): Int = when (this) {
     PlaylistDetailMessage.RenameFailed -> R.string.playlists_rename_failed
     PlaylistDetailMessage.DeleteFailed -> R.string.playlists_delete_failed
     PlaylistDetailMessage.RemoveFailed -> R.string.playlists_remove_failed
+    PlaylistDetailMessage.RestoreFailed -> R.string.playlists_restore_failed
     PlaylistDetailMessage.ReorderFailed -> R.string.playlists_reorder_failed
 }

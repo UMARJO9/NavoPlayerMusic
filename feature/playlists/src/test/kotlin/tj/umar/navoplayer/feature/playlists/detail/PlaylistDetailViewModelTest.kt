@@ -12,6 +12,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
+import tj.umar.navoplayer.core.domain.model.RemovedPlaylistTrack
 import tj.umar.navoplayer.core.domain.model.totalDurationMinutes
 import tj.umar.navoplayer.core.domain.usecase.DeletePlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.ObservePlaybackStateUseCase
@@ -21,6 +22,7 @@ import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.RemoveTrackFromPlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.RenamePlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.ReorderPlaylistTracksUseCase
+import tj.umar.navoplayer.core.domain.usecase.RestorePlaylistTrackUseCase
 import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
 import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
@@ -57,6 +59,7 @@ class PlaylistDetailViewModelTest {
         deletePlaylist = DeletePlaylistUseCase(playlists),
         removeTrackFromPlaylist = RemoveTrackFromPlaylistUseCase(playlists),
         reorderPlaylistTracks = ReorderPlaylistTracksUseCase(playlists),
+        restorePlaylistTrack = RestorePlaylistTrackUseCase(playlists),
     )
 
     private suspend fun PlaylistDetailViewModel.started(): PlaylistDetailViewModel = apply {
@@ -157,33 +160,134 @@ class PlaylistDetailViewModelTest {
     }
 
     @Test
-    fun `long press asks to remove and confirm removes track`() = runTest {
+    fun `remove request hides track and offers undo`() = runTest {
         val viewModel = viewModel().started()
 
-        viewModel.onIntent(PlaylistDetailIntent.TrackLongPressed(TestTracks.alpha.id))
-        assertEquals(
-            PlaylistDetailDialog.ConfirmRemoveTrack(TestTracks.alpha.id, TestTracks.alpha.title),
-            viewModel.state.value.dialog,
-        )
-        viewModel.onIntent(PlaylistDetailIntent.RemoveTrackConfirmed)
+        viewModel.effects.test {
+            viewModel.onIntent(PlaylistDetailIntent.RemoveTrackRequested(TestTracks.alpha.id))
+            assertEquals(PlaylistDetailEffect.ShowRemoveUndo(1, TestTracks.alpha.title), awaitItem())
+        }
+        assertEquals(listOf(TestTracks.longMix), viewModel.state.value.tracks)
+        assertTrue(viewModel.state.value.removingTrackIds.isEmpty())
+        assertTrue(TestTracks.alpha.id !in storedOrder())
+        assertEquals(listOf(TestTracks.longMix).totalDurationMinutes(), viewModel.state.value.totalMinutes)
+    }
 
+    @Test
+    fun `long press removes with undo`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.effects.test {
+            viewModel.onIntent(PlaylistDetailIntent.TrackLongPressed(TestTracks.longMix.id))
+            assertEquals(PlaylistDetailEffect.ShowRemoveUndo(1, TestTracks.longMix.title), awaitItem())
+        }
         assertNull(viewModel.state.value.dialog)
+        assertEquals(listOf(TestTracks.alpha), viewModel.state.value.tracks)
+    }
+
+    @Test
+    fun `undo restores track at original index`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.onIntent(PlaylistDetailIntent.RemoveTrackRequested(TestTracks.longMix.id))
+        viewModel.onIntent(PlaylistDetailIntent.UndoRemoveClicked(1))
+
+        assertEquals(morning.trackIds, storedOrder())
+        assertEquals(morningTracks, viewModel.state.value.tracks)
+        assertEquals(listOf(RemovedPlaylistTrack(morning.id, TestTracks.longMix.id, 0)), playlists.restoreCalls)
+    }
+
+    @Test
+    fun `undo after dismiss is ignored`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.onIntent(PlaylistDetailIntent.RemoveTrackRequested(TestTracks.alpha.id))
+        viewModel.onIntent(PlaylistDetailIntent.UndoRemoveDismissed(1))
+        viewModel.onIntent(PlaylistDetailIntent.UndoRemoveClicked(1))
+
+        assertTrue(playlists.restoreCalls.isEmpty())
         assertEquals(listOf(TestTracks.longMix), viewModel.state.value.tracks)
     }
 
     @Test
-    fun `remove failure shows message`() = runTest {
+    fun `new removal finalizes previous and stale token is ignored`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.effects.test {
+            viewModel.onIntent(PlaylistDetailIntent.RemoveTrackRequested(TestTracks.alpha.id))
+            assertEquals(PlaylistDetailEffect.ShowRemoveUndo(1, TestTracks.alpha.title), awaitItem())
+            viewModel.onIntent(PlaylistDetailIntent.RemoveTrackRequested(TestTracks.longMix.id))
+            assertEquals(PlaylistDetailEffect.ShowRemoveUndo(2, TestTracks.longMix.title), awaitItem())
+        }
+        viewModel.onIntent(PlaylistDetailIntent.UndoRemoveDismissed(1))
+        viewModel.onIntent(PlaylistDetailIntent.UndoRemoveClicked(1))
+        assertTrue(playlists.restoreCalls.isEmpty())
+
+        viewModel.onIntent(PlaylistDetailIntent.UndoRemoveClicked(2))
+        assertEquals(listOf(TestTracks.longMix), viewModel.state.value.tracks)
+        assertEquals(listOf(TestTracks.longMix.id, TestPlaylists.MISSING_TRACK_ID), storedOrder())
+    }
+
+    @Test
+    fun `remove failure brings track back and shows message`() = runTest {
         val viewModel = viewModel().started()
         playlists.writeError = IllegalStateException("locked")
 
         viewModel.effects.test {
-            viewModel.onIntent(PlaylistDetailIntent.TrackLongPressed(TestTracks.alpha.id))
-            viewModel.onIntent(PlaylistDetailIntent.RemoveTrackConfirmed)
+            viewModel.onIntent(PlaylistDetailIntent.RemoveTrackRequested(TestTracks.alpha.id))
+            assertEquals(PlaylistDetailEffect.ShowRemoveUndo(1, TestTracks.alpha.title), awaitItem())
             assertEquals(PlaylistDetailEffect.ShowMessage(PlaylistDetailMessage.RemoveFailed), awaitItem())
         }
+        assertEquals(morningTracks, viewModel.state.value.tracks)
+        assertTrue(viewModel.state.value.removingTrackIds.isEmpty())
+        viewModel.onIntent(PlaylistDetailIntent.UndoRemoveClicked(1))
+        assertTrue(playlists.restoreCalls.isEmpty())
     }
 
     @Test
+    fun `remove waits for write and hides track meanwhile`() = runTest {
+        val viewModel = viewModel().started()
+        val gate = CompletableDeferred<Unit>()
+        playlists.writeGate = gate
+
+        viewModel.onIntent(PlaylistDetailIntent.RemoveTrackRequested(TestTracks.alpha.id))
+        assertEquals(listOf(TestTracks.longMix), viewModel.state.value.tracks)
+        assertEquals(setOf(TestTracks.alpha.id), viewModel.state.value.removingTrackIds)
+        viewModel.onIntent(PlaylistDetailIntent.RemoveTrackRequested(TestTracks.alpha.id))
+
+        gate.complete(Unit)
+        assertEquals(1, playlists.writeCalls)
+        assertTrue(viewModel.state.value.removingTrackIds.isEmpty())
+        assertEquals(listOf(TestTracks.longMix), viewModel.state.value.tracks)
+    }
+
+    @Test
+    fun `restore failure shows message`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.effects.test {
+            viewModel.onIntent(PlaylistDetailIntent.RemoveTrackRequested(TestTracks.alpha.id))
+            awaitItem()
+            playlists.writeError = IllegalStateException("locked")
+            viewModel.onIntent(PlaylistDetailIntent.UndoRemoveClicked(1))
+            assertEquals(PlaylistDetailEffect.ShowMessage(PlaylistDetailMessage.RestoreFailed), awaitItem())
+        }
+        assertEquals(listOf(TestTracks.longMix), viewModel.state.value.tracks)
+    }
+
+    @Test
+    fun `remove while deleting is ignored`() = runTest {
+        val viewModel = viewModel().started()
+        playlists.writeGate = CompletableDeferred()
+
+        viewModel.onIntent(PlaylistDetailIntent.DeleteConfirmed)
+        viewModel.onIntent(PlaylistDetailIntent.RemoveTrackRequested(TestTracks.alpha.id))
+
+        assertEquals(morningTracks, viewModel.state.value.tracks)
+        assertEquals(1, playlists.writeCalls)
+        playlists.writeGate?.complete(Unit)
+    }
+
     fun `rename updates name`() = runTest {
         val viewModel = viewModel().started()
 
