@@ -1,4 +1,4 @@
-package tj.umar.navoplayer.feature.player.queue
+package tj.umar.navoplayer.core.designsystem.reorder
 
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.scrollBy
@@ -30,7 +30,7 @@ private const val AUTO_SCROLL_EDGE_FRACTION = 0.1f
 private const val AUTO_SCROLL_MAX_STEP = 24f
 
 @Stable
-internal class ReorderableListState<T>(
+class ReorderableListState<T> internal constructor(
     val listState: LazyListState,
     initialItems: List<T>,
     private val keyOf: (T) -> Any,
@@ -50,18 +50,18 @@ internal class ReorderableListState<T>(
     private var autoScrollJob: Job? = null
     private var latestSource: List<T> = initialItems
 
-    fun sync(newItems: List<T>) {
+    internal fun sync(newItems: List<T>) {
         latestSource = newItems
         if (draggingKey == null) items = newItems
     }
 
-    fun translationOf(key: Any): Float {
+    internal fun translationOf(key: Any): Float {
         if (key != draggingKey) return 0f
         val info = visible(key) ?: return 0f
         return initialOffset + draggedDelta - info.offset
     }
 
-    fun onDragStart(key: Any) {
+    internal fun onDragStart(key: Any) {
         val info = visible(key) ?: return
         draggingKey = key
         initialOffset = info.offset
@@ -79,13 +79,13 @@ internal class ReorderableListState<T>(
         }
     }
 
-    fun onDrag(delta: Float) {
+    internal fun onDrag(delta: Float) {
         if (draggingKey == null) return
         draggedDelta += delta
         swapIfNeeded()
     }
 
-    fun onDragEnd() {
+    internal fun onDragEnd() {
         val key = draggingKey ?: return
         val finalIndex = items.indexOfFirst { keyOf(it) == key }
         val moved = finalIndex >= 0 && finalIndex != startIndex
@@ -94,7 +94,7 @@ internal class ReorderableListState<T>(
         if (movedItem != null) onMove(movedItem, finalIndex) else items = latestSource
     }
 
-    fun cancelDrag(key: Any) {
+    internal fun cancelDrag(key: Any) {
         if (draggingKey != key) return
         finishDrag()
         items = latestSource
@@ -148,7 +148,7 @@ internal class ReorderableListState<T>(
 }
 
 @Composable
-internal fun <T> rememberReorderableListState(
+fun <T> rememberReorderableListState(
     listState: LazyListState,
     items: List<T>,
     keyOf: (T) -> Any,
@@ -164,7 +164,7 @@ internal fun <T> rememberReorderableListState(
     return state
 }
 
-internal fun Modifier.reorderHandle(state: ReorderableListState<*>, key: Any): Modifier =
+fun Modifier.reorderHandle(state: ReorderableListState<*>, key: Any): Modifier =
     pointerInput(state, key) {
         try {
             detectDragGestures(
@@ -182,9 +182,10 @@ internal fun Modifier.reorderHandle(state: ReorderableListState<*>, key: Any): M
     }
 
 @Composable
-internal fun LazyItemScope.ReorderableItem(
+fun LazyItemScope.ReorderableItem(
     state: ReorderableListState<*>,
     key: Any,
+    idleModifier: Modifier = Modifier.animateItem(),
     content: @Composable (isDragging: Boolean) -> Unit,
 ) {
     val isDragging = key == state.draggingKey
@@ -193,7 +194,7 @@ internal fun LazyItemScope.ReorderableItem(
             .zIndex(1f)
             .graphicsLayer { translationY = state.translationOf(key) }
     } else {
-        Modifier.animateItem()
+        idleModifier
     }
     Box(modifier = modifier) { content(isDragging) }
 }
