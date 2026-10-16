@@ -69,58 +69,66 @@ fun TrackRow(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 64.dp)
-            .semantics(mergeDescendants = true) {
-                if (isCurrent) stateDescription = nowPlaying
-                val longClickActions = if (onLongClick != null && onLongClickLabel != null) {
-                    listOf(
-                        CustomAccessibilityAction(onLongClickLabel) {
-                            onLongClick()
-                            true
-                        },
-                    )
-                } else {
-                    emptyList()
-                }
-                val allActions = longClickActions + actions
-                if (allActions.isNotEmpty()) customActions = allActions
-            }
             .clip(NavoShapes.TrackRow)
             .background(background)
-            .combinedClickable(
-                onClickLabel = playLabel,
-                onLongClickLabel = onLongClickLabel,
-                onLongClick = onLongClick,
-                onClick = onClick,
-            )
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(end = if (trailing != null) 4.dp else 0.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        MedallionArtwork(palette = palette, image = artwork, modifier = Modifier.size(48.dp))
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .heightIn(min = 64.dp)
+                .semantics {
+                    if (isCurrent) stateDescription = nowPlaying
+                    val longClickActions = if (onLongClick != null && onLongClickLabel != null) {
+                        listOf(
+                            CustomAccessibilityAction(onLongClickLabel) {
+                                onLongClick()
+                                true
+                            },
+                        )
+                    } else {
+                        emptyList()
+                    }
+                    val allActions = longClickActions + actions
+                    if (allActions.isNotEmpty()) customActions = allActions
+                }
+                .combinedClickable(
+                    onClickLabel = playLabel,
+                    onLongClickLabel = onLongClickLabel,
+                    onLongClick = onLongClick,
+                    onClick = onClick,
+                )
+                .padding(start = 12.dp, end = if (trailing != null) 4.dp else 12.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(
-                text = title,
-                style = typography.itemTitle,
-                color = if (isCurrent) colors.accent else colors.content,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = artist,
-                style = typography.secondary,
-                color = colors.contentSecondary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        Box(modifier = Modifier.widthIn(min = 36.dp), contentAlignment = Alignment.CenterEnd) {
-            if (isCurrent) {
-                EqualizerBars(paused = !isPlaying)
-            } else {
-                Text(text = duration, style = typography.secondaryNumeric, color = colors.contentSecondary)
+            MedallionArtwork(palette = palette, image = artwork, modifier = Modifier.size(48.dp))
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
+                Text(
+                    text = title,
+                    style = typography.itemTitle,
+                    color = if (isCurrent) colors.accent else colors.content,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = artist,
+                    style = typography.secondary,
+                    color = colors.contentSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Box(modifier = Modifier.widthIn(min = 36.dp), contentAlignment = Alignment.CenterEnd) {
+                if (isCurrent) {
+                    EqualizerBars(paused = !isPlaying)
+                } else {
+                    Text(text = duration, style = typography.secondaryNumeric, color = colors.contentSecondary)
+                }
             }
         }
         trailing?.invoke(this)
