@@ -48,7 +48,7 @@ internal fun QueueSheetRoute(
 
     viewModel.effects.CollectEffects { effect ->
         when (effect) {
-            QueueEffect.Close -> scope.launch { sheetState.hide() }.invokeOnCompletion { dismiss() }
+            QueueEffect.Close -> scope.launch { sheetState.hide() }.invokeOnCompletion { if (!sheetState.isVisible) dismiss() }
         }
     }
 

@@ -65,7 +65,7 @@ internal fun NowPlayingSheetRoute(
 
     viewModel.effects.CollectEffects { effect ->
         when (effect) {
-            NowPlayingEffect.Collapse -> scope.launch { sheetState.hide() }.invokeOnCompletion { dismiss() }
+            NowPlayingEffect.Collapse -> scope.launch { sheetState.hide() }.invokeOnCompletion { if (!sheetState.isVisible) dismiss() }
             is NowPlayingEffect.OpenTrackActions -> currentOnOpenTrackActions(effect.trackIds)
             is NowPlayingEffect.ShowMessage ->
                 Toast.makeText(context, effect.message.text(context.resources), Toast.LENGTH_SHORT).show()

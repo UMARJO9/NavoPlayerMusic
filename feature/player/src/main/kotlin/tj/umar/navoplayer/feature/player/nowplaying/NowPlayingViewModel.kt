@@ -102,6 +102,8 @@ internal class NowPlayingViewModel @Inject constructor(
 
     private fun resetSession() {
         stopObserving()
+        favoriteWriteJob?.cancel()
+        favoriteWriteJob = null
         collapseRequested = false
         pendingSeekTarget = null
         staleTicksAfterSeek = 0
