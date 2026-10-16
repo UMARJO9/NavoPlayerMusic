@@ -178,7 +178,7 @@ private fun FavoriteTrackList(
         }
         itemsIndexed(state.tracks, key = { _, track -> track.id }, contentType = { _, _ -> "track" }) { index, track ->
             SwipeToRemoveBox(
-                enabled = true,
+                enabled = state.canEdit,
                 onRemove = { onIntent(FavoritesIntent.RemoveTrackRequested(track.id)) },
                 modifier = Modifier.animatedListItem(this, 2 + index, motion, entrance),
             ) {

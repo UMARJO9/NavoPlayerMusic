@@ -23,6 +23,9 @@ internal data class FavoritesState(
     val tracks: List<Track>
         get() = favorites?.tracks.orEmpty().filterNot { it.id in removingTrackIds }
 
+    val canEdit: Boolean
+        get() = favorites != null && !loadFailed
+
     val isFavoritesActive: Boolean
         get() = currentTrackId != null && currentSource.isFavorites()
 

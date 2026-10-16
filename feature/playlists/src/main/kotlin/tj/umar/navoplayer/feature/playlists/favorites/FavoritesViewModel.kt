@@ -100,7 +100,7 @@ internal class FavoritesViewModel @Inject constructor(
 
     private fun onRemoveTrackRequested(trackId: Long) {
         val state = currentState
-        if (trackId in state.removingTrackIds) return
+        if (!state.canEdit || trackId in state.removingTrackIds) return
         val track = state.tracks.firstOrNull { it.id == trackId } ?: return
         val token = ++undoTokenCounter
         setRemoving(state.removingTrackIds + trackId)
