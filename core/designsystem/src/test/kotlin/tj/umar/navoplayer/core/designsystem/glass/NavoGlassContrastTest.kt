@@ -2,7 +2,6 @@ package tj.umar.navoplayer.core.designsystem.glass
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -12,7 +11,6 @@ import tj.umar.navoplayer.core.designsystem.theme.ParchmentNavoColors
 import kotlin.math.max
 import kotlin.math.min
 
-private const val BACKDROP_MIX = 0.35f
 private const val AA = 4.5f
 
 class NavoGlassContrastTest {
@@ -34,15 +32,16 @@ class NavoGlassContrastTest {
     private fun styles(colors: NavoColors) = listOf("bar" to barGlassStyle(colors), "pill" to pillGlassStyle(colors))
 
     @Test
-    fun `content stays readable on glass over mixed backdrops`() {
+    fun `content stays readable on glass over white and black backdrops`() {
         themes.forEach { (themeName, colors) ->
             styles(colors).forEach { (styleName, style) ->
                 listOf("white" to Color.White, "black" to Color.Black).forEach { (mixName, mix) ->
-                    val backdrop = lerp(colors.background, mix, BACKDROP_MIX)
+                    val backdrop = mix
                     val surface = style.tint.compositeOver(backdrop)
-                    val label = "$themeName $styleName over $mixName mix"
+                    val label = "$themeName $styleName over $mixName"
                     assertReadable("content $label", colors.content, surface)
                     assertReadable("secondaryContent $label", style.secondaryContent, surface)
+                    if (styleName == "pill") assertReadable("accent $label", colors.accent, surface)
                 }
             }
         }

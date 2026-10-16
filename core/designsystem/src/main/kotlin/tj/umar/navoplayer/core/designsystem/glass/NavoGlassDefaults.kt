@@ -8,8 +8,8 @@ import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.theme.NavoColors
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 
-private const val TINT_ALPHA = 0.55f
-private const val PILL_DARK_TINT_ALPHA = 0.50f
+private const val TINT_ALPHA = 0.72f
+private const val PILL_DARK_TINT_ALPHA = 0.72f
 private const val FALLBACK_ALPHA = 0.88f
 private const val RIM_TOP_ALPHA = 0.20f
 private const val RIM_BOTTOM_ALPHA = 0.04f
