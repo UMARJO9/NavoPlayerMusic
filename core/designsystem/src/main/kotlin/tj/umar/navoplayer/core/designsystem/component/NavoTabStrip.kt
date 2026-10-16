@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Text
@@ -17,7 +19,6 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
@@ -26,6 +27,7 @@ import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
@@ -38,15 +40,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 
+import tj.umar.navoplayer.core.designsystem.glass.NavoGlassDefaults
+import tj.umar.navoplayer.core.designsystem.glass.navoGlass
+import tj.umar.navoplayer.core.designsystem.glass.navoGlassSource
+import tj.umar.navoplayer.core.designsystem.glass.rememberNavoGlassBackdrop
 import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import kotlin.math.floor
+import kotlin.math.roundToInt
 
 private val StripInset = 4.dp
 private val StripCorner = 16.dp
 private val IndicatorCorner = StripCorner
+private val IndicatorShape = RoundedCornerShape(IndicatorCorner)
 private val TabMinHeight = NavoSpacing.MinTouchTarget
 private val TabMinHorizontalPadding = 8.dp
 private const val MIN_TEXT_SCALE = 0.78f
@@ -66,6 +76,8 @@ fun NavoTabStrip(
     val baseStyle = NavoTheme.typography.label.copy(fontWeight = FontWeight.SemiBold)
     val textMeasurer = rememberTextMeasurer()
     val indicatorCornerPx = with(density) { IndicatorCorner.toPx() }
+    val glassBackdrop = rememberNavoGlassBackdrop()
+    val lensStyle = NavoGlassDefaults.lens()
     val tabBounds = remember(titles) { mutableStateMapOf<Int, TabSpan>() }
     val indicatorRect: () -> Rect? = {
         tabBounds.takeIf { it.size == titles.size }?.let { spans ->
@@ -85,17 +97,7 @@ fun NavoTabStrip(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(StripInset)
-                .drawBehind {
-                    indicatorRect()?.let { rect ->
-                        drawRoundRect(
-                            color = colors.accent,
-                            topLeft = rect.topLeft,
-                            size = rect.size,
-                            cornerRadius = CornerRadius(indicatorCornerPx),
-                        )
-                    }
-                },
+                .padding(StripInset),
         ) {
             TabLabels(
                 titles = titles,
@@ -112,7 +114,9 @@ fun NavoTabStrip(
                         } else {
                             clipPath(rect.toRoundedPath(indicatorCornerPx), ClipOp.Difference) { this@drawWithContent.drawContent() }
                         }
-                    },
+                    }
+                    .navoGlassSource(glassBackdrop)
+                    .background(colors.background),
                 tabModifier = { index ->
                     Modifier
                         .onPlaced { coordinates ->
@@ -132,11 +136,23 @@ fun NavoTabStrip(
                         )
                 },
             )
+            Box(
+                modifier = Modifier
+                    .offset { indicatorRect()?.let { IntOffset(it.left.roundToInt(), it.top.roundToInt()) } ?: IntOffset.Zero }
+                    .layout { measurable, _ ->
+                        val rect = indicatorRect()
+                        val width = rect?.width?.roundToInt() ?: 0
+                        val height = rect?.height?.roundToInt() ?: 0
+                        val placeable = measurable.measure(Constraints.fixed(width, height))
+                        layout(width, height) { placeable.place(0, 0) }
+                    }
+                    .navoGlass(glassBackdrop, IndicatorShape, lensStyle),
+            )
             TabLabels(
                 titles = titles,
                 weights = fit.weights,
                 style = style,
-                color = colors.onAccent,
+                color = colors.content,
                 modifier = Modifier
                     .clearAndSetSemantics { }
                     .drawWithContent {

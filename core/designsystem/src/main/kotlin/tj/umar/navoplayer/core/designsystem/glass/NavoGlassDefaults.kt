@@ -31,7 +31,35 @@ object NavoGlassDefaults {
     @Composable
     @ReadOnlyComposable
     fun pill(): NavoGlassStyle = pillGlassStyle(NavoTheme.colors)
+
+    @Composable
+    @ReadOnlyComposable
+    fun lens(): NavoGlassStyle = lensGlassStyle(NavoTheme.colors)
 }
+
+private const val LENS_TINT_ALPHA = 0.2f
+private const val LENS_FALLBACK_ALPHA = 0.32f
+private const val LENS_RIM_TOP_ALPHA = 0.4f
+private const val LENS_RIM_BOTTOM_ALPHA = 0.08f
+private const val LENS_SATURATION = 1.25f
+private const val LENS_BRIGHTNESS = 0.06f
+private const val LENS_HIGHLIGHT_ALPHA = 0.9f
+
+internal fun lensGlassStyle(colors: NavoColors): NavoGlassStyle = NavoGlassStyle(
+    blurRadius = 0.dp,
+    refractionHeight = 14.dp,
+    refractionAmount = 22.dp,
+    chromaticAberration = true,
+    saturation = LENS_SATURATION,
+    brightness = LENS_BRIGHTNESS,
+    tint = colors.accent.copy(alpha = LENS_TINT_ALPHA),
+    fallbackTint = colors.accent.copy(alpha = LENS_FALLBACK_ALPHA),
+    rimTop = colors.highlight.copy(alpha = LENS_RIM_TOP_ALPHA),
+    rimBottom = colors.highlight.copy(alpha = LENS_RIM_BOTTOM_ALPHA),
+    rimWidth = RimWidth,
+    highlightAlpha = LENS_HIGHLIGHT_ALPHA,
+    secondaryContent = glassSecondaryContent(colors),
+)
 
 internal fun barGlassStyle(colors: NavoColors): NavoGlassStyle {
     val surface = if (colors.isDark) colors.high else colors.card
