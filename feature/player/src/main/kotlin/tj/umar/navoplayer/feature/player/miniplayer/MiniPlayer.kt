@@ -12,10 +12,10 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,7 +36,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +47,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
 import tj.umar.navoplayer.core.designsystem.component.ProgressRing
+import tj.umar.navoplayer.core.designsystem.glass.LocalNavoGlassBackdrop
+import tj.umar.navoplayer.core.designsystem.glass.NavoGlassDefaults
+import tj.umar.navoplayer.core.designsystem.glass.navoGlass
+import tj.umar.navoplayer.core.designsystem.glass.navoGlassSource
+import tj.umar.navoplayer.core.designsystem.glass.rememberNavoGlassBackdrop
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionArtwork
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
@@ -65,19 +72,16 @@ private val ControlSize = 48.dp
 private val ControlGap = 2.dp
 private val NextIconSize = 22.dp
 private val PlayIconSize = 24.dp
-private val HairlineWidth = 1.dp
 private val CardEndPadding = 8.dp
 private val OpenAreaStartPadding = 5.dp
 private val OpenAreaEndPadding = 8.dp
 private const val TRACK_CHANGE_MILLIS = 300
 private const val MEDALLION_CHANGE_SCALE = 0.85f
 private const val MINI_PLAYER_PRESSED_SCALE = 0.98f
-private const val PALETTE_TINT_FRACTION = 0.16f
+private const val PALETTE_OVERLAY_ALPHA = 0.22f
+private const val LIGHT_PALETTE_OVERLAY_ALPHA = 0.12f
 private const val PALETTE_TINT_MILLIS = 450
 private const val TINT_STOP = 0.45f
-private const val END_SHADE_FRACTION = 0.35f
-private const val HAIRLINE_TOP_ALPHA = 0.16f
-private const val HAIRLINE_BOTTOM_ALPHA = 0.04f
 private const val WATERMARK_ALPHA = 0.06f
 
 @Composable
@@ -91,38 +95,33 @@ internal fun MiniPlayer(
     modifier: Modifier = Modifier,
 ) {
     val colors = NavoTheme.colors
+    val glassStyle = NavoGlassDefaults.bar()
     val openInteraction = remember { MutableInteractionSource() }
     val openLabel = stringResource(R.string.player_open_now_playing)
     val palette = remember(track.id) { MedallionPalettes.forKey(track.id) }
+    val overlayAlpha = if (colors.isDark) PALETTE_OVERLAY_ALPHA else LIGHT_PALETTE_OVERLAY_ALPHA
     val tint = animateColorAsState(
-        targetValue = lerp(colors.high, palette.background, PALETTE_TINT_FRACTION),
+        targetValue = palette.background.copy(alpha = overlayAlpha),
         animationSpec = tween(PALETTE_TINT_MILLIS),
         label = "miniPlayerTint",
     )
-    val endColor = remember(colors) { lerp(colors.high, colors.raised, END_SHADE_FRACTION) }
-    val hairline = remember(colors) {
-        Brush.verticalGradient(
-            listOf(colors.highlight.copy(alpha = HAIRLINE_TOP_ALPHA), colors.highlight.copy(alpha = HAIRLINE_BOTTOM_ALPHA)),
-        )
-    }
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(MiniPlayerHeight)
             .pressScale(openInteraction, pressedScale = MINI_PLAYER_PRESSED_SCALE)
-            .dropShadow(NavoShapes.MiniPlayer, NavoTheme.shadows.miniPlayer)
-            .clip(NavoShapes.MiniPlayer)
+            .dropShadow(NavoShapes.GlassMiniPlayer, NavoTheme.shadows.miniPlayer)
+            .navoGlass(LocalNavoGlassBackdrop.current, NavoShapes.GlassMiniPlayer, glassStyle)
+            .clip(NavoShapes.GlassMiniPlayer)
             .drawBehind {
                 drawRect(
                     Brush.horizontalGradient(
                         0f to tint.value,
-                        TINT_STOP to colors.high,
-                        1f to endColor,
+                        TINT_STOP to tint.value.copy(alpha = 0f),
                     ),
                 )
             }
             .khotamWatermark(colors.content.copy(alpha = WATERMARK_ALPHA))
-            .border(HairlineWidth, hairline, NavoShapes.MiniPlayer)
             .padding(end = CardEndPadding),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -140,9 +139,16 @@ internal fun MiniPlayer(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            ProgressRing(progress = progress, modifier = Modifier.size(RingSlot), glowing = isPlaying) {
+            ProgressRing(
+                progress = progress,
+                modifier = Modifier
+                    .size(RingSlot)
+                    .graphicsLayer(),
+                glowing = isPlaying,
+            ) {
                 AnimatedContent(
                     targetState = track,
+                    modifier = Modifier.graphicsLayer(),
                     contentKey = { it.id },
                     transitionSpec = { miniMedallionTransition() },
                     label = "miniMedallionChange",
@@ -201,7 +207,7 @@ private fun MiniTrackInfo(track: Track) {
         )
         Text(
             text = track.artist ?: stringResource(CoreUiR.string.core_ui_unknown_artist),
-            color = colors.contentOnHigh,
+            color = NavoGlassDefaults.bar().secondaryContent,
             style = NavoTheme.typography.caption,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -228,15 +234,39 @@ private fun miniTrackTransition(): ContentTransform = ContentTransform(
 private fun previewTrack(id: Long, title: String, artist: String?) =
     Track(id, title, artist, null, 11, 101, 252_000, 2, "content://media/$id", "Music/Navo", null, null)
 
+private val PreviewStripes = listOf(
+    Color(0xFFE3B04B),
+    Color(0xFFC8414B),
+    Color(0xFF2E7D74),
+    Color(0xFF24387A),
+    Color(0xFFF3EEDF),
+)
+
 @Composable
-private fun MiniPlayerPreviewFrame(content: @Composable () -> Unit) {
-    NavoTheme {
-        Column(
-            modifier = Modifier
-                .background(NavoTheme.colors.background)
-                .padding(12.dp),
-        ) {
-            content()
+private fun MiniPlayerPreviewFrame(darkTheme: Boolean = true, content: @Composable () -> Unit) {
+    NavoTheme(darkTheme = darkTheme) {
+        val backdrop = rememberNavoGlassBackdrop()
+        Box(modifier = Modifier.background(NavoTheme.colors.background)) {
+            Column(
+                modifier = Modifier
+                    .matchParentSize()
+                    .navoGlassSource(backdrop)
+                    .background(NavoTheme.colors.background),
+            ) {
+                PreviewStripes.forEach { stripe ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .background(stripe),
+                    )
+                }
+            }
+            Column(modifier = Modifier.padding(12.dp)) {
+                CompositionLocalProvider(LocalNavoGlassBackdrop provides backdrop) {
+                    content()
+                }
+            }
         }
     }
 }
@@ -250,6 +280,21 @@ private fun MiniPlayerPlayingPreview() {
             isPlaying = true,
             hasNext = true,
             progress = { 0.38f },
+            rotation = { 0f },
+            onIntent = {},
+        )
+    }
+}
+
+@Preview(widthDp = 390, heightDp = 120)
+@Composable
+private fun MiniPlayerLightPreview() {
+    MiniPlayerPreviewFrame(darkTheme = false) {
+        MiniPlayer(
+            track = previewTrack(3, "Шаби ёд", "Shabnami Surayo"),
+            isPlaying = true,
+            hasNext = true,
+            progress = { 0.54f },
             rotation = { 0f },
             onIntent = {},
         )

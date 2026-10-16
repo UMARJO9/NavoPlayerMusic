@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +22,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import tj.umar.navoplayer.core.designsystem.glass.LocalNavoGlassBackdrop
+import tj.umar.navoplayer.core.designsystem.glass.navoGlassSource
+import tj.umar.navoplayer.core.designsystem.glass.rememberNavoGlassBackdrop
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.ui.permission.hasAudioReadPermission
 import tj.umar.navoplayer.feature.library.navigation.LibraryDestination
@@ -53,6 +57,7 @@ fun NavoApp(
         mutableStateOf<TrackActionsRequest?>(null)
     }
     var isNowPlayingVisible by rememberSaveable { mutableStateOf(false) }
+    val glassBackdrop = rememberNavoGlassBackdrop()
     val isOnWelcome = currentEntry?.destination?.hasRoute<WelcomeDestination>() == true
     LaunchedEffect(isOnWelcome) {
         if (isOnWelcome) {
@@ -79,13 +84,18 @@ fun NavoApp(
             navController = navController,
             startDestination = if (startOnWelcome) WelcomeDestination else LibraryDestination,
             onTrackActions = { trackIds -> trackActionsRequest = TrackActionsRequest.of(trackIds) },
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .navoGlassSource(glassBackdrop)
+                .background(NavoTheme.colors.background),
         )
-        MiniPlayerRoute(
-            visible = showMiniPlayer,
-            onOpenNowPlaying = { isNowPlayingVisible = true },
-            modifier = Modifier.align(Alignment.BottomCenter),
-        )
+        CompositionLocalProvider(LocalNavoGlassBackdrop provides glassBackdrop) {
+            MiniPlayerRoute(
+                visible = showMiniPlayer,
+                onOpenNowPlaying = { isNowPlayingVisible = true },
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
+        }
         if (isNowPlayingVisible) {
             NowPlayingSheetRoute(
                 onDismiss = { isNowPlayingVisible = false },
