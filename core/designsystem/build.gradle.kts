@@ -9,6 +9,8 @@ android {
 
 dependencies {
     api(libs.androidx.compose.material3)
+    implementation(libs.kyant.backdrop)
+    implementation(libs.kyant.shapes)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
 }
