@@ -72,6 +72,7 @@ import tj.umar.navoplayer.feature.playlists.component.CollectionEmptyNote
 import tj.umar.navoplayer.feature.playlists.component.CollectionHeader
 import tj.umar.navoplayer.feature.playlists.component.CollectionSummary
 import tj.umar.navoplayer.feature.playlists.component.HEADER_ITEM_KEY
+import tj.umar.navoplayer.feature.playlists.component.SwipeToRemoveBox
 import tj.umar.navoplayer.feature.playlists.component.UnavailableTracksNote
 import tj.umar.navoplayer.feature.playlists.component.headerCollapseFraction
 
@@ -247,17 +248,22 @@ private fun PlaylistTrackList(
                 key = track.id,
                 idleModifier = Modifier.animatedListItem(this, TRACK_ITEM_OFFSET + index, motion, entrance),
             ) { isDragging ->
-                PlaylistTrackRow(
-                    track = track,
-                    state = state,
-                    isDragging = isDragging,
-                    canMoveUp = index > 0,
-                    canMoveDown = index < reorder.items.lastIndex,
-                    motion = motion,
-                    handleModifier = Modifier.reorderHandle(reorder, track.id),
-                    onMove = { offset -> onIntent(PlaylistDetailIntent.MoveTrack(track.id, index + offset)) },
-                    onIntent = onIntent,
-                )
+                SwipeToRemoveBox(
+                    enabled = reorder.draggingKey == null && state.canEdit,
+                    onRemove = { onIntent(PlaylistDetailIntent.RemoveTrackRequested(track.id)) },
+                ) {
+                    PlaylistTrackRow(
+                        track = track,
+                        state = state,
+                        isDragging = isDragging,
+                        canMoveUp = index > 0,
+                        canMoveDown = index < reorder.items.lastIndex,
+                        motion = motion,
+                        handleModifier = Modifier.reorderHandle(reorder, track.id),
+                        onMove = { offset -> onIntent(PlaylistDetailIntent.MoveTrack(track.id, index + offset)) },
+                        onIntent = onIntent,
+                    )
+                }
             }
         }
         if (state.tracks.isEmpty() && playlist.missingTrackCount == 0) {
@@ -341,7 +347,7 @@ private fun PlaylistTrackRow(
                 scaleX = lift
                 scaleY = lift
             }
-            .then(if (isDragging) Modifier.background(colors.high, NavoShapes.TrackRow) else Modifier),
+            .background(if (isDragging) colors.high else colors.background, NavoShapes.TrackRow),
     )
 }
 

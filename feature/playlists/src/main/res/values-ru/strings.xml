@@ -12,6 +12,8 @@
     <string name="playlists_remove_track_label">Убрать из плейлиста</string>
     <string name="playlists_move_up">Переместить выше</string>
     <string name="playlists_move_down">Переместить ниже</string>
+    <string name="playlists_track_removed">«%1$s» убран</string>
+    <string name="playlists_undo">Отменить</string>
     <string name="playlists_empty">В плейлисте пока нет треков</string>
     <string name="playlists_empty_hint">Удерживайте трек в медиатеке, чтобы добавить его сюда</string>
     <string name="playlists_missing">Плейлист не найден</string>

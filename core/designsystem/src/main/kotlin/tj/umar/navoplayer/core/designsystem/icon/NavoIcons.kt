@@ -66,6 +66,9 @@ object NavoIcons {
     val Close: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_close)
 
+    val Delete: ImageVector
+        @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_delete)
+
     val DragHandle: ImageVector
         @Composable get() = ImageVector.vectorResource(R.drawable.navo_ic_drag_handle)
 

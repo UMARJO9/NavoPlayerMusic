@@ -1,17 +1,27 @@
 package tj.umar.navoplayer.feature.playlists.detail
 
 import android.widget.Toast
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import tj.umar.navoplayer.core.ui.mvi.CollectEffects
 import tj.umar.navoplayer.core.ui.permission.hasAudioReadPermission
 import tj.umar.navoplayer.feature.playlists.R
+import tj.umar.navoplayer.feature.playlists.component.UndoSnackbarHost
+import tj.umar.navoplayer.feature.playlists.component.showUndoSnackbar
+import tj.umar.navoplayer.core.ui.R as CoreUiR
 
 @Composable
 internal fun PlaylistDetailRoute(
@@ -27,6 +37,10 @@ internal fun PlaylistDetailRoute(
     val context = LocalContext.current
     val currentOnBack by rememberUpdatedState(onBack)
     val currentOnAudioPermissionMissing by rememberUpdatedState(onAudioPermissionMissing)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val snackbarScope = rememberCoroutineScope()
+    val undoLabel = stringResource(R.string.playlists_undo)
+    val unknownTitle = stringResource(CoreUiR.string.core_ui_unknown_title)
 
     LifecycleStartEffect(Unit) {
         viewModel.onIntent(PlaylistDetailIntent.ScreenStarted(context.hasAudioReadPermission()))
@@ -38,15 +52,33 @@ internal fun PlaylistDetailRoute(
             PlaylistDetailEffect.NavigateBack -> currentOnBack()
             PlaylistDetailEffect.NavigateToWelcome -> currentOnAudioPermissionMissing()
             is PlaylistDetailEffect.ShowMessage -> Toast.makeText(context, effect.message.textRes(), Toast.LENGTH_SHORT).show()
-            is PlaylistDetailEffect.ShowRemoveUndo -> Unit
+            is PlaylistDetailEffect.ShowRemoveUndo -> snackbarScope.showUndoSnackbar(
+                hostState = snackbarHostState,
+                message = context.getString(R.string.playlists_track_removed, effect.title.ifBlank { unknownTitle }),
+                actionLabel = undoLabel,
+            ) { undo ->
+                viewModel.onIntent(
+                    if (undo) {
+                        PlaylistDetailIntent.UndoRemoveClicked(effect.token)
+                    } else {
+                        PlaylistDetailIntent.UndoRemoveDismissed(effect.token)
+                    },
+                )
+            }
         }
     }
 
-    PlaylistDetailScreen(
-        state = state,
-        onIntent = viewModel::onIntent,
-        modifier = modifier,
-    )
+    Box(modifier = modifier.fillMaxSize()) {
+        PlaylistDetailScreen(
+            state = state,
+            onIntent = viewModel::onIntent,
+        )
+        UndoSnackbarHost(
+            hostState = snackbarHostState,
+            hasActivePlayback = state.hasActivePlayback,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
+    }
 }
 
 private fun PlaylistDetailMessage.textRes(): Int = when (this) {
