@@ -48,7 +48,7 @@ import kotlin.math.floor
 private val StripInset = 4.dp
 private val StripCorner = 16.dp
 private val StripShape = RoundedCornerShape(StripCorner)
-private val IndicatorCorner = StripCorner - StripInset
+private val IndicatorCorner = StripCorner
 private val TabMinHeight = NavoSpacing.MinTouchTarget
 private val TabMinHorizontalPadding = 8.dp
 private const val MIN_TEXT_SCALE = 0.78f
