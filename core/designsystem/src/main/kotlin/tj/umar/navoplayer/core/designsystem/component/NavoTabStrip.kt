@@ -120,7 +120,7 @@ fun NavoTabStrip(
                         }
                     }
                     .navoGlassSource(glassBackdrop)
-                    .drawBehind { drawStripGlow(colors.raised, colors.accent, colors.turquoise) },
+                    .drawBehind { drawStripGlow(colors.raised, colors.accent, colors.turquoise, indicatorCornerPx) },
                 tabModifier = { index ->
                     Modifier
                         .onPlaced { coordinates ->
@@ -267,9 +267,9 @@ private fun NavoTabStripLightPreview() {
 
 private const val STRIP_GLOW_ALPHA = 0.18f
 
-private fun DrawScope.drawStripGlow(base: Color, warm: Color, cool: Color) {
-    drawRect(base)
-    drawRect(
+private fun DrawScope.drawStripGlow(base: Color, warm: Color, cool: Color, corner: Float) {
+    drawRoundRect(base, cornerRadius = CornerRadius(corner))
+    drawRoundRect(
         Brush.horizontalGradient(
             0f to Color.Transparent,
             0.2f to warm.copy(alpha = STRIP_GLOW_ALPHA),
@@ -278,5 +278,6 @@ private fun DrawScope.drawStripGlow(base: Color, warm: Color, cool: Color) {
             0.9f to warm.copy(alpha = STRIP_GLOW_ALPHA / 2f),
             1f to Color.Transparent,
         ),
+        cornerRadius = CornerRadius(corner),
     )
 }
