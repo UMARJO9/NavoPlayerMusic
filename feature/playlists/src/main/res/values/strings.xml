@@ -10,6 +10,8 @@
     <string name="playlists_delete_title">Delete playlist?</string>
     <string name="playlists_delete_message">Playlist “%1$s” will be deleted. Tracks stay on the phone.</string>
     <string name="playlists_remove_track_label">Remove from playlist</string>
+    <string name="playlists_move_up">Move up</string>
+    <string name="playlists_move_down">Move down</string>
     <string name="playlists_empty">No tracks in this playlist yet</string>
     <string name="playlists_empty_hint">Long-press a track in the library to add it here</string>
     <string name="playlists_missing">Playlist not found</string>

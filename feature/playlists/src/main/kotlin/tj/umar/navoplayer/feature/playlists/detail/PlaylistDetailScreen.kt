@@ -1,6 +1,7 @@
 package tj.umar.navoplayer.feature.playlists.detail
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -24,6 +25,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,7 +36,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.animation.animatedListItem
@@ -50,9 +55,14 @@ import tj.umar.navoplayer.core.designsystem.component.navoListPadding
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
 import tj.umar.navoplayer.core.designsystem.medallion.Medallion
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
+import tj.umar.navoplayer.core.designsystem.reorder.ReorderableItem
+import tj.umar.navoplayer.core.designsystem.reorder.rememberReorderableListState
+import tj.umar.navoplayer.core.designsystem.reorder.reorderHandle
+import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
 import tj.umar.navoplayer.core.domain.model.PlaylistDetail
+import tj.umar.navoplayer.core.domain.model.Track
 import tj.umar.navoplayer.core.ui.R as CoreUiR
 import tj.umar.navoplayer.core.ui.playlist.PlaylistNameSheet
 import tj.umar.navoplayer.core.ui.track.TrackListItem
@@ -65,6 +75,8 @@ import tj.umar.navoplayer.feature.playlists.component.HEADER_ITEM_KEY
 import tj.umar.navoplayer.feature.playlists.component.UnavailableTracksNote
 import tj.umar.navoplayer.feature.playlists.component.headerCollapseFraction
 
+private const val TRACK_ITEM_OFFSET = 2
+private const val DRAG_LIFT_SCALE = 1.03f
 private const val SETTLE_START_DEGREES = -18f
 private const val SETTLE_MILLIS = 600
 private val SettleEasing = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
@@ -193,11 +205,16 @@ private fun PlaylistTrackList(
     collapse: () -> Float,
     onIntent: (PlaylistDetailIntent) -> Unit,
 ) {
-    val removeLabel = stringResource(R.string.playlists_remove_track_label)
     val motion = rememberMotionEnabled()
     val entrance = rememberListEntrance()
     val settle = rememberMedallionSettle(key = playlist.id, motion = motion)
     val trackCount = state.tracks.size
+    val reorder = rememberReorderableListState(
+        listState = listState,
+        items = state.tracks,
+        keyOf = { it.id },
+        itemIndexOffset = TRACK_ITEM_OFFSET,
+    ) { track, toIndex -> onIntent(PlaylistDetailIntent.MoveTrack(track.id, toIndex)) }
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
@@ -224,16 +241,24 @@ private fun PlaylistTrackList(
                 modifier = Modifier.animatedListItem(this, 1, motion, entrance),
             )
         }
-        itemsIndexed(state.tracks, key = { _, track -> track.id }, contentType = { _, _ -> "track" }) { index, track ->
-            TrackListItem(
-                track = track,
-                isCurrent = track.id == state.currentTrackId,
-                isPlaying = track.id == state.currentTrackId && state.isPlaying,
-                onClick = { onIntent(PlaylistDetailIntent.TrackClicked(track.id)) },
-                onLongClick = { onIntent(PlaylistDetailIntent.TrackLongPressed(track.id)) },
-                onLongClickLabel = removeLabel,
-                modifier = Modifier.animatedListItem(this, 2 + index, motion, entrance),
-            )
+        itemsIndexed(reorder.items, key = { _, track -> track.id }, contentType = { _, _ -> "track" }) { index, track ->
+            ReorderableItem(
+                state = reorder,
+                key = track.id,
+                idleModifier = Modifier.animatedListItem(this, TRACK_ITEM_OFFSET + index, motion, entrance),
+            ) { isDragging ->
+                PlaylistTrackRow(
+                    track = track,
+                    state = state,
+                    isDragging = isDragging,
+                    canMoveUp = index > 0,
+                    canMoveDown = index < reorder.items.lastIndex,
+                    motion = motion,
+                    handleModifier = Modifier.reorderHandle(reorder, track.id),
+                    onMove = { offset -> onIntent(PlaylistDetailIntent.MoveTrack(track.id, index + offset)) },
+                    onIntent = onIntent,
+                )
+            }
         }
         if (state.tracks.isEmpty() && playlist.missingTrackCount == 0) {
             item(key = "empty", contentType = "note") {
@@ -253,6 +278,71 @@ private fun PlaylistTrackList(
             }
         }
     }
+}
+
+@Composable
+private fun PlaylistTrackRow(
+    track: Track,
+    state: PlaylistDetailState,
+    isDragging: Boolean,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    motion: Boolean,
+    handleModifier: Modifier,
+    onMove: (offset: Int) -> Unit,
+    onIntent: (PlaylistDetailIntent) -> Unit,
+) {
+    val colors = NavoTheme.colors
+    val removeLabel = stringResource(R.string.playlists_remove_track_label)
+    val moveUpLabel = stringResource(R.string.playlists_move_up)
+    val moveDownLabel = stringResource(R.string.playlists_move_down)
+    val canEdit = state.canEdit
+    val actions = buildList {
+        if (canEdit && canMoveUp) {
+            add(CustomAccessibilityAction(moveUpLabel) { onMove(-1); true })
+        }
+        if (canEdit && canMoveDown) {
+            add(CustomAccessibilityAction(moveDownLabel) { onMove(1); true })
+        }
+    }
+    val lift by animateFloatAsState(
+        targetValue = if (isDragging && motion) DRAG_LIFT_SCALE else 1f,
+        label = "playlistTrackLift",
+    )
+    TrackListItem(
+        track = track,
+        isCurrent = track.id == state.currentTrackId,
+        isPlaying = track.id == state.currentTrackId && state.isPlaying,
+        onClick = { onIntent(PlaylistDetailIntent.TrackClicked(track.id)) },
+        onLongClick = if (canEdit) ({ onIntent(PlaylistDetailIntent.TrackLongPressed(track.id)) }) else null,
+        onLongClickLabel = removeLabel,
+        actions = actions,
+        trailing = if (canEdit) {
+            {
+                Box(
+                    modifier = handleModifier
+                        .size(40.dp)
+                        .clearAndSetSemantics { },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = NavoIcons.DragHandle,
+                        contentDescription = null,
+                        tint = colors.contentSecondary,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+            }
+        } else {
+            null
+        },
+        modifier = Modifier
+            .graphicsLayer {
+                scaleX = lift
+                scaleY = lift
+            }
+            .then(if (isDragging) Modifier.background(colors.high, NavoShapes.TrackRow) else Modifier),
+    )
 }
 
 @Composable
@@ -336,5 +426,33 @@ private fun MissingPlaylistPreview() {
             state = PlaylistDetailState(playlistId = 1, isLoading = false, isMissing = true),
             onIntent = {},
         )
+    }
+}
+
+@Preview(widthDp = 390, heightDp = 200)
+@Composable
+private fun PlaylistTrackRowDraggingPreview() {
+    NavoTheme {
+        val state = PlaylistDetailState(
+            playlistId = previewPlaylist.id,
+            isLoading = false,
+            playlist = previewPlaylist,
+            tracks = previewPlaylist.tracks,
+        )
+        Column(modifier = Modifier.background(NavoTheme.colors.background).padding(8.dp)) {
+            previewPlaylist.tracks.take(2).forEachIndexed { index, track ->
+                PlaylistTrackRow(
+                    track = track,
+                    state = state,
+                    isDragging = index == 1,
+                    canMoveUp = index > 0,
+                    canMoveDown = true,
+                    motion = true,
+                    handleModifier = Modifier,
+                    onMove = {},
+                    onIntent = {},
+                )
+            }
+        }
     }
 }

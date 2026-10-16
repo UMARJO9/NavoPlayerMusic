@@ -44,6 +44,8 @@ class ReorderableListState<T> internal constructor(
 
     internal var onMove: (item: T, toIndex: Int) -> Unit = { _, _ -> }
 
+    internal var itemIndexOffset = 0
+
     private var draggedDelta by mutableFloatStateOf(0f)
     private var initialOffset = 0
     private var startIndex = -1
@@ -117,11 +119,11 @@ class ReorderableListState<T> internal constructor(
         } ?: return
         val fromIndex = items.indexOfFirst { keyOf(it) == key }
         val toIndex = items.indexOfFirst { keyOf(it) == target.key }
-        if (fromIndex < 0 || toIndex < 0 || current.index != fromIndex) return
+        if (fromIndex < 0 || toIndex < 0 || current.index != fromIndex + itemIndexOffset) return
         val firstIndex = listState.firstVisibleItemIndex
         val firstOffset = listState.firstVisibleItemScrollOffset
         items = items.toMutableList().apply { add(toIndex, removeAt(fromIndex)) }
-        if (toIndex == firstIndex || fromIndex == firstIndex) {
+        if (toIndex + itemIndexOffset == firstIndex || fromIndex + itemIndexOffset == firstIndex) {
             scope.launch { listState.scrollToItem(firstIndex, firstOffset) }
         }
     }
@@ -152,6 +154,7 @@ fun <T> rememberReorderableListState(
     listState: LazyListState,
     items: List<T>,
     keyOf: (T) -> Any,
+    itemIndexOffset: Int = 0,
     onMove: (item: T, toIndex: Int) -> Unit,
 ): ReorderableListState<T> {
     val scope = rememberCoroutineScope()
@@ -159,6 +162,7 @@ fun <T> rememberReorderableListState(
     val currentOnMove by rememberUpdatedState(onMove)
     SideEffect {
         state.onMove = { item, toIndex -> currentOnMove(item, toIndex) }
+        state.itemIndexOffset = itemIndexOffset
         state.sync(items)
     }
     return state
