@@ -7,7 +7,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,7 +20,7 @@ import tj.umar.navoplayer.core.ui.mvi.CollectEffects
 import tj.umar.navoplayer.core.ui.permission.hasAudioReadPermission
 import tj.umar.navoplayer.feature.playlists.R
 import tj.umar.navoplayer.feature.playlists.component.UndoSnackbarHost
-import tj.umar.navoplayer.feature.playlists.component.showUndoSnackbar
+import tj.umar.navoplayer.feature.playlists.component.rememberUndoSnackbarController
 
 @Composable
 internal fun FavoritesRoute(
@@ -36,7 +35,7 @@ internal fun FavoritesRoute(
     val currentOnBack by rememberUpdatedState(onBack)
     val currentOnAudioPermissionMissing by rememberUpdatedState(onAudioPermissionMissing)
     val snackbarHostState = remember { SnackbarHostState() }
-    val snackbarScope = rememberCoroutineScope()
+    val undoSnackbar = rememberUndoSnackbarController(snackbarHostState)
 
     LifecycleStartEffect(Unit) {
         viewModel.onIntent(FavoritesIntent.ScreenStarted(context.hasAudioReadPermission()))
@@ -49,8 +48,7 @@ internal fun FavoritesRoute(
             FavoritesEffect.NavigateToWelcome -> currentOnAudioPermissionMissing()
             is FavoritesEffect.ShowRemoveUndo -> {
                 val title = effect.title.ifBlank { resources.getString(CoreUiR.string.core_ui_unknown_title) }
-                snackbarScope.showUndoSnackbar(
-                    hostState = snackbarHostState,
+                undoSnackbar.show(
                     message = resources.getString(R.string.playlists_favorites_removed, title),
                     actionLabel = resources.getString(R.string.playlists_undo),
                 ) { undo ->
