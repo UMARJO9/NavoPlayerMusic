@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Text
@@ -39,12 +40,15 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
+
 import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import kotlin.math.floor
 
 private val StripInset = 4.dp
+private val StripCorner = 16.dp
+private val StripShape = RoundedCornerShape(StripCorner)
+private val IndicatorCorner = StripCorner - StripInset
 private val TabMinHeight = NavoSpacing.MinTouchTarget
 private val TabMinHorizontalPadding = 8.dp
 private const val MIN_TEXT_SCALE = 0.78f
@@ -63,6 +67,7 @@ fun NavoTabStrip(
     val density = LocalDensity.current
     val baseStyle = NavoTheme.typography.label.copy(fontWeight = FontWeight.SemiBold)
     val textMeasurer = rememberTextMeasurer()
+    val indicatorCornerPx = with(density) { IndicatorCorner.toPx() }
     val tabBounds = remember(titles) { mutableStateMapOf<Int, TabSpan>() }
     val indicatorRect: () -> Rect? = {
         tabBounds.takeIf { it.size == titles.size }?.let { spans ->
@@ -82,7 +87,7 @@ fun NavoTabStrip(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(colors.raised, NavoShapes.Pill)
+                .background(colors.raised, StripShape)
                 .padding(StripInset)
                 .drawBehind {
                     indicatorRect()?.let { rect ->
@@ -90,7 +95,7 @@ fun NavoTabStrip(
                             color = colors.accent,
                             topLeft = rect.topLeft,
                             size = rect.size,
-                            cornerRadius = CornerRadius(rect.height / 2f),
+                            cornerRadius = CornerRadius(indicatorCornerPx),
                         )
                     }
                 },
@@ -108,7 +113,7 @@ fun NavoTabStrip(
                         if (rect == null) {
                             drawContent()
                         } else {
-                            clipPath(rect.toPillPath(), ClipOp.Difference) { this@drawWithContent.drawContent() }
+                            clipPath(rect.toRoundedPath(indicatorCornerPx), ClipOp.Difference) { this@drawWithContent.drawContent() }
                         }
                     },
                 tabModifier = { index ->
@@ -139,7 +144,7 @@ fun NavoTabStrip(
                     .clearAndSetSemantics { }
                     .drawWithContent {
                         val rect = indicatorRect() ?: return@drawWithContent
-                        clipPath(rect.toPillPath()) { this@drawWithContent.drawContent() }
+                        clipPath(rect.toRoundedPath(indicatorCornerPx)) { this@drawWithContent.drawContent() }
                     },
                 tabModifier = { Modifier },
             )
@@ -210,7 +215,7 @@ internal fun wormSpan(spans: List<TabSpan>, position: Float): TabSpan? {
     )
 }
 
-private fun Rect.toPillPath(): Path = Path().apply { addRoundRect(RoundRect(this@toPillPath, CornerRadius(height / 2f))) }
+private fun Rect.toRoundedPath(corner: Float): Path = Path().apply { addRoundRect(RoundRect(this@toRoundedPath, CornerRadius(corner))) }
 
 @Preview(widthDp = 384)
 @Composable
