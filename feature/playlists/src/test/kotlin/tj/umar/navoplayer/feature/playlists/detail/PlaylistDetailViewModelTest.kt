@@ -1,6 +1,9 @@
 package tj.umar.navoplayer.feature.playlists.detail
 
 import app.cash.turbine.test
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -17,6 +20,7 @@ import tj.umar.navoplayer.core.domain.usecase.ObserveTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.PlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.RemoveTrackFromPlaylistUseCase
 import tj.umar.navoplayer.core.domain.usecase.RenamePlaylistUseCase
+import tj.umar.navoplayer.core.domain.usecase.ReorderPlaylistTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.ShufflePlayTracksUseCase
 import tj.umar.navoplayer.core.domain.usecase.TogglePlayPauseUseCase
 import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
@@ -52,6 +56,7 @@ class PlaylistDetailViewModelTest {
         renamePlaylist = RenamePlaylistUseCase(playlists),
         deletePlaylist = DeletePlaylistUseCase(playlists),
         removeTrackFromPlaylist = RemoveTrackFromPlaylistUseCase(playlists),
+        reorderPlaylistTracks = ReorderPlaylistTracksUseCase(playlists),
     )
 
     private suspend fun PlaylistDetailViewModel.started(): PlaylistDetailViewModel = apply {
@@ -255,5 +260,155 @@ class PlaylistDetailViewModelTest {
 
         assertEquals(2, playlists.observeCalls)
         assertEquals(morningTracks, viewModel.state.value.tracks)
+    }
+
+    private fun storedOrder() = playlists.current.single { it.id == morning.id }.trackIds
+
+    @Test
+    fun `move reorders tracks at once and commits after debounce`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.onIntent(PlaylistDetailIntent.MoveTrack(TestTracks.alpha.id, 0))
+
+        assertEquals(listOf(TestTracks.alpha, TestTracks.longMix), viewModel.state.value.tracks)
+        advanceTimeBy(399)
+        runCurrent()
+        assertTrue(playlists.reorderCalls.isEmpty())
+        advanceTimeBy(2)
+        runCurrent()
+        assertEquals(listOf(morning.id to listOf(TestTracks.alpha.id, TestTracks.longMix.id)), playlists.reorderCalls)
+        assertEquals(listOf(TestTracks.alpha.id, TestPlaylists.MISSING_TRACK_ID, TestTracks.longMix.id), storedOrder())
+        assertNull(viewModel.state.value.orderOverride)
+        assertEquals(listOf(TestTracks.alpha, TestTracks.longMix), viewModel.state.value.tracks)
+    }
+
+    @Test
+    fun `rapid moves commit only final order`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.onIntent(PlaylistDetailIntent.MoveTrack(TestTracks.alpha.id, 0))
+        advanceTimeBy(200)
+        viewModel.onIntent(PlaylistDetailIntent.MoveTrack(TestTracks.alpha.id, 1))
+        advanceTimeBy(200)
+        viewModel.onIntent(PlaylistDetailIntent.MoveTrack(TestTracks.alpha.id, 0))
+        advanceTimeBy(401)
+        runCurrent()
+
+        assertEquals(listOf(morning.id to listOf(TestTracks.alpha.id, TestTracks.longMix.id)), playlists.reorderCalls)
+    }
+
+    @Test
+    fun `move to same position does nothing`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.onIntent(PlaylistDetailIntent.MoveTrack(TestTracks.longMix.id, 0))
+        viewModel.onIntent(PlaylistDetailIntent.MoveTrack(404, 1))
+        advanceTimeBy(1_000)
+        runCurrent()
+
+        assertTrue(playlists.reorderCalls.isEmpty())
+        assertNull(viewModel.state.value.orderOverride)
+    }
+
+    @Test
+    fun `reorder does not bump playlist update time`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.onIntent(PlaylistDetailIntent.MoveTrack(TestTracks.alpha.id, 0))
+        advanceTimeBy(401)
+        runCurrent()
+
+        assertEquals(morning.updatedAtMs, playlists.current.single { it.id == morning.id }.updatedAtMs)
+    }
+
+    @Test
+    fun `reorder failure reverts order and shows message`() = runTest {
+        val viewModel = viewModel().started()
+        playlists.writeError = IllegalStateException("locked")
+
+        viewModel.effects.test {
+            viewModel.onIntent(PlaylistDetailIntent.MoveTrack(TestTracks.alpha.id, 0))
+            advanceTimeBy(401)
+            runCurrent()
+            assertEquals(PlaylistDetailEffect.ShowMessage(PlaylistDetailMessage.ReorderFailed), awaitItem())
+        }
+        assertEquals(morningTracks, viewModel.state.value.tracks)
+        assertNull(viewModel.state.value.orderOverride)
+    }
+
+    @Test
+    fun `screen stop flushes pending reorder`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.onIntent(PlaylistDetailIntent.MoveTrack(TestTracks.alpha.id, 0))
+        viewModel.onIntent(PlaylistDetailIntent.ScreenStopped)
+        runCurrent()
+
+        assertEquals(1, playlists.reorderCalls.size)
+        advanceTimeBy(1_000)
+        runCurrent()
+        assertEquals(1, playlists.reorderCalls.size)
+    }
+
+    @Test
+    fun `back flushes pending reorder and navigates back`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.effects.test {
+            viewModel.onIntent(PlaylistDetailIntent.MoveTrack(TestTracks.alpha.id, 0))
+            viewModel.onIntent(PlaylistDetailIntent.BackClicked)
+            assertEquals(PlaylistDetailEffect.NavigateBack, awaitItem())
+        }
+        runCurrent()
+        assertEquals(listOf(TestTracks.alpha.id, TestPlaylists.MISSING_TRACK_ID, TestTracks.longMix.id), storedOrder())
+    }
+
+    @Test
+    fun `stale emission keeps pending order`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.onIntent(PlaylistDetailIntent.MoveTrack(TestTracks.alpha.id, 0))
+        playlists.renamePlaylist(morning.id, "Вечер")
+
+        assertEquals("Вечер", viewModel.state.value.playlist?.name)
+        assertEquals(listOf(TestTracks.alpha, TestTracks.longMix), viewModel.state.value.tracks)
+        assertEquals(listOf(TestTracks.alpha.id, TestTracks.longMix.id), viewModel.state.value.orderOverride)
+    }
+
+    @Test
+    fun `track added during pending order goes to the end`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.onIntent(PlaylistDetailIntent.MoveTrack(TestTracks.alpha.id, 0))
+        playlists.addTracks(morning.id, listOf(TestTracks.beta.id))
+
+        assertEquals(listOf(TestTracks.alpha, TestTracks.longMix, TestTracks.beta), viewModel.state.value.tracks)
+    }
+
+    @Test
+    fun `play and track click use reordered tracks`() = runTest {
+        val viewModel = viewModel().started()
+        val reordered = listOf(TestTracks.alpha, TestTracks.longMix)
+
+        viewModel.onIntent(PlaylistDetailIntent.MoveTrack(TestTracks.alpha.id, 0))
+        viewModel.onIntent(PlaylistDetailIntent.PlayClicked)
+        viewModel.onIntent(PlaylistDetailIntent.TrackClicked(TestTracks.longMix.id))
+
+        assertEquals(
+            listOf(PlaybackCommand.Play(reordered, 0, morningSource), PlaybackCommand.Play(reordered, 1, morningSource)),
+            playback.commands,
+        )
+    }
+
+    @Test
+    fun `move is ignored while deleting`() = runTest {
+        val viewModel = viewModel().started()
+        playlists.writeGate = CompletableDeferred()
+
+        viewModel.onIntent(PlaylistDetailIntent.DeleteConfirmed)
+        viewModel.onIntent(PlaylistDetailIntent.MoveTrack(TestTracks.alpha.id, 0))
+
+        assertEquals(morningTracks, viewModel.state.value.tracks)
+        playlists.writeGate?.complete(Unit)
     }
 }

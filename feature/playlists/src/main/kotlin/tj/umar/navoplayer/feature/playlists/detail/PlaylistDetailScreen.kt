@@ -197,7 +197,7 @@ private fun PlaylistTrackList(
     val motion = rememberMotionEnabled()
     val entrance = rememberListEntrance()
     val settle = rememberMedallionSettle(key = playlist.id, motion = motion)
-    val trackCount = playlist.tracks.size
+    val trackCount = state.tracks.size
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
@@ -224,7 +224,7 @@ private fun PlaylistTrackList(
                 modifier = Modifier.animatedListItem(this, 1, motion, entrance),
             )
         }
-        itemsIndexed(playlist.tracks, key = { _, track -> track.id }, contentType = { _, _ -> "track" }) { index, track ->
+        itemsIndexed(state.tracks, key = { _, track -> track.id }, contentType = { _, _ -> "track" }) { index, track ->
             TrackListItem(
                 track = track,
                 isCurrent = track.id == state.currentTrackId,
@@ -235,7 +235,7 @@ private fun PlaylistTrackList(
                 modifier = Modifier.animatedListItem(this, 2 + index, motion, entrance),
             )
         }
-        if (playlist.tracks.isEmpty() && playlist.missingTrackCount == 0) {
+        if (state.tracks.isEmpty() && playlist.missingTrackCount == 0) {
             item(key = "empty", contentType = "note") {
                 CollectionEmptyNote(
                     title = stringResource(R.string.playlists_empty),
@@ -313,6 +313,7 @@ private fun PlaylistDetailPreview() {
                 playlistId = previewPlaylist.id,
                 isLoading = false,
                 playlist = previewPlaylist,
+                tracks = previewPlaylist.tracks,
                 totalMinutes = 12,
                 currentTrackId = 1,
                 currentSource = PlaybackSource.Playlist(previewPlaylist.id, previewPlaylist.name),

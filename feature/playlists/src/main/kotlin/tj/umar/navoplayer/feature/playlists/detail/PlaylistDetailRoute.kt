@@ -52,4 +52,5 @@ private fun PlaylistDetailMessage.textRes(): Int = when (this) {
     PlaylistDetailMessage.RenameFailed -> R.string.playlists_rename_failed
     PlaylistDetailMessage.DeleteFailed -> R.string.playlists_delete_failed
     PlaylistDetailMessage.RemoveFailed -> R.string.playlists_remove_failed
+    PlaylistDetailMessage.ReorderFailed -> R.string.playlists_reorder_failed
 }

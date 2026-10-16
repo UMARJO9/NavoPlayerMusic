@@ -11,6 +11,9 @@ internal data class PlaylistDetailState(
     val playlistId: Long,
     val isLoading: Boolean = true,
     val playlist: PlaylistDetail? = null,
+    val tracks: List<Track> = emptyList(),
+    val orderOverride: List<Long>? = null,
+    val removingTrackIds: Set<Long> = emptySet(),
     val totalMinutes: Int = 0,
     val loadFailed: Boolean = false,
     val isMissing: Boolean = false,
@@ -23,8 +26,8 @@ internal data class PlaylistDetailState(
     val hasActivePlayback: Boolean
         get() = currentTrackId != null
 
-    val tracks: List<Track>
-        get() = playlist?.tracks.orEmpty()
+    val canEdit: Boolean
+        get() = playlist != null && !isDeleting
 
     val isPlaylistActive: Boolean
         get() = currentTrackId != null && currentSource.isPlaylist(playlistId)
@@ -49,6 +52,7 @@ internal sealed interface PlaylistDetailIntent {
     data object ShuffleClicked : PlaylistDetailIntent
     data class TrackClicked(val trackId: Long) : PlaylistDetailIntent
     data class TrackLongPressed(val trackId: Long) : PlaylistDetailIntent
+    data class MoveTrack(val trackId: Long, val toIndex: Int) : PlaylistDetailIntent
     data object RenameClicked : PlaylistDetailIntent
     data class RenameConfirmed(val name: String) : PlaylistDetailIntent
     data object DeleteClicked : PlaylistDetailIntent
@@ -63,4 +67,4 @@ internal sealed interface PlaylistDetailEffect {
     data class ShowMessage(val message: PlaylistDetailMessage) : PlaylistDetailEffect
 }
 
-internal enum class PlaylistDetailMessage { RenameFailed, DeleteFailed, RemoveFailed }
+internal enum class PlaylistDetailMessage { RenameFailed, DeleteFailed, RemoveFailed, ReorderFailed }
