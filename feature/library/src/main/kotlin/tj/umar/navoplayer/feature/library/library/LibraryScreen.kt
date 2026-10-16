@@ -14,12 +14,8 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,14 +24,11 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import tj.umar.navoplayer.core.designsystem.component.NavoChip
+import tj.umar.navoplayer.core.designsystem.component.NavoTabStrip
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
 import tj.umar.navoplayer.core.designsystem.component.Wordmark
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
@@ -73,6 +66,7 @@ internal fun LibraryScreen(
         LibraryHeader(onIntent = onIntent)
         LibraryTabs(
             selectedTab = tabs[pagerState.targetPage],
+            indicatorPosition = { pagerState.currentPage + pagerState.currentPageOffsetFraction },
             onTabClick = { tab -> scope.launch { pagerState.animateScrollToPage(tab.ordinal) } },
         )
         HorizontalPager(
@@ -122,35 +116,21 @@ private fun LibraryHeader(onIntent: (LibraryIntent) -> Unit) {
 }
 
 @Composable
-private fun LibraryTabs(selectedTab: LibraryTab, onTabClick: (LibraryTab) -> Unit) {
-    val sectionsDescription = stringResource(R.string.library_sections)
-    val listState = rememberLazyListState()
-    val leadPx = with(LocalDensity.current) { NavoSpacing.ScreenHorizontal.roundToPx() }
-    LaunchedEffect(selectedTab) {
-        val layout = listState.layoutInfo
-        val item = layout.visibleItemsInfo.firstOrNull { it.index == selectedTab.ordinal }
-        val fullyVisible = item != null &&
-            item.offset >= layout.viewportStartOffset &&
-            item.offset + item.size <= layout.viewportEndOffset
-        if (!fullyVisible) listState.animateScrollToItem(selectedTab.ordinal, -leadPx)
-    }
-    LazyRow(
-        state = listState,
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { contentDescription = sectionsDescription }
-            .selectableGroup(),
+private fun LibraryTabs(
+    selectedTab: LibraryTab,
+    indicatorPosition: () -> Float,
+    onTabClick: (LibraryTab) -> Unit,
+) {
+    val tabs = LibraryTab.entries
+    NavoTabStrip(
+        titles = tabs.map { stringResource(it.titleRes) },
+        selectedIndex = selectedTab.ordinal,
+        onTabClick = { index -> onTabClick(tabs[index]) },
+        modifier = Modifier.fillMaxWidth(),
+        description = stringResource(R.string.library_sections),
         contentPadding = PaddingValues(horizontal = NavoSpacing.ScreenHorizontal, vertical = NavoSpacing.Small),
-        horizontalArrangement = Arrangement.spacedBy(NavoSpacing.Small),
-    ) {
-        items(LibraryTab.entries, key = { it.name }) { tab ->
-            NavoChip(
-                label = stringResource(tab.titleRes),
-                selected = tab == selectedTab,
-                onClick = { onTabClick(tab) },
-            )
-        }
-    }
+        indicatorPosition = indicatorPosition,
+    )
 }
 
 @Preview(widthDp = 390, heightDp = 844)
