@@ -15,6 +15,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -82,6 +83,7 @@ internal fun NowPlayingScreen(
     state: NowPlayingState,
     onIntent: (NowPlayingIntent) -> Unit,
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(),
 ) {
     val glassBackdrop = rememberNavoGlassBackdrop()
     Box(modifier = modifier.fillMaxSize()) {
@@ -92,15 +94,15 @@ internal fun NowPlayingScreen(
                 .navoGlassSource(glassBackdrop),
         )
         CompositionLocalProvider(LocalNavoGlassBackdrop provides glassBackdrop) {
-            NowPlayingContent(state = state, onIntent = onIntent)
+            NowPlayingContent(state = state, onIntent = onIntent, modifier = Modifier.padding(contentPadding))
         }
     }
 }
 
 @Composable
-private fun NowPlayingContent(state: NowPlayingState, onIntent: (NowPlayingIntent) -> Unit) {
+private fun NowPlayingContent(state: NowPlayingState, onIntent: (NowPlayingIntent) -> Unit, modifier: Modifier) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(start = NavoSpacing.ScreenHorizontal, top = 4.dp, end = NavoSpacing.ScreenHorizontal, bottom = 20.dp),
     ) {

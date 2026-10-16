@@ -2,6 +2,7 @@ package tj.umar.navoplayer.feature.player.queue
 
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -58,7 +59,13 @@ internal fun QueueSheetRoute(
         modifier = modifier,
         topGap = QueueSheetTopGap,
         containerColor = NavoTheme.colors.raised,
-    ) {
-        QueueScreen(state = state, onIntent = viewModel::onIntent, modifier = Modifier.fillMaxSize())
+    ) { contentPadding ->
+        QueueScreen(
+            state = state,
+            onIntent = viewModel::onIntent,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(contentPadding),
+        )
     }
 }

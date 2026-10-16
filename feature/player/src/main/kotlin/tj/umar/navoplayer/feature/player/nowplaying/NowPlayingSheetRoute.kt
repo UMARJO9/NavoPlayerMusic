@@ -76,8 +76,8 @@ internal fun NowPlayingSheetRoute(
         sheetState = sheetState,
         onDismissRequest = dismiss,
         modifier = modifier,
-    ) {
-        NowPlayingScreen(state = state, onIntent = viewModel::onIntent)
+    ) { contentPadding ->
+        NowPlayingScreen(state = state, onIntent = viewModel::onIntent, contentPadding = contentPadding)
         if (state.isSleepTimerSheetVisible) {
             SleepTimerSheet(sleepTimer = state.sleepTimer, onIntent = viewModel::onIntent)
         }
