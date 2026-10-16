@@ -25,3 +25,5 @@ data class PlaylistDetail(
 data class CreatedPlaylist(val id: Long, val name: String)
 
 class InvalidPlaylistNameException : IllegalArgumentException()
+
+data class RemovedPlaylistTrack(val playlistId: Long, val trackId: Long, val index: Int)

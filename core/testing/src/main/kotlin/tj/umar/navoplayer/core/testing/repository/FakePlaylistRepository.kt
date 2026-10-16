@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import tj.umar.navoplayer.core.domain.model.Playlist
+import tj.umar.navoplayer.core.domain.model.RemovedPlaylistTrack
 import tj.umar.navoplayer.core.domain.repository.PlaylistRepository
 
 class FakePlaylistRepository(initial: List<Playlist> = emptyList()) : PlaylistRepository {
@@ -28,6 +29,10 @@ class FakePlaylistRepository(initial: List<Playlist> = emptyList()) : PlaylistRe
 
     var writeCalls: Int = 0
         private set
+
+    val reorderCalls: MutableList<Pair<Long, List<Long>>> = mutableListOf()
+
+    val restoreCalls: MutableList<RemovedPlaylistTrack> = mutableListOf()
 
     val current: List<Playlist>
         get() = playlists.value
@@ -72,11 +77,38 @@ class FakePlaylistRepository(initial: List<Playlist> = emptyList()) : PlaylistRe
         return newIds.size
     }
 
-    override suspend fun removeTrack(playlistId: Long, trackId: Long): Boolean {
+    override suspend fun removeTrack(playlistId: Long, trackId: Long): RemovedPlaylistTrack? {
+        failIfNeeded()
+        val playlist = playlists.value.firstOrNull { it.id == playlistId } ?: return null
+        val index = playlist.trackIds.indexOf(trackId)
+        if (index < 0) return null
+        modify(playlistId) { it.copy(trackIds = it.trackIds - trackId) }
+        return RemovedPlaylistTrack(playlistId, trackId, index)
+    }
+
+    override suspend fun restoreTrack(removed: RemovedPlaylistTrack): Boolean {
+        restoreCalls += removed
+        failIfNeeded()
+        val playlist = playlists.value.firstOrNull { it.id == removed.playlistId } ?: return false
+        if (removed.trackId in playlist.trackIds) return false
+        val target = removed.index.coerceIn(0, playlist.trackIds.size)
+        return modify(removed.playlistId) {
+            it.copy(trackIds = it.trackIds.toMutableList().apply { add(target, removed.trackId) })
+        }
+    }
+
+    override suspend fun reorderTracks(playlistId: Long, orderedTrackIds: List<Long>): Boolean {
+        reorderCalls += playlistId to orderedTrackIds
         failIfNeeded()
         val playlist = playlists.value.firstOrNull { it.id == playlistId } ?: return false
-        if (trackId !in playlist.trackIds) return false
-        return modify(playlistId) { it.copy(trackIds = it.trackIds - trackId) }
+        val present = playlist.trackIds.toSet()
+        val subset = orderedTrackIds.distinct().filter { it in present }
+        val subsetIds = subset.toSet()
+        val order = playlist.trackIds.toMutableList()
+        val slots = order.indices.filter { order[it] in subsetIds }
+        slots.zip(subset).forEach { (slot, trackId) -> order[slot] = trackId }
+        playlists.update { list -> list.map { if (it.id == playlistId) it.copy(trackIds = order) else it } }
+        return true
     }
 
     private fun modify(id: Long, transform: (Playlist) -> Playlist): Boolean {

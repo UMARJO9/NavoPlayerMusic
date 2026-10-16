@@ -6,6 +6,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import tj.umar.navoplayer.core.common.result.NavoResult
 import tj.umar.navoplayer.core.domain.model.InvalidPlaylistNameException
+import tj.umar.navoplayer.core.domain.model.RemovedPlaylistTrack
 import tj.umar.navoplayer.core.testing.data.TestPlaylists
 import tj.umar.navoplayer.core.testing.data.TestTracks
 import tj.umar.navoplayer.core.testing.repository.FakePlaylistRepository
@@ -87,10 +88,26 @@ class PlaylistMutationUseCasesTest {
     }
 
     @Test
-    fun `remove deletes track from playlist`() = runTest {
+    fun `remove deletes track and reports its index`() = runTest {
         val result = RemoveTrackFromPlaylistUseCase(repository)(TestPlaylists.morning.id, TestTracks.alpha.id)
 
-        assertEquals(NavoResult.Success(Unit), result)
+        assertEquals(NavoResult.Success(RemovedPlaylistTrack(TestPlaylists.morning.id, TestTracks.alpha.id, 2)), result)
         assertTrue(TestTracks.alpha.id !in playlist(TestPlaylists.morning.id).trackIds)
+    }
+
+    @Test
+    fun `remove of absent track succeeds with null`() = runTest {
+        val result = RemoveTrackFromPlaylistUseCase(repository)(TestPlaylists.morning.id, TestTracks.beta.id)
+
+        assertEquals(NavoResult.Success(null), result)
+    }
+
+    @Test
+    fun `remove reports failure`() = runTest {
+        repository.writeError = IllegalStateException("locked")
+
+        val result = RemoveTrackFromPlaylistUseCase(repository)(TestPlaylists.morning.id, TestTracks.alpha.id)
+
+        assertTrue(result is NavoResult.Error)
     }
 }

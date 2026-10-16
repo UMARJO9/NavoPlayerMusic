@@ -2,6 +2,7 @@ package tj.umar.navoplayer.core.domain.repository
 
 import kotlinx.coroutines.flow.Flow
 import tj.umar.navoplayer.core.domain.model.Playlist
+import tj.umar.navoplayer.core.domain.model.RemovedPlaylistTrack
 
 interface PlaylistRepository {
 
@@ -17,5 +18,9 @@ interface PlaylistRepository {
 
     suspend fun addTracks(playlistId: Long, trackIds: List<Long>): Int
 
-    suspend fun removeTrack(playlistId: Long, trackId: Long): Boolean
+    suspend fun removeTrack(playlistId: Long, trackId: Long): RemovedPlaylistTrack?
+
+    suspend fun restoreTrack(removed: RemovedPlaylistTrack): Boolean
+
+    suspend fun reorderTracks(playlistId: Long, orderedTrackIds: List<Long>): Boolean
 }

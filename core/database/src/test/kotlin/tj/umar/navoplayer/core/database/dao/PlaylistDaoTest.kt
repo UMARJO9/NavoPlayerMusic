@@ -124,18 +124,6 @@ class PlaylistDaoTest {
         }
     }
 
-    @Test
-    fun `remove touches playlist only when a track was removed`() = runTest {
-        val id = dao.createWithTracks("Mix", listOf(1), now = 100)
-
-        assertEquals(false, dao.removeTrack(id, 5, updatedAt = 200))
-        assertEquals(100L, updatedAt(id))
-
-        assertEquals(true, dao.removeTrack(id, 1, updatedAt = 300))
-        assertEquals(300L, updatedAt(id))
-        assertTrue(dao.trackIds(id).isEmpty())
-    }
-
     private suspend fun playlistWithPositions(vararg rows: Pair<Long, Int>): Long {
         val id = dao.insertPlaylist(PlaylistEntity(name = "Mix", createdAt = 100, updatedAt = 100))
         dao.insertTracks(rows.map { (trackId, position) -> PlaylistTrackEntity(id, trackId, position) })

@@ -7,6 +7,7 @@ import tj.umar.navoplayer.core.common.time.NavoClock
 import tj.umar.navoplayer.core.data.mapper.toPlaylist
 import tj.umar.navoplayer.core.database.dao.PlaylistDao
 import tj.umar.navoplayer.core.domain.model.Playlist
+import tj.umar.navoplayer.core.domain.model.RemovedPlaylistTrack
 import tj.umar.navoplayer.core.domain.repository.PlaylistRepository
 import javax.inject.Inject
 
@@ -36,6 +37,13 @@ internal class RoomPlaylistRepository @Inject constructor(
     override suspend fun addTracks(playlistId: Long, trackIds: List<Long>): Int =
         dao.appendTracks(playlistId, trackIds, clock.nowMillis())
 
-    override suspend fun removeTrack(playlistId: Long, trackId: Long): Boolean =
-        dao.removeTrack(playlistId, trackId, clock.nowMillis())
+    override suspend fun removeTrack(playlistId: Long, trackId: Long): RemovedPlaylistTrack? =
+        dao.removeTrackAt(playlistId, trackId, clock.nowMillis())
+            ?.let { index -> RemovedPlaylistTrack(playlistId, trackId, index) }
+
+    override suspend fun restoreTrack(removed: RemovedPlaylistTrack): Boolean =
+        dao.restoreTrack(removed.playlistId, removed.trackId, removed.index, clock.nowMillis())
+
+    override suspend fun reorderTracks(playlistId: Long, orderedTrackIds: List<Long>): Boolean =
+        dao.reorderTracks(playlistId, orderedTrackIds)
 }

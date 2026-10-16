@@ -64,13 +64,6 @@ abstract class PlaylistDao {
         return id
     }
 
-    @Transaction
-    open suspend fun removeTrack(playlistId: Long, trackId: Long, updatedAt: Long): Boolean {
-        val removed = deleteTrack(playlistId, trackId) > 0
-        if (removed) touch(playlistId, updatedAt)
-        return removed
-    }
-
     @Query("SELECT * FROM playlist_tracks WHERE playlist_id = :playlistId ORDER BY position, track_id")
     abstract suspend fun orderedTracks(playlistId: Long): List<PlaylistTrackEntity>
 

@@ -14,6 +14,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import tj.umar.navoplayer.core.database.NavoDatabase
+import tj.umar.navoplayer.core.domain.model.RemovedPlaylistTrack
 import tj.umar.navoplayer.core.testing.time.FakeNavoClock
 
 @RunWith(RobolectricTestRunner::class)
@@ -60,14 +61,37 @@ class RoomPlaylistRepositoryTest {
         val id = repository.createPlaylist("Mix", listOf(1, 2))
         clock.advanceBy(5)
 
-        assertTrue(repository.removeTrack(id, 1))
+        assertEquals(RemovedPlaylistTrack(id, 1, 0), repository.removeTrack(id, 1))
         assertEquals(1_005, playlist(id).updatedAtMs)
-        assertFalse(repository.removeTrack(id, 1))
+        assertNull(repository.removeTrack(id, 1))
 
         clock.advanceBy(5)
         assertTrue(repository.renamePlaylist(id, "New"))
         assertEquals("New", playlist(id).name)
         assertEquals(1_010, playlist(id).updatedAtMs)
+    }
+
+    @Test
+    fun `restore puts removed track back and bumps update time`() = runTest {
+        val id = repository.createPlaylist("Mix", listOf(1, 2, 3))
+        val removed = repository.removeTrack(id, 2)!!
+        clock.advanceBy(7)
+
+        assertTrue(repository.restoreTrack(removed))
+        assertEquals(listOf(1L, 2L, 3L), playlist(id).trackIds)
+        assertEquals(1_007, playlist(id).updatedAtMs)
+        assertFalse(repository.restoreTrack(removed))
+    }
+
+    @Test
+    fun `reorder changes order without bumping update time`() = runTest {
+        val id = repository.createPlaylist("Mix", listOf(1, 2, 3))
+        clock.advanceBy(5)
+
+        assertTrue(repository.reorderTracks(id, listOf(3, 1, 2)))
+        assertEquals(listOf(3L, 1L, 2L), playlist(id).trackIds)
+        assertEquals(1_000, playlist(id).updatedAtMs)
+        assertFalse(repository.reorderTracks(999, listOf(1)))
     }
 
     @Test
