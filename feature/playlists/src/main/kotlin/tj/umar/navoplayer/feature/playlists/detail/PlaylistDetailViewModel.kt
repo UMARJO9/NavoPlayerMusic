@@ -141,7 +141,7 @@ internal class PlaylistDetailViewModel @AssistedInject constructor(
         val token = ++undoTokenCounter
         setState { reprojected(removing = removingTrackIds + trackId) }
         val removal = viewModelScope.async(start = CoroutineStart.LAZY) {
-            when (val result = removeTrackFromPlaylist(state.playlistId, trackId)) {
+            when (val result = withContext(NonCancellable) { removeTrackFromPlaylist(state.playlistId, trackId) }) {
                 is NavoResult.Success -> result.data
                 is NavoResult.Error -> {
                     onRemoveFailed(token, trackId)
@@ -165,7 +165,7 @@ internal class PlaylistDetailViewModel @AssistedInject constructor(
         pendingUndo = null
         viewModelScope.launch {
             val removed = pending.removal.await() ?: return@launch
-            when (val result = restorePlaylistTrack(removed)) {
+            when (val result = withContext(NonCancellable) { restorePlaylistTrack(removed) }) {
                 is NavoResult.Success -> {
                     setState { reprojected(removing = removingTrackIds - pending.trackId) }
                     if (!result.data) sendEffect(PlaylistDetailEffect.ShowMessage(PlaylistDetailMessage.RestoreFailed))

@@ -1,5 +1,6 @@
 package tj.umar.navoplayer.feature.playlists.detail
 
+import androidx.lifecycle.ViewModelStore
 import app.cash.turbine.test
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.advanceTimeBy
@@ -514,5 +515,41 @@ class PlaylistDetailViewModelTest {
 
         assertEquals(morningTracks, viewModel.state.value.tracks)
         playlists.writeGate?.complete(Unit)
+    }
+
+    private fun PlaylistDetailViewModel.cleared() {
+        ViewModelStore().apply {
+            put("detail", this@cleared)
+            clear()
+        }
+    }
+
+    @Test
+    fun `removal write finishes after view model is cleared`() = runTest {
+        val viewModel = viewModel().started()
+        val gate = CompletableDeferred<Unit>()
+        playlists.writeGate = gate
+
+        viewModel.onIntent(PlaylistDetailIntent.RemoveTrackRequested(TestTracks.alpha.id))
+        viewModel.cleared()
+        gate.complete(Unit)
+        runCurrent()
+
+        assertTrue(TestTracks.alpha.id !in storedOrder())
+    }
+
+    @Test
+    fun `restore write finishes after view model is cleared`() = runTest {
+        val viewModel = viewModel().started()
+        viewModel.onIntent(PlaylistDetailIntent.RemoveTrackRequested(TestTracks.alpha.id))
+        val gate = CompletableDeferred<Unit>()
+        playlists.writeGate = gate
+
+        viewModel.onIntent(PlaylistDetailIntent.UndoRemoveClicked(1))
+        viewModel.cleared()
+        gate.complete(Unit)
+        runCurrent()
+
+        assertEquals(morning.trackIds, storedOrder())
     }
 }

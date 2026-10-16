@@ -1,5 +1,6 @@
 package tj.umar.navoplayer.feature.playlists.favorites
 
+import androidx.lifecycle.ViewModelStore
 import app.cash.turbine.test
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
@@ -272,5 +273,39 @@ class FavoritesViewModelTest {
         viewModel.onIntent(FavoritesIntent.ScreenStarted(hasPermission = true))
 
         assertFalse(viewModel.state.value.isLoading)
+    }
+
+    private fun FavoritesViewModel.cleared() {
+        ViewModelStore().apply {
+            put("favorites", this@cleared)
+            clear()
+        }
+    }
+
+    @Test
+    fun `removal write finishes after view model is cleared`() = runTest {
+        val viewModel = viewModel().started()
+        val gate = CompletableDeferred<Unit>()
+        favorites.writeGate = gate
+
+        viewModel.onIntent(FavoritesIntent.RemoveTrackRequested(TestTracks.alpha.id))
+        viewModel.cleared()
+        gate.complete(Unit)
+
+        assertTrue(TestTracks.alpha.id !in favorites.current)
+    }
+
+    @Test
+    fun `restore write finishes after view model is cleared`() = runTest {
+        val viewModel = viewModel().started()
+        viewModel.onIntent(FavoritesIntent.RemoveTrackRequested(TestTracks.alpha.id))
+        val gate = CompletableDeferred<Unit>()
+        favorites.writeGate = gate
+
+        viewModel.onIntent(FavoritesIntent.UndoRemoveClicked(1))
+        viewModel.cleared()
+        gate.complete(Unit)
+
+        assertTrue(TestTracks.alpha.id in favorites.current)
     }
 }

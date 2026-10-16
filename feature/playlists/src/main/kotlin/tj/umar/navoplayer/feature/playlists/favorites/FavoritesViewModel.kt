@@ -5,11 +5,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import tj.umar.navoplayer.core.common.result.NavoResult
 import tj.umar.navoplayer.core.domain.model.FavoriteTracks
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
@@ -103,7 +105,7 @@ internal class FavoritesViewModel @Inject constructor(
         val token = ++undoTokenCounter
         setRemoving(state.removingTrackIds + trackId)
         val removal = viewModelScope.async(start = CoroutineStart.LAZY) {
-            when (val result = removeFavorite(trackId)) {
+            when (val result = withContext(NonCancellable) { removeFavorite(trackId) }) {
                 is NavoResult.Success -> result.data
                 is NavoResult.Error -> {
                     onRemoveFailed(token, trackId)
@@ -127,7 +129,7 @@ internal class FavoritesViewModel @Inject constructor(
         pendingUndo = null
         viewModelScope.launch {
             val removed = pending.removal.await() ?: return@launch
-            when (val result = restoreFavorite(removed)) {
+            when (val result = withContext(NonCancellable) { restoreFavorite(removed) }) {
                 is NavoResult.Success -> {
                     setRemoving(currentState.removingTrackIds - pending.trackId)
                     if (!result.data) sendEffect(FavoritesEffect.RestoreFailed)
