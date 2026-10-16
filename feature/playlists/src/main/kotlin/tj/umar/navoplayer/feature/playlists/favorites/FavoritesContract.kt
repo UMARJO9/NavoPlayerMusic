@@ -11,6 +11,7 @@ internal data class FavoritesState(
     val isLoading: Boolean = true,
     val favorites: FavoriteTracks? = null,
     val removingTrackIds: Set<Long> = emptySet(),
+    val tracks: List<Track> = emptyList(),
     val totalMinutes: Int = 0,
     val loadFailed: Boolean = false,
     val currentTrackId: Long? = null,
@@ -19,9 +20,6 @@ internal data class FavoritesState(
 ) {
     val hasActivePlayback: Boolean
         get() = currentTrackId != null
-
-    val tracks: List<Track>
-        get() = favorites?.tracks.orEmpty().filterNot { it.id in removingTrackIds }
 
     val canEdit: Boolean
         get() = favorites != null && !loadFailed

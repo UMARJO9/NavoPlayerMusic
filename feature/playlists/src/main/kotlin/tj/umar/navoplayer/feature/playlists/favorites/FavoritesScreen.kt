@@ -236,6 +236,7 @@ private fun FavoritesPreview() {
             state = FavoritesState(
                 isLoading = false,
                 favorites = FavoriteTracks(tracks = previewPlaylist.tracks, missingTrackCount = 1),
+                tracks = previewPlaylist.tracks,
                 totalMinutes = 12,
                 currentTrackId = previewPlaylist.tracks.first().id,
                 currentSource = PlaybackSource.Favorites,

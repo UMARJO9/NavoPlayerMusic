@@ -141,10 +141,13 @@ internal class FavoritesViewModel @Inject constructor(
     }
 
     private fun setRemoving(removing: Set<Long>) {
-        setState { copy(removingTrackIds = removing).withTotalMinutes() }
+        setState { copy(removingTrackIds = removing).withVisibleTracks() }
     }
 
-    private fun FavoritesState.withTotalMinutes(): FavoritesState = copy(totalMinutes = tracks.totalDurationMinutes())
+    private fun FavoritesState.withVisibleTracks(): FavoritesState {
+        val visible = favorites?.tracks.orEmpty().filterNot { it.id in removingTrackIds }
+        return copy(tracks = visible, totalMinutes = visible.totalDurationMinutes())
+    }
 
     private fun startObservingFavorites() {
         if (favoritesJob?.isActive == true) return
@@ -163,7 +166,7 @@ internal class FavoritesViewModel @Inject constructor(
                 isLoading = false,
                 favorites = favorites,
                 removingTrackIds = removingTrackIds.filterTo(HashSet()) { it in presentIds },
-            ).withTotalMinutes()
+            ).withVisibleTracks()
         }
     }
 

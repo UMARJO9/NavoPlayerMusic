@@ -32,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -303,12 +304,15 @@ private fun PlaylistTrackRow(
     val moveUpLabel = stringResource(R.string.playlists_move_up)
     val moveDownLabel = stringResource(R.string.playlists_move_down)
     val canEdit = state.canEdit
-    val actions = buildList {
-        if (canEdit && canMoveUp) {
-            add(CustomAccessibilityAction(moveUpLabel) { onMove(-1); true })
-        }
-        if (canEdit && canMoveDown) {
-            add(CustomAccessibilityAction(moveDownLabel) { onMove(1); true })
+    val currentOnMove by rememberUpdatedState(onMove)
+    val actions = remember(canEdit, canMoveUp, canMoveDown, moveUpLabel, moveDownLabel) {
+        buildList {
+            if (canEdit && canMoveUp) {
+                add(CustomAccessibilityAction(moveUpLabel) { currentOnMove(-1); true })
+            }
+            if (canEdit && canMoveDown) {
+                add(CustomAccessibilityAction(moveDownLabel) { currentOnMove(1); true })
+            }
         }
     }
     val lift by animateFloatAsState(
