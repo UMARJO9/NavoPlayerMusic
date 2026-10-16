@@ -552,4 +552,19 @@ class PlaylistDetailViewModelTest {
 
         assertEquals(morning.trackIds, storedOrder())
     }
+
+    @Test
+    fun `undo of track re-added elsewhere is treated as success`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.effects.test {
+            viewModel.onIntent(PlaylistDetailIntent.RemoveTrackRequested(TestTracks.alpha.id))
+            awaitItem()
+            playlists.addTracks(morning.id, listOf(TestTracks.alpha.id))
+            viewModel.onIntent(PlaylistDetailIntent.UndoRemoveClicked(1))
+            expectNoEvents()
+        }
+        assertEquals(1, playlists.restoreCalls.size)
+        assertEquals(morningTracks, viewModel.state.value.tracks)
+    }
 }

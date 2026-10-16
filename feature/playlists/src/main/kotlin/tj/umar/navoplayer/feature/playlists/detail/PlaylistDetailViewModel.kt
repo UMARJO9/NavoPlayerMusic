@@ -165,11 +165,8 @@ internal class PlaylistDetailViewModel @AssistedInject constructor(
         pendingUndo = null
         viewModelScope.launch {
             val removed = pending.removal.await() ?: return@launch
-            when (val result = withContext(NonCancellable) { restorePlaylistTrack(removed) }) {
-                is NavoResult.Success -> {
-                    setState { reprojected(removing = removingTrackIds - pending.trackId) }
-                    if (!result.data) sendEffect(PlaylistDetailEffect.ShowMessage(PlaylistDetailMessage.RestoreFailed))
-                }
+            when (withContext(NonCancellable) { restorePlaylistTrack(removed) }) {
+                is NavoResult.Success -> setState { reprojected(removing = removingTrackIds - pending.trackId) }
                 is NavoResult.Error -> sendEffect(PlaylistDetailEffect.ShowMessage(PlaylistDetailMessage.RestoreFailed))
             }
         }

@@ -129,11 +129,8 @@ internal class FavoritesViewModel @Inject constructor(
         pendingUndo = null
         viewModelScope.launch {
             val removed = pending.removal.await() ?: return@launch
-            when (val result = withContext(NonCancellable) { restoreFavorite(removed) }) {
-                is NavoResult.Success -> {
-                    setRemoving(currentState.removingTrackIds - pending.trackId)
-                    if (!result.data) sendEffect(FavoritesEffect.RestoreFailed)
-                }
+            when (withContext(NonCancellable) { restoreFavorite(removed) }) {
+                is NavoResult.Success -> setRemoving(currentState.removingTrackIds - pending.trackId)
                 is NavoResult.Error -> sendEffect(FavoritesEffect.RestoreFailed)
             }
         }

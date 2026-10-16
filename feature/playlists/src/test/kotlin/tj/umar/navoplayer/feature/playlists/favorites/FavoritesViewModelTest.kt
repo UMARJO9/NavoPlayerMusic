@@ -308,4 +308,19 @@ class FavoritesViewModelTest {
 
         assertTrue(TestTracks.alpha.id in favorites.current)
     }
+
+    @Test
+    fun `undo of favorite re-added elsewhere is treated as success`() = runTest {
+        val viewModel = viewModel().started()
+
+        viewModel.effects.test {
+            viewModel.onIntent(FavoritesIntent.RemoveTrackRequested(TestTracks.alpha.id))
+            awaitItem()
+            favorites.addFavorite(TestTracks.alpha.id)
+            viewModel.onIntent(FavoritesIntent.UndoRemoveClicked(1))
+            expectNoEvents()
+        }
+        assertEquals(1, favorites.restoreCalls.size)
+        assertTrue(TestTracks.alpha in viewModel.state.value.tracks)
+    }
 }
