@@ -66,6 +66,7 @@ internal sealed interface NowPlayingIntent {
     data object SleepTimerSheetDismissed : NowPlayingIntent
     data class SleepTimerOptionSelected(val option: SleepTimerOption) : NowPlayingIntent
     data object SleepTimerCancelClicked : NowPlayingIntent
+    data object SheetDismissed : NowPlayingIntent
 }
 
 internal sealed interface NowPlayingEffect {

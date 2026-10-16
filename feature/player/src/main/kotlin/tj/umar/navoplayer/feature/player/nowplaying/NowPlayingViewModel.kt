@@ -95,7 +95,17 @@ internal class NowPlayingViewModel @Inject constructor(
             NowPlayingIntent.SleepTimerSheetDismissed -> setState { copy(isSleepTimerSheetVisible = false) }
             is NowPlayingIntent.SleepTimerOptionSelected -> onSleepTimerOptionSelected(intent.option)
             NowPlayingIntent.SleepTimerCancelClicked -> onSleepTimerCancelled()
+            NowPlayingIntent.SheetDismissed -> resetSession()
         }
+    }
+
+    private fun resetSession() {
+        stopObserving()
+        collapseRequested = false
+        pendingSeekTarget = null
+        staleTicksAfterSeek = 0
+        currentTrackIds.value = null
+        setState { NowPlayingState() }
     }
 
     private fun startObserving() {

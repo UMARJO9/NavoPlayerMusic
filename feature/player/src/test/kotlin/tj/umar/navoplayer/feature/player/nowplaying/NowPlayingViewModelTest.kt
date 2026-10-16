@@ -536,4 +536,41 @@ class NowPlayingViewModelTest {
         assertEquals(null, SleepTimer.Countdown(10_000, 1_000).selectedOption())
         assertEquals(null, SleepTimer.Off.selectedOption())
     }
+
+    @Test
+    fun `sheet dismissed resets state and unsubscribes`() = runTest {
+        startWith()
+        viewModel.onIntent(NowPlayingIntent.SleepTimerClicked)
+
+        viewModel.onIntent(NowPlayingIntent.SheetDismissed)
+
+        assertEquals(NowPlayingState(), viewModel.state.value)
+        assertEquals(0, controller.stateSubscribers)
+        assertEquals(0, controller.progressSubscribers)
+    }
+
+    @Test
+    fun `collapse can be requested again after sheet dismissed`() = runTest {
+        viewModel.effects.test {
+            startWith(PlaybackState.Empty)
+            assertEquals(NowPlayingEffect.Collapse, awaitItem())
+
+            viewModel.onIntent(NowPlayingIntent.SheetDismissed)
+            viewModel.onIntent(NowPlayingIntent.ScreenStarted)
+
+            assertEquals(NowPlayingEffect.Collapse, awaitItem())
+        }
+    }
+
+    @Test
+    fun `reopened sheet shows current playback`() = runTest {
+        startWith()
+        viewModel.onIntent(NowPlayingIntent.SheetDismissed)
+        controller.state.emit(TestPlaybackStates.pausedAlpha)
+
+        viewModel.onIntent(NowPlayingIntent.ScreenStarted)
+
+        assertEquals(TestTracks.alpha, viewModel.state.value.track)
+        assertFalse(viewModel.state.value.isPlaying)
+    }
 }
