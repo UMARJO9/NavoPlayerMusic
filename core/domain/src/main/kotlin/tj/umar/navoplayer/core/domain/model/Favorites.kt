@@ -18,3 +18,5 @@ data class PlaylistsOverview(
     val favorites: FavoritesSummary,
     val playlists: List<PlaylistSummary>,
 )
+
+data class RemovedFavorite(val trackId: Long, val addedAtMs: Long)

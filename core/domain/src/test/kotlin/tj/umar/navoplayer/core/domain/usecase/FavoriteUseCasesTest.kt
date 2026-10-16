@@ -9,6 +9,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import tj.umar.navoplayer.core.common.result.NavoResult
 import tj.umar.navoplayer.core.domain.model.FavoritesSummary
+import tj.umar.navoplayer.core.domain.model.RemovedFavorite
 import tj.umar.navoplayer.core.testing.repository.FakeSettingsRepository
 import tj.umar.navoplayer.core.testing.data.TestPlaylists
 import tj.umar.navoplayer.core.testing.data.TestTracks
@@ -73,6 +74,33 @@ class FavoriteUseCasesTest {
         favorites.writeError = IllegalStateException("locked")
 
         assertTrue(SetFavoriteUseCase(favorites)(1, true) is NavoResult.Error)
+    }
+
+    @Test
+    fun `remove favorite returns removed entry`() = runTest {
+        val result = RemoveFavoriteUseCase(favorites)(999)
+
+        assertEquals(NavoResult.Success(RemovedFavorite(trackId = 999, addedAtMs = 2)), result)
+        assertEquals(listOf(TestTracks.longMix.id, TestTracks.alpha.id), favorites.current)
+        assertEquals(NavoResult.Success(null), RemoveFavoriteUseCase(favorites)(999))
+    }
+
+    @Test
+    fun `restore favorite brings back original position`() = runTest {
+        val removed = (RemoveFavoriteUseCase(favorites)(999) as NavoResult.Success).data!!
+        favorites.addFavorite(TestTracks.beta.id)
+
+        assertEquals(NavoResult.Success(true), RestoreFavoriteUseCase(favorites)(removed))
+        assertEquals(listOf(TestTracks.beta.id, TestTracks.longMix.id, 999L, TestTracks.alpha.id), favorites.current)
+        assertEquals(NavoResult.Success(false), RestoreFavoriteUseCase(favorites)(removed))
+    }
+
+    @Test
+    fun `remove and restore favorite report failure`() = runTest {
+        favorites.writeError = IllegalStateException("locked")
+
+        assertTrue(RemoveFavoriteUseCase(favorites)(999) is NavoResult.Error)
+        assertTrue(RestoreFavoriteUseCase(favorites)(RemovedFavorite(5, 1)) is NavoResult.Error)
     }
 
     @Test

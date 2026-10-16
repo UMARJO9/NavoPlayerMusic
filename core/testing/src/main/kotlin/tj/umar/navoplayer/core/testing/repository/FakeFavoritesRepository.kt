@@ -8,11 +8,17 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import tj.umar.navoplayer.core.domain.model.RemovedFavorite
 import tj.umar.navoplayer.core.domain.repository.FavoritesRepository
 
 class FakeFavoritesRepository(initial: List<Long> = emptyList()) : FavoritesRepository {
 
-    private val favoriteIds = MutableStateFlow(initial)
+    private val entries = MutableStateFlow(
+        initial.distinct().mapIndexed { index, trackId -> RemovedFavorite(trackId, (initial.size - index).toLong()) },
+    )
+    private var clock = initial.size.toLong() + 1
+
+    private val favoriteIds: Flow<List<Long>> = entries.map { it.sortedIds() }
 
     var observeCalls: Int = 0
         private set
@@ -26,13 +32,15 @@ class FakeFavoritesRepository(initial: List<Long> = emptyList()) : FavoritesRepo
     var writeCalls: Int = 0
         private set
 
+    val restoreCalls: MutableList<RemovedFavorite> = mutableListOf()
+
     val current: List<Long>
-        get() = favoriteIds.value
+        get() = entries.value.sortedIds()
 
     override fun observeFavoriteIds(): Flow<List<Long>> = flow {
         observeCalls++
         observeError?.let { throw it }
-        emitAll(favoriteIds)
+        emitAll(favoriteIds.distinctUntilChanged())
     }
 
     override fun observeIsFavorite(trackId: Long): Flow<Boolean> = flow {
@@ -42,17 +50,29 @@ class FakeFavoritesRepository(initial: List<Long> = emptyList()) : FavoritesRepo
 
     override suspend fun addFavorite(trackId: Long): Boolean {
         failIfNeeded()
-        if (trackId in favoriteIds.value) return false
-        favoriteIds.update { listOf(trackId) + it }
+        if (entries.value.any { it.trackId == trackId }) return false
+        val addedAt = clock++
+        entries.update { it + RemovedFavorite(trackId, addedAt) }
         return true
     }
 
-    override suspend fun removeFavorite(trackId: Long): Boolean {
+    override suspend fun removeFavorite(trackId: Long): RemovedFavorite? {
         failIfNeeded()
-        if (trackId !in favoriteIds.value) return false
-        favoriteIds.update { it - trackId }
+        val entry = entries.value.firstOrNull { it.trackId == trackId } ?: return null
+        entries.update { it - entry }
+        return entry
+    }
+
+    override suspend fun restoreFavorite(removed: RemovedFavorite): Boolean {
+        restoreCalls += removed
+        failIfNeeded()
+        if (entries.value.any { it.trackId == removed.trackId }) return false
+        entries.update { it + removed }
         return true
     }
+
+    private fun List<RemovedFavorite>.sortedIds(): List<Long> =
+        sortedWith(compareByDescending<RemovedFavorite> { it.addedAtMs }.thenByDescending { it.trackId }).map { it.trackId }
 
     private suspend fun failIfNeeded() {
         writeCalls++

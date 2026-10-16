@@ -9,6 +9,6 @@ class SetFavoriteUseCase @Inject constructor(
     private val favoritesRepository: FavoritesRepository,
 ) {
     suspend operator fun invoke(trackId: Long, favorite: Boolean): NavoResult<Boolean> = navoRunCatching {
-        if (favorite) favoritesRepository.addFavorite(trackId) else favoritesRepository.removeFavorite(trackId)
+        if (favorite) favoritesRepository.addFavorite(trackId) else favoritesRepository.removeFavorite(trackId) != null
     }
 }

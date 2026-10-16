@@ -7,6 +7,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -14,6 +15,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import tj.umar.navoplayer.core.database.NavoDatabase
+import tj.umar.navoplayer.core.domain.model.RemovedFavorite
 import tj.umar.navoplayer.core.testing.time.FakeNavoClock
 
 @RunWith(RobolectricTestRunner::class)
@@ -55,8 +57,8 @@ class RoomFavoritesRepositoryTest {
     fun `remove reports change`() = runTest {
         repository.addFavorite(1)
 
-        assertTrue(repository.removeFavorite(1))
-        assertFalse(repository.removeFavorite(1))
+        assertEquals(RemovedFavorite(trackId = 1, addedAtMs = 1_000), repository.removeFavorite(1))
+        assertNull(repository.removeFavorite(1))
     }
 
     @Test
@@ -69,5 +71,20 @@ class RoomFavoritesRepositoryTest {
             assertFalse(awaitItem())
             cancelAndIgnoreRemainingEvents()
         }
+    }
+
+    @Test
+    fun `restore puts favorite back in original order`() = runTest {
+        repository.addFavorite(1)
+        clock.advanceBy(10)
+        repository.addFavorite(2)
+        clock.advanceBy(10)
+        repository.addFavorite(3)
+        val removed = repository.removeFavorite(2)!!
+        clock.advanceBy(10)
+
+        assertTrue(repository.restoreFavorite(removed))
+        assertEquals(listOf(3L, 2L, 1L), repository.observeFavoriteIds().first())
+        assertFalse(repository.restoreFavorite(removed))
     }
 }
