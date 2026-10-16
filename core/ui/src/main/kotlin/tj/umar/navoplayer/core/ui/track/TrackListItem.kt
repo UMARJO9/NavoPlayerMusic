@@ -1,9 +1,11 @@
 package tj.umar.navoplayer.core.ui.track
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.component.TrackRow
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
@@ -24,6 +26,8 @@ fun TrackListItem(
     modifier: Modifier = Modifier,
     onLongClick: (() -> Unit)? = null,
     onLongClickLabel: String? = null,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
+    actions: List<CustomAccessibilityAction> = emptyList(),
 ) {
     val palette = remember(track.id) { MedallionPalettes.forKey(track.id) }
     TrackRow(
@@ -37,6 +41,8 @@ fun TrackListItem(
         onLongClick = onLongClick,
         onLongClickLabel = onLongClickLabel,
         artwork = rememberArtwork(track.artworkKey, TrackArtworkSize).value,
+        trailing = trailing,
+        actions = actions,
         modifier = modifier,
     )
 }

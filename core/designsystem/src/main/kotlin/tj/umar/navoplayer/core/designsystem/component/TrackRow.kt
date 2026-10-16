@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -52,6 +53,8 @@ fun TrackRow(
     onLongClick: (() -> Unit)? = null,
     onLongClickLabel: String? = null,
     artwork: ImageBitmap? = null,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
+    actions: List<CustomAccessibilityAction> = emptyList(),
 ) {
     val colors = NavoTheme.colors
     val typography = NavoTheme.typography
@@ -68,14 +71,18 @@ fun TrackRow(
             .heightIn(min = 64.dp)
             .semantics(mergeDescendants = true) {
                 if (isCurrent) stateDescription = nowPlaying
-                if (onLongClick != null && onLongClickLabel != null) {
-                    customActions = listOf(
+                val longClickActions = if (onLongClick != null && onLongClickLabel != null) {
+                    listOf(
                         CustomAccessibilityAction(onLongClickLabel) {
                             onLongClick()
                             true
                         },
                     )
+                } else {
+                    emptyList()
                 }
+                val allActions = longClickActions + actions
+                if (allActions.isNotEmpty()) customActions = allActions
             }
             .clip(NavoShapes.TrackRow)
             .background(background)
@@ -116,6 +123,7 @@ fun TrackRow(
                 Text(text = duration, style = typography.secondaryNumeric, color = colors.contentSecondary)
             }
         }
+        trailing?.invoke(this)
     }
 }
 
