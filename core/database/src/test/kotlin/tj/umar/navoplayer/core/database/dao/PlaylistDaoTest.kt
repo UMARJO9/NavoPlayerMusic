@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -16,6 +17,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import tj.umar.navoplayer.core.database.NavoDatabase
 import tj.umar.navoplayer.core.database.entity.PlaylistEntity
+import tj.umar.navoplayer.core.database.entity.PlaylistTrackEntity
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35])
@@ -132,5 +134,139 @@ class PlaylistDaoTest {
         assertEquals(true, dao.removeTrack(id, 1, updatedAt = 300))
         assertEquals(300L, updatedAt(id))
         assertTrue(dao.trackIds(id).isEmpty())
+    }
+
+    private suspend fun playlistWithPositions(vararg rows: Pair<Long, Int>): Long {
+        val id = dao.insertPlaylist(PlaylistEntity(name = "Mix", createdAt = 100, updatedAt = 100))
+        dao.insertTracks(rows.map { (trackId, position) -> PlaylistTrackEntity(id, trackId, position) })
+        return id
+    }
+
+    @Test
+    fun `remove at returns index of middle track and compacts positions`() = runTest {
+        val id = playlistWithPositions(1L to 0, 2L to 3, 3L to 7)
+
+        val index = dao.removeTrackAt(id, 2, updatedAt = 200)
+
+        assertEquals(1, index)
+        assertEquals(listOf(1L to 0, 3L to 1), positions(id))
+        assertEquals(200L, updatedAt(id))
+    }
+
+    @Test
+    fun `remove at of missing track returns null without touching`() = runTest {
+        val id = dao.createWithTracks("Mix", listOf(1, 2), now = 100)
+
+        assertNull(dao.removeTrackAt(id, 9, updatedAt = 200))
+        assertEquals(100L, updatedAt(id))
+        assertEquals(listOf(1L to 0, 2L to 1), positions(id))
+    }
+
+    @Test
+    fun `restore puts track back at original index`() = runTest {
+        val id = playlistWithPositions(1L to 0, 2L to 4, 3L to 9, 4L to 12)
+        val index = dao.removeTrackAt(id, 3, updatedAt = 200)!!
+
+        val restored = dao.restoreTrack(id, 3, index, updatedAt = 300)
+
+        assertTrue(restored)
+        assertEquals(listOf(1L to 0, 2L to 1, 3L to 2, 4L to 3), positions(id))
+        assertEquals(300L, updatedAt(id))
+    }
+
+    @Test
+    fun `restore into playlist with gaps rewrites dense ranks`() = runTest {
+        val id = playlistWithPositions(1L to 2, 2L to 5)
+
+        assertTrue(dao.restoreTrack(id, 7, 1, updatedAt = 300))
+
+        assertEquals(listOf(1L to 0, 7L to 1, 2L to 2), positions(id))
+    }
+
+    @Test
+    fun `restore clamps index past end and negative`() = runTest {
+        val id = dao.createWithTracks("Mix", listOf(1, 2), now = 100)
+
+        assertTrue(dao.restoreTrack(id, 3, 10, updatedAt = 200))
+        assertTrue(dao.restoreTrack(id, 4, -3, updatedAt = 300))
+
+        assertEquals(listOf(4L to 0, 1L to 1, 2L to 2, 3L to 3), positions(id))
+    }
+
+    @Test
+    fun `restore of present track returns false without touching`() = runTest {
+        val id = dao.createWithTracks("Mix", listOf(1, 2), now = 100)
+
+        assertFalse(dao.restoreTrack(id, 2, 0, updatedAt = 200))
+        assertEquals(listOf(1L to 0, 2L to 1), positions(id))
+        assertEquals(100L, updatedAt(id))
+    }
+
+    @Test
+    fun `restore into deleted playlist returns false`() = runTest {
+        val id = dao.createWithTracks("Mix", listOf(1, 2), now = 100)
+        dao.delete(id)
+
+        assertFalse(dao.restoreTrack(id, 3, 0, updatedAt = 200))
+        assertTrue(dao.trackIds(id).isEmpty())
+    }
+
+    @Test
+    fun `full reorder writes dense positions without touching`() = runTest {
+        val id = playlistWithPositions(1L to 0, 2L to 3, 3L to 8)
+
+        assertTrue(dao.reorderTracks(id, listOf(3, 1, 2)))
+
+        assertEquals(listOf(3L to 0, 1L to 1, 2L to 2), positions(id))
+        assertEquals(100L, updatedAt(id))
+    }
+
+    @Test
+    fun `subset reorder keeps slots of other tracks`() = runTest {
+        val id = dao.createWithTracks("Mix", listOf(1, 2, 3, 4, 5), now = 100)
+
+        assertTrue(dao.reorderTracks(id, listOf(5, 3, 1)))
+
+        assertEquals(listOf(5L, 2L, 3L, 4L, 1L), dao.orderedTrackIds(id))
+    }
+
+    @Test
+    fun `reorder filters unknown and duplicate ids`() = runTest {
+        val id = dao.createWithTracks("Mix", listOf(1, 2, 3), now = 100)
+
+        assertTrue(dao.reorderTracks(id, listOf(3, 9, 3, 1, 2, 1)))
+
+        assertEquals(listOf(3L, 1L, 2L), dao.orderedTrackIds(id))
+    }
+
+    @Test
+    fun `reorder in current order changes nothing`() = runTest {
+        val id = dao.createWithTracks("Mix", listOf(1, 2, 3), now = 100)
+
+        assertTrue(dao.reorderTracks(id, listOf(1, 2, 3)))
+
+        assertEquals(listOf(1L to 0, 2L to 1, 3L to 2), positions(id))
+        assertEquals(100L, updatedAt(id))
+    }
+
+    @Test
+    fun `reorder of missing playlist returns false`() = runTest {
+        assertFalse(dao.reorderTracks(42, listOf(1, 2)))
+    }
+
+    @Test
+    fun `reorder emits final order once`() = runTest {
+        val id = dao.createWithTracks("Mix", listOf(1, 2, 3, 4), now = 100)
+
+        dao.observePlaylist(id).test {
+            awaitItem()
+            dao.reorderTracks(id, listOf(4, 3, 2, 1))
+            val reordered = awaitItem()!!.tracks.sortedBy { it.position }.map { it.trackId }
+            assertEquals(listOf(4L, 3L, 2L, 1L), reordered)
+            dao.appendTracks(id, listOf(5), updatedAt = 200)
+            val appended = awaitItem()!!.tracks.sortedBy { it.position }.map { it.trackId }
+            assertEquals(listOf(4L, 3L, 2L, 1L, 5L), appended)
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 }
