@@ -9,4 +9,5 @@ object NavoShapes {
     val Pill: Shape = CircleShape
     val TrackRow: Shape = RoundedCornerShape(16.dp)
     val MiniPlayer: Shape = RoundedCornerShape(20.dp)
+    val Snackbar: Shape = RoundedCornerShape(16.dp)
 }
