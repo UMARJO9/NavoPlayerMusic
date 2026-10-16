@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -47,11 +48,17 @@ import androidx.compose.ui.unit.dp
 import tj.umar.navoplayer.core.designsystem.animation.rememberSmoothProgress
 import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
 import tj.umar.navoplayer.core.designsystem.component.NavoSeekBar
+import tj.umar.navoplayer.core.designsystem.glass.LocalNavoGlassBackdrop
+import tj.umar.navoplayer.core.designsystem.glass.NavoGlassDefaults
+import tj.umar.navoplayer.core.designsystem.glass.navoGlass
+import tj.umar.navoplayer.core.designsystem.glass.navoGlassSource
+import tj.umar.navoplayer.core.designsystem.glass.rememberNavoGlassBackdrop
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionArtwork
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionPalettes
 import tj.umar.navoplayer.core.designsystem.medallion.MedallionVariant
 import tj.umar.navoplayer.core.designsystem.medallion.rememberMedallionRotation
+import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoSpacing
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.PlaybackSource
@@ -68,6 +75,7 @@ private val MedallionMaxSize = 300.dp
 private const val TRACK_CHANGE_MILLIS = 350
 private const val MEDALLION_CHANGE_SCALE = 0.85f
 private const val TRACK_INFO_SLIDE_DIVISOR = 3
+private val SheetPreviewShape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
 
 @Composable
 internal fun NowPlayingScreen(
@@ -75,9 +83,17 @@ internal fun NowPlayingScreen(
     onIntent: (NowPlayingIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val glassBackdrop = rememberNavoGlassBackdrop()
     Box(modifier = modifier.fillMaxSize()) {
-        NowPlayingBackdrop(track = state.track, modifier = Modifier.matchParentSize())
-        NowPlayingContent(state = state, onIntent = onIntent)
+        NowPlayingBackdrop(
+            track = state.track,
+            modifier = Modifier
+                .matchParentSize()
+                .navoGlassSource(glassBackdrop),
+        )
+        CompositionLocalProvider(LocalNavoGlassBackdrop provides glassBackdrop) {
+            NowPlayingContent(state = state, onIntent = onIntent)
+        }
     }
 }
 
@@ -328,6 +344,7 @@ private fun BottomRow(nextTrack: Track?, sleepTimer: SleepTimer, onIntent: (NowP
     val colors = NavoTheme.colors
     val typography = NavoTheme.typography
     val queueLabel = stringResource(R.string.player_open_queue)
+    val glassStyle = NavoGlassDefaults.pill()
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -337,8 +354,8 @@ private fun BottomRow(nextTrack: Track?, sleepTimer: SleepTimer, onIntent: (NowP
             modifier = Modifier
                 .weight(1f)
                 .height(56.dp)
-                .clip(CircleShape)
-                .background(colors.raised)
+                .navoGlass(LocalNavoGlassBackdrop.current, NavoShapes.GlassPill, glassStyle)
+                .clip(NavoShapes.GlassPill)
                 .clickable(onClickLabel = queueLabel, role = Role.Button) { onIntent(NowPlayingIntent.QueueClicked) }
                 .padding(start = 14.dp, end = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -346,7 +363,7 @@ private fun BottomRow(nextTrack: Track?, sleepTimer: SleepTimer, onIntent: (NowP
         ) {
             Icon(imageVector = NavoIcons.Queue, contentDescription = null, tint = colors.content, modifier = Modifier.size(22.dp))
             Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                Text(text = stringResource(R.string.player_up_next), style = typography.caption, color = colors.contentSecondary)
+                Text(text = stringResource(R.string.player_up_next), style = typography.caption, color = glassStyle.secondaryContent)
                 Text(
                     text = nextTrack?.let {
                         stringResource(
@@ -379,12 +396,13 @@ private fun PlaybackSource.label(): String = when (this) {
 }
 
 @Composable
-private fun SheetPreviewFrame(content: @Composable () -> Unit) {
-    NavoTheme {
+private fun SheetPreviewFrame(darkTheme: Boolean = true, content: @Composable () -> Unit) {
+    NavoTheme(darkTheme = darkTheme) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(NavoTheme.colors.background, RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)),
+                .clip(SheetPreviewShape)
+                .background(NavoTheme.colors.background),
         ) {
             content()
         }
@@ -415,5 +433,13 @@ private fun NowPlayingScreenRepeatOnePreview() {
 private fun NowPlayingScreenSleepTimerPreview() {
     SheetPreviewFrame {
         NowPlayingScreen(state = previewNowPlayingState.copy(sleepTimer = SleepTimer.Countdown(872_000, 900_000)), onIntent = {})
+    }
+}
+
+@Preview(widthDp = 390, heightDp = 800)
+@Composable
+private fun NowPlayingScreenLightPreview() {
+    SheetPreviewFrame(darkTheme = false) {
+        NowPlayingScreen(state = previewNowPlayingState.copy(sleepTimer = SleepTimer.EndOfTrack), onIntent = {})
     }
 }

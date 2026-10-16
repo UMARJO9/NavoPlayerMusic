@@ -36,13 +36,13 @@ private val ArtworkBlur = 56.dp
 private const val ARTWORK_SCALE = 1.4f
 private const val ARTWORK_ALPHA = 0.55f
 private const val CROSSFADE_MILLIS = 600
-private const val PRIMARY_GLOW_ALPHA = 0.55f
-private const val SECONDARY_GLOW_ALPHA = 0.32f
-private const val TERTIARY_GLOW_ALPHA = 0.26f
+private const val PRIMARY_GLOW_ALPHA = 0.45f
+private const val SECONDARY_GLOW_ALPHA = 0.28f
+private const val TERTIARY_GLOW_ALPHA = 0.22f
 private const val LIGHT_GLOW_FACTOR = 0.7f
 
-private val DarkScrimStops = listOf(0f to 0.20f, 0.45f to 0.35f, 0.72f to 0.62f, 1f to 0.50f)
-private val LightScrimStops = listOf(0f to 0.38f, 0.45f to 0.55f, 0.72f to 0.78f, 1f to 0.70f)
+private val DarkScrimStops = listOf(0f to 0.50f, 0.14f to 0.28f, 0.42f to 0.32f, 0.60f to 0.62f, 0.80f to 0.72f, 1f to 0.62f)
+private val LightScrimStops = listOf(0f to 0.62f, 0.14f to 0.42f, 0.42f to 0.45f, 0.60f to 0.75f, 0.80f to 0.84f, 1f to 0.78f)
 
 @Composable
 internal fun NowPlayingBackdrop(track: Track?, modifier: Modifier = Modifier) {

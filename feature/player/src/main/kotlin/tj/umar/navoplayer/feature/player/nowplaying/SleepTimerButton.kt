@@ -3,15 +3,19 @@ package tj.umar.navoplayer.feature.player.nowplaying
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,25 +27,48 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import tj.umar.navoplayer.core.designsystem.component.NavoIconButton
+import tj.umar.navoplayer.core.designsystem.glass.LocalNavoGlassBackdrop
+import tj.umar.navoplayer.core.designsystem.glass.NavoGlassDefaults
+import tj.umar.navoplayer.core.designsystem.glass.navoGlass
+import tj.umar.navoplayer.core.designsystem.glass.navoGlassSource
+import tj.umar.navoplayer.core.designsystem.glass.rememberNavoGlassBackdrop
 import tj.umar.navoplayer.core.designsystem.icon.NavoIcons
+import tj.umar.navoplayer.core.designsystem.modifier.pressScale
+import tj.umar.navoplayer.core.designsystem.theme.NavoShapes
 import tj.umar.navoplayer.core.designsystem.theme.NavoTheme
 import tj.umar.navoplayer.core.domain.model.SleepTimer
 import tj.umar.navoplayer.core.ui.format.formatDuration
 import tj.umar.navoplayer.feature.player.R
 
+private val ButtonHeight = 56.dp
+private val TimerIconSize = 22.dp
+private const val PRESSED_SCALE = 0.9f
+
 @Composable
 internal fun SleepTimerButton(sleepTimer: SleepTimer, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = NavoTheme.colors
+    val backdrop = LocalNavoGlassBackdrop.current
+    val glassStyle = NavoGlassDefaults.pill()
     if (sleepTimer == SleepTimer.Off) {
-        NavoIconButton(
-            icon = NavoIcons.Timer,
-            contentDescription = stringResource(R.string.player_sleep_timer),
-            onClick = onClick,
-            modifier = modifier,
-            containerColor = colors.raised,
-            size = 56.dp,
-        )
+        val interactionSource = remember { MutableInteractionSource() }
+        val description = stringResource(R.string.player_sleep_timer)
+        Box(
+            modifier = modifier
+                .pressScale(interactionSource, pressedScale = PRESSED_SCALE)
+                .size(ButtonHeight)
+                .navoGlass(backdrop, NavoShapes.GlassPill, glassStyle)
+                .clip(NavoShapes.GlassPill)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = ripple(color = colors.content),
+                    role = Role.Button,
+                    onClick = onClick,
+                )
+                .semantics { contentDescription = description },
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(imageVector = NavoIcons.Timer, contentDescription = null, tint = colors.content, modifier = Modifier.size(24.dp))
+        }
         return
     }
     val label = sleepTimer.accessibilityLabel()
@@ -52,9 +79,9 @@ internal fun SleepTimerButton(sleepTimer: SleepTimer, onClick: () -> Unit, modif
     }
     Row(
         modifier = modifier
-            .height(56.dp)
-            .clip(CircleShape)
-            .background(colors.raised)
+            .height(ButtonHeight)
+            .navoGlass(backdrop, NavoShapes.GlassPill, glassStyle)
+            .clip(NavoShapes.GlassPill)
             .clickable(onClickLabel = changeLabel, role = Role.Button, onClick = onClick)
             .semantics(mergeDescendants = true) { contentDescription = label }
             .animateContentSize()
@@ -62,7 +89,7 @@ internal fun SleepTimerButton(sleepTimer: SleepTimer, onClick: () -> Unit, modif
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Icon(imageVector = NavoIcons.Timer, contentDescription = null, tint = colors.accent, modifier = Modifier.size(22.dp))
+        Icon(imageVector = NavoIcons.Timer, contentDescription = null, tint = colors.accent, modifier = Modifier.size(TimerIconSize))
         Text(
             text = text,
             style = NavoTheme.typography.secondaryNumeric,
@@ -86,17 +113,34 @@ private fun SleepTimer.accessibilityLabel(): String = when (this) {
     }
 }
 
+@Composable
+private fun SleepTimerButtonPreviewContent(darkTheme: Boolean) {
+    NavoTheme(darkTheme = darkTheme) {
+        val backdrop = rememberNavoGlassBackdrop()
+        Box(modifier = Modifier.background(NavoTheme.colors.background)) {
+            NowPlayingBackdrop(track = previewNowPlayingState.track, modifier = Modifier.matchParentSize().navoGlassSource(backdrop))
+            CompositionLocalProvider(LocalNavoGlassBackdrop provides backdrop) {
+                Row(
+                    modifier = Modifier.padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    SleepTimerButton(sleepTimer = SleepTimer.Off, onClick = {})
+                    SleepTimerButton(sleepTimer = SleepTimer.Countdown(872_000, 900_000), onClick = {})
+                    SleepTimerButton(sleepTimer = SleepTimer.EndOfTrack, onClick = {})
+                }
+            }
+        }
+    }
+}
+
 @Preview
 @Composable
 private fun SleepTimerButtonPreview() {
-    NavoTheme {
-        Row(
-            modifier = Modifier.background(NavoTheme.colors.background).padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            SleepTimerButton(sleepTimer = SleepTimer.Off, onClick = {})
-            SleepTimerButton(sleepTimer = SleepTimer.Countdown(872_000, 900_000), onClick = {})
-            SleepTimerButton(sleepTimer = SleepTimer.EndOfTrack, onClick = {})
-        }
-    }
+    SleepTimerButtonPreviewContent(darkTheme = true)
+}
+
+@Preview
+@Composable
+private fun SleepTimerButtonLightPreview() {
+    SleepTimerButtonPreviewContent(darkTheme = false)
 }
