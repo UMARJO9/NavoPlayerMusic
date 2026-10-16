@@ -15,6 +15,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import kotlinx.coroutines.flow.first
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -62,12 +70,21 @@ fun NavoTabStrip(
         }?.let { span -> Rect(span.start, 0f, span.end, tabBounds.values.first().height) }
     }
 
-    LaunchedEffect(selectedIndex, tabBounds.size) {
-        val span = tabBounds[selectedIndex] ?: return@LaunchedEffect
-        val viewport = scrollState.viewportSize
-        if (viewport == 0) return@LaunchedEffect
-        val target = (span.start + span.width / 2f - viewport / 2f).roundToInt()
-        scrollState.animateScrollTo(target.coerceIn(0, scrollState.maxValue))
+    val density = LocalDensity.current
+    val layoutDirection = LocalLayoutDirection.current
+    val contentLeftPx = with(density) { contentPadding.calculateLeftPadding(layoutDirection).toPx() + StripInset.toPx() }
+    var hasCentered by remember { mutableStateOf(false) }
+    LaunchedEffect(selectedIndex, layoutDirection) {
+        val (span, viewport) = snapshotFlow { tabBounds[selectedIndex] to scrollState.viewportSize }
+            .first { (span, viewport) -> span != null && viewport > 0 }
+        val target = centeredScroll(
+            tabCenter = contentLeftPx + span!!.start + span.width / 2f,
+            viewport = viewport,
+            maxScroll = scrollState.maxValue,
+            rtl = layoutDirection == LayoutDirection.Rtl,
+        )
+        if (hasCentered) scrollState.animateScrollTo(target) else scrollState.scrollTo(target)
+        hasCentered = true
     }
 
     Box(
@@ -171,13 +188,20 @@ internal fun wormSpan(spans: List<TabSpan>, position: Float): TabSpan? {
     val fraction = clamped - index
     val from = spans[index]
     val to = spans.getOrNull(index + 1) ?: return from
-    val leading = 1f - (1f - fraction) * (1f - fraction)
-    val trailing = fraction * fraction
+    val fast = 1f - (1f - fraction) * (1f - fraction)
+    val slow = fraction * fraction
+    val forward = to.start >= from.start
     return TabSpan(
-        start = from.start + (to.start - from.start) * trailing,
-        end = from.end + (to.end - from.end) * leading,
+        start = from.start + (to.start - from.start) * if (forward) slow else fast,
+        end = from.end + (to.end - from.end) * if (forward) fast else slow,
         height = from.height,
     )
+}
+
+internal fun centeredScroll(tabCenter: Float, viewport: Int, maxScroll: Int, rtl: Boolean): Int {
+    val fromLeft = tabCenter - viewport / 2f
+    val target = if (rtl) maxScroll - fromLeft else fromLeft
+    return target.roundToInt().coerceIn(0, maxScroll)
 }
 
 @Preview

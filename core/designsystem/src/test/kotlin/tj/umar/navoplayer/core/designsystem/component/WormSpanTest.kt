@@ -42,4 +42,27 @@ class WormSpanTest {
         assertEquals(27.5f, span.start, 0.001f)
         assertEquals(212.5f, span.end, 0.001f)
     }
+
+    @Test
+    fun `leading edge runs ahead when tabs go right to left`() {
+        val rtl = listOf(TabSpan(200f, 300f), TabSpan(50f, 180f))
+        val span = wormSpan(rtl, 0.5f)!!
+        assertTrue(span.width > rtl[0].width)
+        assertTrue(span.width > rtl[1].width)
+        assertEquals(87.5f, span.start, 0.001f)
+        assertEquals(270f, span.end, 0.001f)
+    }
+
+    @Test
+    fun `centered scroll puts tab center in viewport middle`() {
+        assertEquals(150, centeredScroll(tabCenter = 350f, viewport = 400, maxScroll = 500, rtl = false))
+        assertEquals(350, centeredScroll(tabCenter = 350f, viewport = 400, maxScroll = 500, rtl = true))
+    }
+
+    @Test
+    fun `centered scroll is clamped`() {
+        assertEquals(0, centeredScroll(tabCenter = 50f, viewport = 400, maxScroll = 500, rtl = false))
+        assertEquals(500, centeredScroll(tabCenter = 50f, viewport = 400, maxScroll = 500, rtl = true))
+        assertEquals(500, centeredScroll(tabCenter = 2000f, viewport = 400, maxScroll = 500, rtl = false))
+    }
 }
