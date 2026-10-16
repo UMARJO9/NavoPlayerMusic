@@ -19,13 +19,16 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onPlaced
@@ -54,8 +57,8 @@ import kotlin.math.floor
 import kotlin.math.roundToInt
 
 private val StripInset = 4.dp
-private val StripCorner = 16.dp
-private val IndicatorCorner = StripCorner
+private val IndicatorCorner = 16.dp
+private val StripShape = RoundedCornerShape(IndicatorCorner + StripInset)
 private val IndicatorShape = RoundedCornerShape(IndicatorCorner)
 private val TabMinHeight = NavoSpacing.MinTouchTarget
 private val TabMinHorizontalPadding = 8.dp
@@ -97,6 +100,7 @@ fun NavoTabStrip(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(colors.raised, StripShape)
                 .padding(StripInset),
         ) {
             TabLabels(
@@ -116,7 +120,7 @@ fun NavoTabStrip(
                         }
                     }
                     .navoGlassSource(glassBackdrop)
-                    .background(colors.background),
+                    .drawBehind { drawStripGlow(colors.raised, colors.accent, colors.turquoise) },
                 tabModifier = { index ->
                     Modifier
                         .onPlaced { coordinates ->
@@ -259,4 +263,20 @@ private fun NavoTabStripLightPreview() {
             )
         }
     }
+}
+
+private const val STRIP_GLOW_ALPHA = 0.18f
+
+private fun DrawScope.drawStripGlow(base: Color, warm: Color, cool: Color) {
+    drawRect(base)
+    drawRect(
+        Brush.horizontalGradient(
+            0f to Color.Transparent,
+            0.2f to warm.copy(alpha = STRIP_GLOW_ALPHA),
+            0.45f to Color.Transparent,
+            0.7f to cool.copy(alpha = STRIP_GLOW_ALPHA),
+            0.9f to warm.copy(alpha = STRIP_GLOW_ALPHA / 2f),
+            1f to Color.Transparent,
+        ),
+    )
 }
