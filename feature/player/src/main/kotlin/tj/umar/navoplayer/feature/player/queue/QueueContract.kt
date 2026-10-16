@@ -25,6 +25,7 @@ internal sealed interface QueueIntent {
     data class RemoveClicked(val id: QueueItemId) : QueueIntent
     data class MoveItem(val id: QueueItemId, val toIndex: Int) : QueueIntent
     data object CloseClicked : QueueIntent
+    data object SheetDismissed : QueueIntent
 }
 
 internal sealed interface QueueEffect {

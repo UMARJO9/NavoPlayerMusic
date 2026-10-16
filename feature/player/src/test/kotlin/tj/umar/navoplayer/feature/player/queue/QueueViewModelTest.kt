@@ -71,6 +71,28 @@ class QueueViewModelTest {
     }
 
     @Test
+    fun `sheet dismissed resets state`() = runTest {
+        start()
+
+        viewModel.onIntent(QueueIntent.SheetDismissed)
+
+        assertEquals(QueueState(), viewModel.state.value)
+    }
+
+    @Test
+    fun `close can be requested again after sheet dismissed`() = runTest {
+        viewModel.effects.test {
+            viewModel.onIntent(QueueIntent.CloseClicked)
+            assertEquals(QueueEffect.Close, awaitItem())
+
+            viewModel.onIntent(QueueIntent.SheetDismissed)
+            viewModel.onIntent(QueueIntent.CloseClicked)
+
+            assertEquals(QueueEffect.Close, awaitItem())
+        }
+    }
+
+    @Test
     fun `screen stopped unsubscribes`() = runTest {
         start()
 

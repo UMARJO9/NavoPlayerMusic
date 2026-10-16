@@ -41,7 +41,15 @@ internal class QueueViewModel @Inject constructor(
             is QueueIntent.RemoveClicked -> onRemoveClicked(intent.id)
             is QueueIntent.MoveItem -> onMoveItem(intent.id, intent.toIndex)
             QueueIntent.CloseClicked -> requestClose()
+            QueueIntent.SheetDismissed -> resetSession()
         }
+    }
+
+    private fun resetSession() {
+        stopObserving()
+        closeRequested = false
+        lastQueue = null
+        setState { QueueState() }
     }
 
     private fun startObserving() {
