@@ -17,8 +17,23 @@ android {
         versionName = "1.0"
     }
 
+    val releaseStoreFile = providers.gradleProperty("NAVO_RELEASE_STORE_FILE").orNull
+    if (releaseStoreFile != null) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(releaseStoreFile)
+                storePassword = providers.gradleProperty("NAVO_RELEASE_STORE_PASSWORD").get()
+                keyAlias = providers.gradleProperty("NAVO_RELEASE_KEY_ALIAS").get()
+                keyPassword = providers.gradleProperty("NAVO_RELEASE_KEY_PASSWORD").get()
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (releaseStoreFile != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             optimization {
                 enable = false
             }
