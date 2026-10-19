@@ -46,6 +46,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 
@@ -73,6 +74,7 @@ fun NavoTabStrip(
     modifier: Modifier = Modifier,
     description: String? = null,
     contentPadding: PaddingValues = PaddingValues(0.dp),
+    blockCorner: Dp = IndicatorCorner + StripInset,
     indicatorPosition: () -> Float = { selectedIndex.toFloat() },
 ) {
     val colors = NavoTheme.colors
@@ -80,6 +82,7 @@ fun NavoTabStrip(
     val baseStyle = NavoTheme.typography.label.copy(fontWeight = FontWeight.SemiBold)
     val textMeasurer = rememberTextMeasurer()
     val indicatorCornerPx = with(density) { IndicatorCorner.toPx() }
+    val blockCornerPx = with(density) { blockCorner.toPx() }
     val glassBackdrop = rememberNavoGlassBackdrop()
     val lensStyle = NavoGlassDefaults.lens()
     val tabBounds = remember(titles) { mutableStateMapOf<Int, TabSpan>() }
@@ -120,7 +123,7 @@ fun NavoTabStrip(
                         }
                     }
                     .navoGlassSource(glassBackdrop)
-                    .drawBehind { drawStripGlow(colors.raised, colors.accent, colors.turquoise, StripInset.toPx(), indicatorCornerPx + StripInset.toPx()) },
+                    .drawBehind { drawStripGlow(colors.raised, colors.accent, colors.turquoise, StripInset.toPx(), blockCornerPx) },
                 tabModifier = { index ->
                     Modifier
                         .onPlaced { coordinates ->

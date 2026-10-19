@@ -128,7 +128,8 @@ private fun LibraryTabs(
         onTabClick = { index -> onTabClick(tabs[index]) },
         modifier = Modifier.fillMaxWidth(),
         description = stringResource(R.string.library_sections),
-        contentPadding = PaddingValues(horizontal = NavoSpacing.ScreenHorizontal, vertical = NavoSpacing.Small),
+        contentPadding = PaddingValues(vertical = NavoSpacing.Small),
+        blockCorner = 0.dp,
         indicatorPosition = indicatorPosition,
     )
 }
