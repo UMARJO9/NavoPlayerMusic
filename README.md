@@ -166,7 +166,7 @@ Issues and pull requests are welcome.
 ## License
 
 ```
-Copyright 2026 Navo contributors
+Copyright 2026 Umarchon Nurmadov
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
