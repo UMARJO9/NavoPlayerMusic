@@ -47,9 +47,9 @@ private const val LENS_HIGHLIGHT_ALPHA = 0.9f
 
 internal fun lensGlassStyle(colors: NavoColors): NavoGlassStyle = NavoGlassStyle(
     blurRadius = 0.dp,
-    refractionHeight = 14.dp,
-    refractionAmount = 22.dp,
-    chromaticAberration = true,
+    refractionHeight = 0.dp,
+    refractionAmount = 0.dp,
+    chromaticAberration = false,
     saturation = LENS_SATURATION,
     brightness = LENS_BRIGHTNESS,
     tint = colors.accent.copy(alpha = LENS_TINT_ALPHA),
